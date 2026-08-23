@@ -16,13 +16,15 @@ export const cloudEnabled = Boolean(url && anonKey);
 export const supabase = cloudEnabled ? createClient(url!, anonKey!) : null;
 
 export interface CloudUser {
-  email: string;
+  email?: string;
+  phone?: string;
 }
 
 export async function getCloudUser(): Promise<CloudUser | null> {
   if (!supabase) return null;
   const { data } = await supabase.auth.getUser();
-  return data.user?.email ? { email: data.user.email } : null;
+  if (!data.user?.email && !data.user?.phone) return null;
+  return { email: data.user.email || undefined, phone: data.user.phone || undefined };
 }
 
 export async function signUpEmail(
@@ -42,6 +44,36 @@ export async function signInEmail(
 ): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: "cloud-disabled" };
   const { error } = await supabase.auth.signInWithPassword({ email, password });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+export async function signUpPhone(
+  phone: string,
+  password: string,
+): Promise<{ ok: boolean; needsConfirm?: boolean; error?: string }> {
+  if (!supabase) return { ok: false, error: "cloud-disabled" };
+  const { data, error } = await supabase.auth.signUp({ phone, password });
+  if (error) return { ok: false, error: error.message };
+  // SMS doğrulaması açıksa oturum hemen oluşmaz, kod girişi gerekir
+  return { ok: true, needsConfirm: !data.session };
+}
+
+export async function signInPhone(
+  phone: string,
+  password: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!supabase) return { ok: false, error: "cloud-disabled" };
+  const { error } = await supabase.auth.signInWithPassword({ phone, password });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
+/** Telefona gelen SMS kodunu doğrular; başarılıysa oturumu doğrudan açar. */
+export async function verifyPhoneOtp(
+  phone: string,
+  token: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!supabase) return { ok: false, error: "cloud-disabled" };
+  const { error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 

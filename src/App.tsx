@@ -25,8 +25,11 @@ import {
   pullVaultData,
   pushVaultData,
   signInEmail,
+  signInPhone,
   signOutCloud,
   signUpEmail,
+  signUpPhone,
+  verifyPhoneOtp,
   type CloudUser,
 } from "./lib/cloud";
 import { getGuideOrGeneric } from "./data/guides";
@@ -331,6 +334,42 @@ export default function App() {
     return null;
   }
 
+  async function handleCloudSignInPhone(phone: string, password: string): Promise<string | null> {
+    const result = await signInPhone(phone, password);
+    if (!result.ok) return result.error ?? "error";
+    const user = await getCloudUser();
+    setCloudUser(user);
+    await pullAndMerge();
+    setToast(t("toast.cloudSynced"));
+    return null;
+  }
+
+  async function handleCloudSignUpPhone(
+    phone: string,
+    password: string,
+  ): Promise<{ error: string | null; needsOtp: boolean }> {
+    const result = await signUpPhone(phone, password);
+    if (!result.ok) return { error: result.error ?? "error", needsOtp: false };
+    if (result.needsConfirm) return { error: null, needsOtp: true };
+    const user = await getCloudUser();
+    setCloudUser(user);
+    await pushVaultData(vault);
+    lastPushedAtRef.current = Date.now();
+    setToast(t("toast.cloudSynced"));
+    return { error: null, needsOtp: false };
+  }
+
+  async function handleCloudVerifyPhoneOtp(phone: string, token: string): Promise<string | null> {
+    const result = await verifyPhoneOtp(phone, token);
+    if (!result.ok) return result.error ?? "error";
+    const user = await getCloudUser();
+    setCloudUser(user);
+    await pushVaultData(vault);
+    lastPushedAtRef.current = Date.now();
+    setToast(t("toast.cloudSynced"));
+    return null;
+  }
+
   async function handleCloudSignOut(): Promise<void> {
     await signOutCloud();
     setCloudUser(null);
@@ -461,6 +500,9 @@ export default function App() {
               cloudUser={cloudUser}
               onCloudSignIn={handleCloudSignIn}
               onCloudSignUp={handleCloudSignUp}
+              onCloudSignInPhone={handleCloudSignInPhone}
+              onCloudSignUpPhone={handleCloudSignUpPhone}
+              onCloudVerifyPhoneOtp={handleCloudVerifyPhoneOtp}
               onCloudSignOut={handleCloudSignOut}
             />
           )}

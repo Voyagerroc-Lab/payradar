@@ -7,6 +7,10 @@ create table if not exists public.vaults (
   updated_at timestamptz not null default now()
 );
 
+-- id'nin varsayılanı olmadan client'taki upsert(id vermeden) NOT NULL hatası verir;
+-- var olan kurulumlarda da geriye dönük uygulanabilsin diye ayrı bir ALTER olarak da çalıştırılıyor.
+alter table public.vaults alter column id set default auth.uid();
+
 alter table public.vaults enable row level security;
 
 -- Kullanıcı SADECE kendi satırını görebilir/güncelleyebilir
