@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.payradar_pink.twa",
+        "sha256_cert_fingerprints": ["5B:43:2A:C8:74:F5:79:23:76:8B:59:A4:FE:29:20:41:DE:D5:A4:B9:41:2B:59:D3:16:B0:D5:9E:E7:E7:48:79"]
+      }
+    }]
