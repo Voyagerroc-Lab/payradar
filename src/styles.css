@@ -315,6 +315,7 @@ button {
 
 .sub-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   padding: 16px;
@@ -352,7 +353,7 @@ button {
 
 .sub-info {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 180px;
 }
 
 .sub-title-row {
@@ -404,7 +405,9 @@ button {
 
 .sub-actions {
   display: flex;
+  flex-wrap: wrap;
   flex-shrink: 0;
+  justify-content: flex-end;
   align-items: center;
   gap: 6px;
 }
@@ -941,12 +944,7 @@ textarea.input {
     flex: 1;
   }
 
-  .sub-card {
-    flex-wrap: wrap;
-  }
-
   .sub-actions {
     width: 100%;
-    justify-content: flex-end;
   }
 }
