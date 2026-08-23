@@ -1,7 +1,8 @@
-import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
-import { todayISO } from "./format";
+import type { BillingCycle, CategoryId, Currency, Payment, PricePoint } from "../types";
+import { parseAmount, todayISO } from "./format";
 
-const HEADER = "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes";
+const HEADER =
+  "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory";
 
 const CURRENCIES: Currency[] = ["TRY", "USD", "EUR"];
 const CYCLES: BillingCycle[] = ["weekly", "monthly", "quarterly", "yearly"];
@@ -28,6 +29,7 @@ export function exportCsv(payments: Payment[]): void {
       p.nextPaymentDate,
       p.categoryId,
       p.notes ?? "",
+      p.priceHistory?.length ? JSON.stringify(p.priceHistory) : "",
     ]
       .map(csvEscape)
       .join(","),
@@ -128,11 +130,11 @@ function parseCsvLine(line: string): string[] {
 }
 
 function toPayment(fields: string[]): Payment | null {
-  const [rawName, rawPrice, rawCurrency, rawCycle, rawDate, rawCategory, notes] =
+  const [rawName, rawPrice, rawCurrency, rawCycle, rawDate, rawCategory, notes, rawHistory] =
     fields.map((f) => f.trim());
 
   const name = rawName;
-  const price = Number(rawPrice.replace(",", "."));
+  const price = parseAmount(rawPrice);
   const currency = rawCurrency.toUpperCase() as Currency;
   const billingCycle = rawCycle.toLowerCase() as BillingCycle;
   const categoryId = rawCategory.toLowerCase() as CategoryId;
@@ -155,7 +157,26 @@ function toPayment(fields: string[]): Payment | null {
     categoryId,
     notes: notes || undefined,
     createdAt: Date.now(),
+    priceHistory: parsePriceHistory(rawHistory),
   };
+}
+
+function parsePriceHistory(raw: string | undefined): PricePoint[] | undefined {
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return undefined;
+    const points = parsed.filter(
+      (p): p is PricePoint =>
+        typeof p === "object" &&
+        p !== null &&
+        typeof p.date === "string" &&
+        typeof p.price === "number",
+    );
+    return points.length ? points : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function normalizeDate(input: string): string | null {

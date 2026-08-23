@@ -44,6 +44,7 @@ import GuideModal from "./components/GuideModal";
 import PriceChartModal from "./components/PriceChartModal";
 import SettingsModal from "./components/SettingsModal";
 import LockScreen from "./components/LockScreen";
+import ConfirmModal from "./components/ConfirmModal";
 
 const REPO_URL = "https://github.com/Voyagerroc/payradar";
 
@@ -78,6 +79,7 @@ export default function App() {
   const [editor, setEditor] = useState<EditorState>(null);
   const [guideFor, setGuideFor] = useState<Payment | null>(null);
   const [chartFor, setChartFor] = useState<Payment | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -100,7 +102,7 @@ export default function App() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cloudEnabled]);
+  }, [cloudEnabled, mode]);
 
   /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle. */
   async function pullAndMerge() {
@@ -153,6 +155,13 @@ export default function App() {
   useEffect(() => {
     if (mode !== "ready" || !vault.notificationsEnabled) return;
     checkUpcomingPayments(vault.payments, vault.reminderDays);
+    // Uygulama uzun süre açık kalırsa (kurulu PWA/TWA) bir ödeme hatırlatma
+    // aralığına saatler sonra girebilir; periyodik olarak yeniden kontrol et.
+    const interval = setInterval(
+      () => checkUpcomingPayments(vault.payments, vault.reminderDays),
+      30 * 60_000,
+    );
+    return () => clearInterval(interval);
   }, [vault.payments, vault.notificationsEnabled, vault.reminderDays, mode]);
 
   /* ---------- Toast ---------- */
@@ -240,13 +249,23 @@ export default function App() {
     wipeAllData();
     sessionKeyRef.current = null;
     setPrefs({ ...DEFAULT_PREFS });
-    setVault({ ...DEFAULT_VAULT, payments: [] });
+    const wiped: VaultData = { ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() };
+    setVault(wiped);
     setMode("ready");
+    // Bulutta hâlâ eski veri kalmasın; oturum açıksa boş vault'u hemen üzerine yaz.
+    if (cloudUser) {
+      lastPushedAtRef.current = Date.now();
+      void pushVaultData(wiped);
+    }
   }
 
   /* ---------- Ödeme işlemleri ---------- */
+  function touchVault(updater: (v: VaultData) => VaultData) {
+    setVault((v) => ({ ...updater(v), updatedAt: Date.now() }));
+  }
+
   function handleSave(payment: Payment) {
-    setVault((v) => {
+    touchVault((v) => {
       const index = v.payments.findIndex((x) => x.id === payment.id);
       const payments =
         index === -1
@@ -263,8 +282,14 @@ export default function App() {
   function handleDelete(id: string) {
     const payment = vault.payments.find((p) => p.id === id);
     if (!payment) return;
-    if (!window.confirm(t("confirm.deletePayment", { name: payment.name }))) return;
-    setVault((v) => ({ ...v, payments: v.payments.filter((p) => p.id !== id) }));
+    setDeleteTarget(payment);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
+    touchVault((v) => ({ ...v, payments: v.payments.filter((p) => p.id !== id) }));
+    setDeleteTarget(null);
     setToast(t("toast.deleted"));
   }
 
@@ -287,7 +312,7 @@ export default function App() {
     const { payments, skipped } = parseCsv(text);
     let added = 0;
 
-    setVault((v) => {
+    touchVault((v) => {
       const existing = new Set(
         v.payments.map((p) => `${p.name}|${p.nextPaymentDate}|${p.price}`),
       );
@@ -377,7 +402,7 @@ export default function App() {
   }
 
   function handleDemo() {
-    setVault((v) => ({ ...v, payments: buildDemoPayments() }));
+    touchVault((v) => ({ ...v, payments: buildDemoPayments() }));
     setToast(t("toast.demoLoaded"));
   }
 
@@ -480,6 +505,14 @@ export default function App() {
             <PriceChartModal payment={chartFor} onClose={() => setChartFor(null)} />
           )}
 
+          {deleteTarget && (
+            <ConfirmModal
+              message={t("confirm.deletePayment", { name: deleteTarget.name })}
+              onCancel={() => setDeleteTarget(null)}
+              onConfirm={confirmDelete}
+            />
+          )}
+
           {settingsOpen && (
             <SettingsModal
               prefs={prefs}
@@ -490,7 +523,7 @@ export default function App() {
                 setSettingsOpen(false);
                 setToast(t("toast.settingsSaved"));
               }}
-              onSaveVault={(v) => setVault(v)}
+              onSaveVault={(v) => setVault({ ...v, updatedAt: Date.now() })}
               onEnableLock={handleEnableLock}
               onChangePin={handleChangePin}
               onDisableLock={handleDisableLock}

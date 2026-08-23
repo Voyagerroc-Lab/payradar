@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
-import { CATEGORIES } from "../lib/format";
+import { CATEGORIES, parseAmount } from "../lib/format";
 import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 
@@ -35,7 +35,7 @@ export default function PaymentFormModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmedName = name.trim();
-    const parsedPrice = Number(price.replace(",", "."));
+    const parsedPrice = parseAmount(price);
 
     if (!trimmedName) return setError(t("form.error.name"));
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0)

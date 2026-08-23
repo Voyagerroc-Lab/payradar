@@ -12,7 +12,11 @@ function loadNotified(): Record<string, string> {
 }
 
 function saveNotified(map: Record<string, string>): void {
-  localStorage.setItem(NOTIFIED_KEY, JSON.stringify(map));
+  try {
+    localStorage.setItem(NOTIFIED_KEY, JSON.stringify(map));
+  } catch {
+    /* depolama dolu/erişilemez olabilir; bildirim bir dahaki değişiklikte tekrar denenir */
+  }
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {

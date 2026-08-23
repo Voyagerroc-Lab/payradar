@@ -84,6 +84,7 @@ const tr = {
   "form.error.date": "Geçerli bir ödeme tarihi seç.",
   "action.cancel": "Vazgeç",
   "action.save": "Kaydet",
+  "action.confirm": "Onayla",
 
   // İptal rehberi
   "guide.modalTitle": "{name} — İptal Rehberi",
@@ -155,6 +156,8 @@ const tr = {
   "account.hint":
     "Hesap oluştur; verilerin yalnızca kendi e-postana ya da telefon numarana kaydedilir ve tüm cihazlarında senkronize olur. İnternet olmadan da uygulamayı kullanmaya devam edebilirsin.",
   "account.needsConfirm": "E-postanı doğrula, ardından giriş yap.",
+  "account.cloudNotEncryptedHint":
+    "PIN kilidi yalnızca bu cihazdaki veriyi şifreler. Bulut senkronu açıksa veriler Supabase'te (kendi hesabının koruması altında) şifresiz saklanır.",
   "account.otpHint": "{phone} numarasına gönderilen doğrulama kodunu gir.",
   "account.otpCode": "Doğrulama kodu",
   "account.verifyOtp": "Doğrula",
@@ -192,6 +195,7 @@ const tr = {
   "toast.lockDisabled": "Kilit kaldırıldı",
   "toast.pinChanged": "PIN değiştirildi",
   "toast.locked": "Uygulama kilitlendi",
+  "confirm.title": "Emin misin?",
   "confirm.deletePayment": '"{name}" silinsin mi?',
   "confirm.wipe": "Tüm veriler silinsin mi? Bu işlem geri alınamaz!",
 };
@@ -275,6 +279,7 @@ const en: Record<TranslationKey, string> = {
   "form.error.date": "Pick a valid payment date.",
   "action.cancel": "Cancel",
   "action.save": "Save",
+  "action.confirm": "Confirm",
 
   "guide.modalTitle": "{name} — Cancel Guide",
   "guide.intro":
@@ -340,6 +345,8 @@ const en: Record<TranslationKey, string> = {
   "account.hint":
     "Create an account to back up your payments under your own email or phone number and sync across all your devices. The app keeps working offline.",
   "account.needsConfirm": "Confirm your email, then sign in.",
+  "account.cloudNotEncryptedHint":
+    "PIN lock only encrypts data on this device. When cloud sync is on, data is stored unencrypted in Supabase (protected by your own project's access controls).",
   "account.otpHint": "Enter the verification code sent to {phone}.",
   "account.otpCode": "Verification code",
   "account.verifyOtp": "Verify",
@@ -374,6 +381,7 @@ const en: Record<TranslationKey, string> = {
   "toast.lockDisabled": "Lock removed",
   "toast.pinChanged": "PIN changed",
   "toast.locked": "App locked",
+  "confirm.title": "Are you sure?",
   "confirm.deletePayment": 'Delete "{name}"?',
   "confirm.wipe": "Erase all data? This cannot be undone!",
 };

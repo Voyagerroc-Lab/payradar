@@ -45,6 +45,24 @@ export function monthlyAmount(price: number, cycle: BillingCycle): number {
   }
 }
 
+/**
+ * "149,99", "18.500,50" (TR) ve "18,500.50" (US) gibi biçimleri doğru ayrıştırır.
+ * Virgül ve nokta birlikte geçiyorsa sondaki ondalık ayracıdır, diğeri binlik ayracı sayılıp atılır.
+ */
+export function parseAmount(raw: string): number {
+  const s = raw.trim();
+  if (!s) return NaN;
+  const hasComma = s.includes(",");
+  const hasDot = s.includes(".");
+  if (hasComma && hasDot) {
+    return s.lastIndexOf(",") > s.lastIndexOf(".")
+      ? Number(s.replace(/\./g, "").replace(",", "."))
+      : Number(s.replace(/,/g, ""));
+  }
+  if (hasComma) return Number(s.replace(",", "."));
+  return Number(s);
+}
+
 export function todayISO(): string {
   const now = new Date();
   const y = now.getFullYear();

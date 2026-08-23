@@ -305,6 +305,9 @@ export default function SettingsModal({
 
         {/* ---------- Hesap ---------- */}
         <h3 className="section-title">{t("account.title")}</h3>
+        {cloudEnabled && draftPrefs.lockEnabled && (
+          <p className="field-hint strong-hint">⚠️ {t("account.cloudNotEncryptedHint")}</p>
+        )}
         {!cloudEnabled ? (
           <p className="field-hint">{t("account.disabledHint")}</p>
         ) : cloudUser ? (

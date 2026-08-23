@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "../i18n";
+import ConfirmModal from "./ConfirmModal";
 
 interface LockScreenProps {
   onUnlock: (pin: string) => Promise<boolean>;
@@ -11,6 +12,7 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [confirmingWipe, setConfirmingWipe] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,13 +58,22 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
         <button
           type="button"
           className="lock-wipe"
-          onClick={() => {
-            if (window.confirm(t("lock.wipeConfirmText"))) onWipe();
-          }}
+          onClick={() => setConfirmingWipe(true)}
         >
           {t("lock.forgot")}
         </button>
       </form>
+
+      {confirmingWipe && (
+        <ConfirmModal
+          message={t("lock.wipeConfirmText")}
+          onCancel={() => setConfirmingWipe(false)}
+          onConfirm={() => {
+            setConfirmingWipe(false);
+            onWipe();
+          }}
+        />
+      )}
     </div>
   );
 }

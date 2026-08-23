@@ -29,19 +29,22 @@ PayRadar is a free, open-source recurring payment tracker that runs entirely in 
 | Auto-lock | Locks after configurable inactivity (1/3/5/10 min) |
 | Timing-safe comparison | Verify hash compared without early exit |
 | Strict CSP & headers | `vercel.json` + `_headers` ship hardened defaults |
-| Zero network calls | No analytics, no trackers, no third-party requests |
+| Zero network calls | No analytics, no trackers, no third-party requests (unless cloud sync is enabled) |
 
 > ⚠️ Forgot your PIN? The data cannot be recovered — the lock screen offers a deliberate wipe option instead. This is by design.
 
+> ⚠️ PIN lock only protects the copy stored **on this device**. If you also enable cloud sync below, your data is uploaded to your own Supabase project **unencrypted** (protected there by Row Level Security and your project's own access controls, not by your local PIN).
+
 ## ☁️ Optional Cloud Sync (Free)
 
-PayRadar works fully offline by default. Want your payments backed up under your own email and synced across devices? Enable free cloud sync in 3 minutes:
+PayRadar works fully offline by default. Want your payments backed up under your own email/phone and synced across devices? Enable free cloud sync in 3 minutes:
 
 1. Create a free project at [supabase.com](https://supabase.com) (no credit card)
 2. Open **SQL Editor** and run [`supabase-setup.sql`](supabase-setup.sql) — this creates a `vaults` table protected by Row Level Security, so **every user can only ever read/write their own row**
 3. Copy `.env.example` → `.env` and paste your project URL + anon key
+4. To let people sign up with a phone number too, enable **Authentication → Providers → Phone** in your Supabase project and connect an SMS provider (e.g. Twilio) — this is a paid, external service you configure yourself
 
-Restart the app — a new **Account ☁️** section appears in Settings. Sign up with any email; from then on every change auto-syncs. No account? Everything still works 100% locally.
+Restart the app — a new **Account ☁️** section appears in Settings. Sign up with an email or phone number; from then on every change auto-syncs. No account? Everything still works 100% locally.
 
 ## 🛠️ Tech
 
