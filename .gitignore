@@ -27,3 +27,10 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# iOS (Xcode/CocoaPods; Codemagic installs Pods fresh in CI)
+ios/Pods
+ios/*.xcworkspace/xcuserdata
+ios/*.xcodeproj/xcuserdata
+ios/*.xcodeproj/project.xcworkspace/xcuserdata
+ios/DerivedData
