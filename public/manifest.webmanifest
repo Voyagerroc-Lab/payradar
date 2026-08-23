@@ -1,0 +1,19 @@
+{
+  "name": "PayRadar",
+  "short_name": "PayRadar",
+  "description": "Track all your recurring payments — rent, bills, subscriptions — encrypted on your device.",
+  "lang": "tr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#101114",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
