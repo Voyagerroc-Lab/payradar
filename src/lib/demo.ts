@@ -16,7 +16,12 @@ export function buildDemoPayments(): Payment[] {
     { name: "Elektrik Faturası", price: 850, daysFromNow: 3, categoryId: "faturalar" },
     { name: "İnternet (Türk Telekom)", price: 649, daysFromNow: 7, categoryId: "faturalar" },
     { name: "Netflix", price: 149.99, daysFromNow: 2, categoryId: "abonelik" },
-    { name: "Spotify Premium", price: 59.99, daysFromNow: 5, categoryId: "abonelik" },
+    {
+      name: "Spotify Premium",
+      price: 59.99,
+      daysFromNow: 5,
+      categoryId: "abonelik",
+    },
     { name: "Xbox Game Pass Ultimate", price: 249.0, daysFromNow: 20, categoryId: "oyun" },
     { name: "iCloud+ 200GB", price: 29.99, daysFromNow: 8, categoryId: "diger" },
     {
@@ -48,6 +53,14 @@ export function buildDemoPayments(): Payment[] {
       nextPaymentDate: date.toISOString().slice(0, 10),
       categoryId: input.categoryId,
       createdAt: now + index,
+      // Netflix'e örnek zam geçmişi: grafik özelliğini göstermek için
+      priceHistory:
+        input.name === "Netflix"
+          ? [
+              { date: "2024-01-15", price: 99.99 },
+              { date: "2025-02-01", price: 129.99 },
+            ]
+          : undefined,
     };
   });
 }

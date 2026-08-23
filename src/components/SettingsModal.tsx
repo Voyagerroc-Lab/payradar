@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Modal from "./Modal";
 import { requestNotificationPermission } from "../lib/notify";
 import type { Language, Prefs, VaultData } from "../types";
+import type { CloudUser } from "../lib/cloud";
 import { useI18n } from "../i18n";
 
 interface SettingsModalProps {
@@ -13,6 +14,13 @@ interface SettingsModalProps {
   onEnableLock: (pin: string) => Promise<boolean>;
   onChangePin: (oldPin: string, newPin: string) => Promise<boolean>;
   onDisableLock: (pin: string) => Promise<boolean>;
+  onExportCsv: () => void;
+  onImportCsv: (file: File) => void;
+  cloudEnabled: boolean;
+  cloudUser: CloudUser | null;
+  onCloudSignIn: (email: string, password: string) => Promise<string | null>;
+  onCloudSignUp: (email: string, password: string) => Promise<string | null>;
+  onCloudSignOut: () => Promise<void>;
 }
 
 const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
@@ -26,10 +34,24 @@ export default function SettingsModal({
   onEnableLock,
   onChangePin,
   onDisableLock,
+  onExportCsv,
+  onImportCsv,
+  cloudEnabled,
+  cloudUser,
+  onCloudSignIn,
+  onCloudSignUp,
+  onCloudSignOut,
 }: SettingsModalProps) {
   const { t, setLang } = useI18n();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
+
+  // Hesap formu
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
 
   // PIN form durumları
   const [newPin, setNewPin] = useState("");
@@ -94,6 +116,23 @@ export default function SettingsModal({
     setConfirmPin("");
     setCurrentPin("");
     setPinError("");
+  }
+
+  async function runAuth(
+    action: (email: string, password: string) => Promise<string | null>,
+  ) {
+    if (!authEmail || !authPassword) {
+      setAuthError(t("account.error.missing"));
+      return;
+    }
+    setAuthBusy(true);
+    const error = await action(authEmail.trim(), authPassword);
+    setAuthBusy(false);
+    setAuthError(error ? t("account.error.generic", { msg: error }) : "");
+    if (!error) {
+      setAuthEmail("");
+      setAuthPassword("");
+    }
   }
 
   return (
@@ -187,6 +226,96 @@ export default function SettingsModal({
             <option value="dark">{t("theme.dark")}</option>
           </select>
         </label>
+
+        {/* ---------- Hesap ---------- */}
+        <h3 className="section-title">{t("account.title")}</h3>
+        {!cloudEnabled ? (
+          <p className="field-hint">{t("account.disabledHint")}</p>
+        ) : cloudUser ? (
+          <>
+            <p className="field-hint strong-hint">
+              ✅ {t("account.signedInAs", { email: cloudUser.email })}
+            </p>
+            <div className="form-actions">
+              <button
+                className="btn btn-secondary"
+                disabled={authBusy}
+                onClick={() => void onCloudSignOut()}
+              >
+                {t("account.signOut")}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="field-hint">{t("account.hint")}</p>
+            <label className="field">
+              <span>{t("account.email")}</span>
+              <input
+                className="input"
+                type="email"
+                autoComplete="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="ornek@mail.com"
+              />
+            </label>
+            <label className="field">
+              <span>{t("account.password")}</span>
+              <input
+                className="input"
+                type="password"
+                autoComplete="current-password"
+                minLength={6}
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+              />
+            </label>
+            {authError && <p className="form-error">{authError}</p>}
+            <div className="form-actions security-actions">
+              <button
+                className="btn btn-secondary"
+                disabled={authBusy}
+                onClick={() => void runAuth(onCloudSignUp)}
+              >
+                {t("account.signUp")}
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={authBusy}
+                onClick={() => void runAuth(onCloudSignIn)}
+              >
+                {t("account.signIn")}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ---------- Veri Yedekleme ---------- */}
+        <h3 className="section-title">{t("data.title")}</h3>
+        <p className="field-hint">{t("data.importHint")}</p>
+        <div className="form-row">
+          <button className="btn btn-secondary" onClick={onExportCsv}>
+            ⬇️ {t("data.exportBtn")}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            ⬆️ {t("data.importBtn")}
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onImportCsv(file);
+            e.target.value = "";
+          }}
+        />
 
         {/* ---------- Güvenlik ---------- */}
         <h3 className="section-title">{t("security.title")}</h3>

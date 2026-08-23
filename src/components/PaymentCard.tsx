@@ -9,6 +9,7 @@ interface PaymentCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onShowGuide: () => void;
+  onShowHistory?: () => void;
 }
 
 export default function PaymentCard({
@@ -16,6 +17,7 @@ export default function PaymentCard({
   onEdit,
   onDelete,
   onShowGuide,
+  onShowHistory,
 }: PaymentCardProps) {
   const { t, lang } = useI18n();
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
@@ -55,6 +57,16 @@ export default function PaymentCard({
         {hasGuide && (
           <button className="btn btn-secondary" onClick={onShowGuide}>
             {t("card.guide")}
+          </button>
+        )}
+        {onShowHistory && (
+          <button
+            className="icon-btn"
+            onClick={onShowHistory}
+            aria-label={t("aria.history", { name: payment.name })}
+            title={t("aria.history", { name: payment.name })}
+          >
+            📈
           </button>
         )}
         <button

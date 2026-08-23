@@ -17,7 +17,18 @@ import {
 } from "./lib/storage";
 import { checkUpcomingPayments, requestNotificationPermission } from "./lib/notify";
 import { buildDemoPayments } from "./lib/demo";
-import { monthlyAmount, nextOccurrence } from "./lib/format";
+import { exportCsv, parseCsv } from "./lib/csv";
+import { monthlyAmount, nextOccurrence, todayISO } from "./lib/format";
+import {
+  cloudEnabled,
+  getCloudUser,
+  pullVaultData,
+  pushVaultData,
+  signInEmail,
+  signOutCloud,
+  signUpEmail,
+  type CloudUser,
+} from "./lib/cloud";
 import { getGuideOrGeneric } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
@@ -27,8 +38,11 @@ import Toolbar, { type SortKey } from "./components/Toolbar";
 import PaymentCard from "./components/PaymentCard";
 import PaymentFormModal from "./components/PaymentFormModal";
 import GuideModal from "./components/GuideModal";
+import PriceChartModal from "./components/PriceChartModal";
 import SettingsModal from "./components/SettingsModal";
 import LockScreen from "./components/LockScreen";
+
+const REPO_URL = "https://github.com/Voyagerroc/payradar";
 
 type EditorState = Payment | "new" | null;
 type Mode = "loading" | "locked" | "ready";
@@ -60,11 +74,60 @@ export default function App() {
   const [sort, setSort] = useState<SortKey>("date");
   const [editor, setEditor] = useState<EditorState>(null);
   const [guideFor, setGuideFor] = useState<Payment | null>(null);
+  const [chartFor, setChartFor] = useState<Payment | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
+  const lastPushedAtRef = useRef(0);
 
   const t = useMemo(() => makeT(prefs.language), [prefs.language]);
+
+  /* ---------- Bulut oturumu ---------- */
+  useEffect(() => {
+    if (!cloudEnabled || mode !== "ready") return;
+    let cancelled = false;
+    void (async () => {
+      const user = await getCloudUser();
+      if (cancelled || !user) return;
+      setCloudUser(user);
+      await pullAndMerge();
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudEnabled]);
+
+  /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle. */
+  async function pullAndMerge() {
+    const remote = await pullVaultData();
+    if (!remote) return;
+    const remoteData = asVaultData(remote.data, remote.updatedAt);
+
+    setVault((current) => {
+      if (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0)) {
+        // Yerel daha güncel -> buluta yaz
+        lastPushedAtRef.current = Date.now();
+        void pushVaultData(current);
+        return current;
+      }
+      lastPushedAtRef.current = Date.now();
+      setToast(t("toast.cloudPulled"));
+      return { ...current, ...remoteData };
+    });
+  }
+
+  /* ---------- Buluta otomatik kaydetme (1.5 sn debounced) ---------- */
+  useEffect(() => {
+    if (mode !== "ready" || !cloudUser) return;
+    if (vault.updatedAt <= lastPushedAtRef.current) return;
+    const timer = setTimeout(() => {
+      lastPushedAtRef.current = Date.now();
+      void pushVaultData(vault);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [vault, cloudUser, mode]);
 
   /* ---------- Kalıcılık ---------- */
   useEffect(() => {
@@ -185,7 +248,9 @@ export default function App() {
       const payments =
         index === -1
           ? [...v.payments, payment]
-          : v.payments.map((x, i) => (i === index ? payment : x));
+          : v.payments.map((x, i) =>
+              i === index ? withPriceHistory(v.payments[i], payment) : x,
+            );
       return { ...v, payments };
     });
     setEditor(null);
@@ -198,6 +263,78 @@ export default function App() {
     if (!window.confirm(t("confirm.deletePayment", { name: payment.name }))) return;
     setVault((v) => ({ ...v, payments: v.payments.filter((p) => p.id !== id) }));
     setToast(t("toast.deleted"));
+  }
+
+  /** Fiyat/para birimi değiştiyse eski fiyatı geçmişe işler. */
+  function withPriceHistory(prev: Payment, next: Payment): Payment {
+    if (prev.price === next.price && prev.currency === next.currency) {
+      return next.priceHistory ? next : { ...next, priceHistory: prev.priceHistory };
+    }
+    return {
+      ...next,
+      priceHistory: [
+        ...(prev.priceHistory ?? []),
+        { date: todayISO(), price: prev.price },
+      ],
+    };
+  }
+
+  async function handleImportCsv(file: File) {
+    const text = await file.text();
+    const { payments, skipped } = parseCsv(text);
+    let added = 0;
+
+    setVault((v) => {
+      const existing = new Set(
+        v.payments.map((p) => `${p.name}|${p.nextPaymentDate}|${p.price}`),
+      );
+      const fresh = payments.filter((p) => {
+        const key = `${p.name}|${p.nextPaymentDate}|${p.price}`;
+        if (existing.has(key)) return false;
+        existing.add(key);
+        added++;
+        return true;
+      });
+      return { ...v, payments: [...v.payments, ...fresh] };
+    });
+
+    setToast(t("toast.importDone", { added, skipped }));
+  }
+
+  function handleExportCsv() {
+    exportCsv(vault.payments);
+  }
+
+  /* ---------- Bulut hesap işlemleri ---------- */
+  async function handleCloudSignIn(email: string, password: string): Promise<string | null> {
+    const result = await signInEmail(email, password);
+    if (!result.ok) return result.error ?? "error";
+    const user = await getCloudUser();
+    setCloudUser(user);
+    await pullAndMerge();
+    setToast(t("toast.cloudSynced"));
+    return null;
+  }
+
+  async function handleCloudSignUp(email: string, password: string): Promise<string | null> {
+    const result = await signUpEmail(email, password);
+    if (!result.ok) return result.error ?? "error";
+    if (result.needsConfirm) {
+      setToast(t("account.needsConfirm"));
+      return null;
+    }
+    const user = await getCloudUser();
+    setCloudUser(user);
+    await pushVaultData(vault);
+    lastPushedAtRef.current = Date.now();
+    setToast(t("toast.cloudSynced"));
+    return null;
+  }
+
+  async function handleCloudSignOut(): Promise<void> {
+    await signOutCloud();
+    setCloudUser(null);
+    lastPushedAtRef.current = 0;
   }
 
   function handleDemo() {
@@ -267,9 +404,14 @@ export default function App() {
                       <PaymentCard
                         key={payment.id}
                         payment={payment}
-                        onEdit={() => setEditor(payment)}
-                        onDelete={() => handleDelete(payment.id)}
-                        onShowGuide={() => setGuideFor(payment)}
+                      onEdit={() => setEditor(payment)}
+                      onDelete={() => handleDelete(payment.id)}
+                      onShowGuide={() => setGuideFor(payment)}
+                      onShowHistory={
+                        payment.priceHistory?.length
+                          ? () => setChartFor(payment)
+                          : undefined
+                      }
                       />
                     ))}
                   </div>
@@ -295,6 +437,10 @@ export default function App() {
             />
           )}
 
+          {chartFor && (
+            <PriceChartModal payment={chartFor} onClose={() => setChartFor(null)} />
+          )}
+
           {settingsOpen && (
             <SettingsModal
               prefs={prefs}
@@ -309,6 +455,13 @@ export default function App() {
               onEnableLock={handleEnableLock}
               onChangePin={handleChangePin}
               onDisableLock={handleDisableLock}
+              onExportCsv={handleExportCsv}
+              onImportCsv={(file) => void handleImportCsv(file)}
+              cloudEnabled={cloudEnabled}
+              cloudUser={cloudUser}
+              onCloudSignIn={handleCloudSignIn}
+              onCloudSignUp={handleCloudSignUp}
+              onCloudSignOut={handleCloudSignOut}
             />
           )}
 
@@ -322,9 +475,23 @@ export default function App() {
             )}
 
           {toast && <div className="toast">{toast}</div>}
+
+          <Footer />
         </div>
       )}
     </I18nProvider>
+  );
+}
+
+function Footer() {
+  const { t } = useI18n();
+  return (
+    <footer className="footer">
+      <p>{t("footer.free")}</p>
+      <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
+        {t("footer.openSource")} · github.com/Voyagerroc/payradar
+      </a>
+    </footer>
   );
 }
 
@@ -386,6 +553,21 @@ function toTryPerMonth(payment: Payment, vault: VaultData): number {
   if (payment.currency === "USD") amount *= vault.usdTry || 1;
   if (payment.currency === "EUR") amount *= vault.eurTry || 1;
   return amount;
+}
+
+/** Buluttan gelen ham veriyi VaultData'ya çevirir; bozuksa null döner. */
+function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  if (!Array.isArray(r.payments)) return null;
+  return {
+    payments: r.payments as Payment[],
+    reminderDays: Number(r.reminderDays ?? 3),
+    notificationsEnabled: Boolean(r.notificationsEnabled ?? false),
+    usdTry: Number(r.usdTry ?? 42),
+    eurTry: Number(r.eurTry ?? 48),
+    updatedAt: Number(r.updatedAt ?? fallbackUpdatedAt),
+  };
 }
 
 function filterAndSort(

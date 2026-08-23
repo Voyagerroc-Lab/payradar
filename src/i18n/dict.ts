@@ -118,6 +118,43 @@ const tr = {
   "security.error.mismatch": "PIN'ler eşleşmiyor veya 4-8 hane değil.",
   "security.error.wrongPin": "Mevcut PIN hatalı.",
 
+  // Fiyat geçmişi grafiği
+  "chart.title": "{name} — Fiyat Geçmişi",
+  "chart.current": "Şu anki fiyat",
+  "chart.change": "İlk fiyattan değişim",
+  "aria.history": "{name} fiyat geçmişi",
+
+  // Veri yedekleme
+  "data.title": "Veri Yedekleme 💾",
+  "data.exportBtn": "CSV Dışa Aktar",
+  "data.importBtn": "CSV İçe Aktar",
+  "data.importHint":
+    "Dışa aktardığın dosyayı Excel'de açabilirsin. İçe aktarımda aynı ada+tarihe+tutara sahip kayıtlar atlanır, diğerleri eklenir.",
+  "toast.importDone": "{added} ödeme eklendi, {skipped} satır atlandı",
+
+  // Hesap / bulut
+  "account.title": "Hesap ☁️",
+  "account.disabledHint":
+    "Bulut senkronu bu kurulumda etkin değil. Uygulama yerel modda çalışıyor; verilerin yalnızca bu cihazda.",
+  "account.email": "E-posta",
+  "account.password": "Şifre (en az 6 karakter)",
+  "account.signIn": "Giriş yap",
+  "account.signUp": "Hesap oluştur",
+  "account.signOut": "Çıkış yap",
+  "account.signedInAs": "{email} hesabıyla otomatik senkronize ediliyor.",
+  "account.hint":
+    "Hesap oluştur; verilerin yalnızca kendi e-postana kaydedilir ve tüm cihazlarında senkronize olur. İnternet olmadan da uygulamayı kullanmaya devam edebilirsin.",
+  "account.needsConfirm": "E-postanı doğrula, ardından giriş yap.",
+  "account.error.missing": "E-posta ve şifre gerekli.",
+  "account.error.generic": "İşlem başarısız: {msg}",
+  "toast.cloudSynced": "Bulut senkronizasyonu aktif ☁️",
+  "toast.cloudPulled": "Verilerin buluttan geri yüklendi",
+
+  // Alt bilgi
+  "footer.free":
+    "PayRadar %100 ücretsizdir — reklam yok, takip yok. Verilerin cihazında kalır; istersen bulut senkronu açarsın.",
+  "footer.openSource": "Açık kaynak (MIT)",
+
   // Kilit ekranı
   "lock.enterPin": "PIN gir",
   "lock.unlock": "Aç",
@@ -253,6 +290,39 @@ const en: Record<TranslationKey, string> = {
   "autolock.minutes": "{n} min",
   "security.error.mismatch": "PINs don't match or aren't 4–8 digits.",
   "security.error.wrongPin": "Current PIN is incorrect.",
+
+  "chart.title": "{name} — Price History",
+  "chart.current": "Current price",
+  "chart.change": "Change since first price",
+  "aria.history": "Price history for {name}",
+
+  "data.title": "Data Backup 💾",
+  "data.exportBtn": "Export CSV",
+  "data.importBtn": "Import CSV",
+  "data.importHint":
+    "The exported file opens in Excel. On import, entries with the same name+date+amount are skipped; others are added.",
+  "toast.importDone": "{added} payments added, {skipped} rows skipped",
+
+  "account.title": "Account ☁️",
+  "account.disabledHint":
+    "Cloud sync is not configured in this build. Running in local mode; your data stays on this device only.",
+  "account.email": "Email",
+  "account.password": "Password (min 6 characters)",
+  "account.signIn": "Sign in",
+  "account.signUp": "Create account",
+  "account.signOut": "Sign out",
+  "account.signedInAs": "Syncing automatically as {email}.",
+  "account.hint":
+    "Create an account to back up your payments under your own email and sync across all your devices. The app keeps working offline.",
+  "account.needsConfirm": "Confirm your email, then sign in.",
+  "account.error.missing": "Email and password are required.",
+  "account.error.generic": "Action failed: {msg}",
+  "toast.cloudSynced": "Cloud sync enabled ☁️",
+  "toast.cloudPulled": "Your data was restored from the cloud",
+
+  "footer.free":
+    "PayRadar is 100% free — no ads, no tracking. Your data stays on your device unless you enable cloud sync.",
+  "footer.openSource": "Open source (MIT)",
 
   "lock.enterPin": "Enter PIN",
   "lock.unlock": "Unlock",

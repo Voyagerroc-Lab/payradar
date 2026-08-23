@@ -26,6 +26,7 @@ export const DEFAULT_VAULT: VaultData = {
   notificationsEnabled: false,
   usdTry: 42,
   eurTry: 48,
+  updatedAt: 0,
 };
 
 interface VaultFile {
@@ -86,7 +87,7 @@ export function loadUnlockedVault(): VaultData {
 }
 
 export function saveUnlockedVault(data: VaultData): void {
-  const file: VaultFile = { v: 1, locked: false, data };
+  const file: VaultFile = { v: 1, locked: false, data: { ...data, updatedAt: Date.now() } };
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
 }
 
@@ -147,7 +148,7 @@ export async function saveLockedVault(
     return;
   }
   if (!file.locked || !file.salt || !file.verify) return;
-  file.payload = await encryptJSON(key, data);
+  file.payload = await encryptJSON(key, { ...data, updatedAt: Date.now() });
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
 }/** PIN değiştirme: veriyi yeni PIN ile yeniden şifreler. */
 export async function changePin(oldPin: string, newPin: string): Promise<boolean> {

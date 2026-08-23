@@ -15,6 +15,13 @@ export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
 export type Language = "tr" | "en";
 
+/** Fiyat geçmişindeki tek nokta */
+export interface PricePoint {
+  /** ISO tarih: fiyat bu tarihte geçerliydi */
+  date: string;
+  price: number;
+}
+
 /** Düzenli ödeme: kira, fatura, abonelik, araç kirası… hepsi bu modelde */
 export interface Payment {
   id: string;
@@ -27,6 +34,8 @@ export interface Payment {
   categoryId: CategoryId;
   notes?: string;
   createdAt: number;
+  /** Eskiden bugüne fiyat değişimleri (eskiden yeniye sıralı) */
+  priceHistory?: PricePoint[];
 }
 
 /** Kilit açılmadan önce okunması güvenli tercihler (şifresiz saklanır) */
@@ -44,6 +53,8 @@ export interface VaultData {
   notificationsEnabled: boolean;
   usdTry: number;
   eurTry: number;
+  /** Son değişiklik zamanı (bulut çakışma çözümü için) */
+  updatedAt: number;
 }
 
 export interface CancelGuide {
