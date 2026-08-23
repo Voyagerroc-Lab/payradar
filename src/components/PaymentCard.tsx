@@ -12,6 +12,8 @@ interface PaymentCardProps {
   onShowHistory?: () => void;
 }
 
+const canShare = typeof navigator !== "undefined" && "share" in navigator;
+
 export default function PaymentCard({
   payment,
   onEdit,
@@ -25,6 +27,18 @@ export default function PaymentCard({
   const badge = badgeFor(days, t);
   // Rehber: bilinen bir servis eşleşmesi varsa ya da abonelik kategorisindeyse göster
   const hasGuide = Boolean(findGuide(payment.name)) || payment.categoryId === "abonelik";
+
+  async function handleShare() {
+    const cycle = t(`suffix.${payment.billingCycle}` as TranslationKey);
+    const text = payment.notes
+      ? `${payment.name}: ${formatPrice(payment.price, payment.currency)}${cycle}\n${payment.notes}`
+      : `${payment.name}: ${formatPrice(payment.price, payment.currency)}${cycle}`;
+    try {
+      await navigator.share({ title: payment.name, text });
+    } catch {
+      /* kullanıcı paylaşımı iptal etti; sessizce geç */
+    }
+  }
 
   return (
     <article className="card sub-card">
@@ -74,6 +88,16 @@ export default function PaymentCard({
             title={t("aria.history", { name: payment.name })}
           >
             📈
+          </button>
+        )}
+        {canShare && (
+          <button
+            className="icon-btn"
+            onClick={() => void handleShare()}
+            aria-label={t("aria.share", { name: payment.name })}
+            title={t("aria.share", { name: payment.name })}
+          >
+            📤
           </button>
         )}
         <button

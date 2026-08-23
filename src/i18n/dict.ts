@@ -54,6 +54,7 @@ const tr = {
   "card.trialChargeToday": "bugün ücretlendirilecek",
   "aria.edit": "{name} düzenle",
   "aria.delete": "{name} sil",
+  "aria.share": "{name} paylaş",
 
   // Boş durum
   "empty.title": "Hoş geldin! 👋",
@@ -251,6 +252,7 @@ const en: Record<TranslationKey, string> = {
   "card.trialChargeToday": "will be charged today",
   "aria.edit": "Edit {name}",
   "aria.delete": "Delete {name}",
+  "aria.share": "Share {name}",
 
   "empty.title": "Welcome! 👋",
   "empty.body":
