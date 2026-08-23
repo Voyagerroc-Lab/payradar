@@ -7,6 +7,7 @@ interface DemoPaymentInput {
   billingCycle?: Payment["billingCycle"];
   daysFromNow: number;
   categoryId: CategoryId;
+  isTrial?: boolean;
 }
 
 export function buildDemoPayments(): Payment[] {
@@ -38,6 +39,13 @@ export function buildDemoPayments(): Payment[] {
       daysFromNow: 45,
       categoryId: "sigorta",
     },
+    {
+      name: "Canva Pro",
+      price: 449.99,
+      daysFromNow: 4,
+      categoryId: "diger",
+      isTrial: true,
+    },
   ];
 
   const now = Date.now();
@@ -53,6 +61,7 @@ export function buildDemoPayments(): Payment[] {
       nextPaymentDate: date.toISOString().slice(0, 10),
       categoryId: input.categoryId,
       createdAt: now + index,
+      isTrial: input.isTrial,
       // Netflix'e örnek zam geçmişi: grafik özelliğini göstermek için
       priceHistory:
         input.name === "Netflix"

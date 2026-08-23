@@ -378,6 +378,12 @@ button {
   border-radius: 999px;
 }
 
+.chip-trial {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
 .sub-price {
   margin-top: 3px;
   font-size: 15px;

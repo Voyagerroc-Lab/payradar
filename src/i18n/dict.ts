@@ -49,6 +49,9 @@ const tr = {
   "card.todayShort": "bugün",
   "card.dayUnit": "g",
   "card.guide": "İptal Rehberi",
+  "card.trial": "Deneme",
+  "card.trialCharge": "{n} gün sonra ücretlendirilecek",
+  "card.trialChargeToday": "bugün ücretlendirilecek",
   "aria.edit": "{name} düzenle",
   "aria.delete": "{name} sil",
 
@@ -69,6 +72,10 @@ const tr = {
   "form.currency": "Para birimi",
   "form.cycle": "Dönem",
   "form.nextDate": "Sonraki ödeme tarihi",
+  "form.trialEndDate": "Deneme bitiş / ilk ücret tarihi",
+  "form.isTrial": "Bu ücretsiz bir deneme sürümü",
+  "form.isTrialHint":
+    "Deneme bitince kartından otomatik ücret alınır. Yukarıdaki tarih, deneme süresinin bittiği/ilk ücretlendirme günüdür.",
   "form.category": "Kategori",
   "form.notes": "Not (opsiyonel)",
   "form.notesPlaceholder": "örn. Aile planı, kardeşimle paylaşımlı",
@@ -227,6 +234,9 @@ const en: Record<TranslationKey, string> = {
   "card.todayShort": "today",
   "card.dayUnit": "d",
   "card.guide": "Cancel Guide",
+  "card.trial": "Trial",
+  "card.trialCharge": "will be charged in {n} days",
+  "card.trialChargeToday": "will be charged today",
   "aria.edit": "Edit {name}",
   "aria.delete": "Delete {name}",
 
@@ -245,6 +255,10 @@ const en: Record<TranslationKey, string> = {
   "form.currency": "Currency",
   "form.cycle": "Cycle",
   "form.nextDate": "Next payment date",
+  "form.trialEndDate": "Trial end / first charge date",
+  "form.isTrial": "This is a free trial",
+  "form.isTrialHint":
+    "You'll be charged automatically when the trial ends. The date above is the trial end / first charge date.",
   "form.category": "Category",
   "form.notes": "Notes (optional)",
   "form.notesPlaceholder": "e.g. Family plan, shared with my sibling",

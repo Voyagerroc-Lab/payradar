@@ -36,6 +36,8 @@ export interface Payment {
   createdAt: number;
   /** Eskiden bugüne fiyat değişimleri (eskiden yeniye sıralı) */
   priceHistory?: PricePoint[];
+  /** true ise nextPaymentDate, deneme süresinin bittiği/ilk ücretlendirme günüdür */
+  isTrial?: boolean;
 }
 
 /** Kilit açılmadan önce okunması güvenli tercihler (şifresiz saklanır) */

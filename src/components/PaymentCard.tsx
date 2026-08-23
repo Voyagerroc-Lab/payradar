@@ -39,6 +39,9 @@ export default function PaymentCard({
           <span className="chip" style={{ borderColor: category.color }}>
             {category.emoji} {t(category.labelKey)}
           </span>
+          {payment.isTrial && days >= 0 && (
+            <span className="chip chip-trial">🎁 {t("card.trial")}</span>
+          )}
         </div>
         <p className="sub-price">
           {formatPrice(payment.price, payment.currency)}
@@ -46,7 +49,11 @@ export default function PaymentCard({
         </p>
         <p className="sub-date">
           {t("card.nextPayment")} {formatDateTR(payment.nextPaymentDate, lang)} ·{" "}
-          {badge.text}
+          {payment.isTrial && days >= 0
+            ? days === 0
+              ? t("card.trialChargeToday")
+              : t("card.trialCharge", { n: days })
+            : badge.text}
         </p>
       </div>
 

@@ -41,8 +41,11 @@ export function checkUpcomingPayments(
     const days = daysUntil(payment.nextPaymentDate);
     if (days >= 0 && days <= reminderDays && notified[payment.id] !== today) {
       new Notification("PayRadar", {
-        body:
-          days === 0
+        body: payment.isTrial
+          ? days === 0
+            ? `${payment.name}: deneme süren bugün bitiyor, kartından ücret çekilecek!`
+            : `${payment.name}: deneme süren ${days} gün içinde bitiyor, kartından ücret çekilecek.`
+          : days === 0
             ? `${payment.name}: ${new Date().toLocaleDateString()} — bugün yenileniyor!`
             : `${payment.name}: ${days} gün içinde yenilenecek.`,
         tag: payment.id,

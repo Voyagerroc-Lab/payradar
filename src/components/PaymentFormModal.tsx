@@ -29,6 +29,7 @@ export default function PaymentFormModal({
     initial?.categoryId ?? "abonelik",
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [isTrial, setIsTrial] = useState(initial?.isTrial ?? false);
   const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -52,6 +53,7 @@ export default function PaymentFormModal({
       categoryId,
       notes: notes.trim() || undefined,
       createdAt: initial?.createdAt ?? Date.now(),
+      isTrial,
     });
   }
 
@@ -129,7 +131,7 @@ export default function PaymentFormModal({
         </div>
 
         <label className="field">
-          <span>{t("form.nextDate")}</span>
+          <span>{isTrial ? t("form.trialEndDate") : t("form.nextDate")}</span>
           <input
             className="input"
             type="date"
@@ -137,6 +139,16 @@ export default function PaymentFormModal({
             onChange={(e) => setNextPaymentDate(e.target.value)}
           />
         </label>
+
+        <label className="toggle-row">
+          <input
+            type="checkbox"
+            checked={isTrial}
+            onChange={(e) => setIsTrial(e.target.checked)}
+          />
+          <span>{t("form.isTrial")}</span>
+        </label>
+        {isTrial && <p className="field-hint">{t("form.isTrialHint")}</p>}
 
         <label className="field">
           <span>{t("form.notes")}</span>
