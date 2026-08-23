@@ -64,7 +64,7 @@ npm run preview    # test the build locally
 
 ### 🌐 Live demo
 
-**https://voyagerroc.github.io/payradar/** — install it straight from there.
+**https://payradar-pink.vercel.app** — install it straight from there.
 
 ### ☁️ Deploy
 
