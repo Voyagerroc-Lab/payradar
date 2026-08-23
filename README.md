@@ -88,7 +88,7 @@ Open the deployed URL in Chrome/Safari → **"Add to Home Screen"**. PayRadar th
 - [x] CSV import/export (bank statement parsing)
 - [x] Price history chart — see subscription hikes at a glance
 - [x] Free-trial tracking ("card will be charged in X days")
-- [ ] English cancellation guides for global services
+- [x] English cancellation guides for global services
 - [ ] Web Share API for family plan splitting
 
 ## 🤝 Contributing

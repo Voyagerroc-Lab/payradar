@@ -495,7 +495,7 @@ export default function App() {
 
           {guideFor && (
             <GuideModal
-              guide={getGuideOrGeneric(guideFor.name)}
+              guide={getGuideOrGeneric(guideFor.name, prefs.language)}
               serviceName={guideFor.name}
               onClose={() => setGuideFor(null)}
             />

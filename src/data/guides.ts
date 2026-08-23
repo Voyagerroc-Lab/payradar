@@ -1,4 +1,4 @@
-import type { CancelGuide } from "../types";
+import type { CancelGuide, Language } from "../types";
 
 /**
  * Popüler servisler için adım adım iptal rehberleri.
@@ -18,6 +18,14 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Ödediğin dönem sonuna kadar erişimin devam eder.",
     ],
     tip: "Mobil uygulamadan değil mutlaka web sitesinden iptal etmelisin.",
+    stepsEn: [
+      "Go to netflix.com and sign in to your account.",
+      "Click your profile icon in the top right and open the 'Account' page.",
+      "Click 'Cancel Membership'.",
+      "Follow the on-screen steps to confirm the cancellation.",
+      "You'll keep access until the end of your current billing period.",
+    ],
+    tipEn: "Cancel from the website — not the mobile app.",
   },
   {
     id: "spotify",
@@ -30,6 +38,13 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Sayfanın altındaki 'Spotify Premium'u İptal Et' seçeneğine tıkla.",
       "İptal nedenini seçerek işlemi tamamla.",
       "Ücretsiz plana geçersin; kaydettiğin çalma listelerin silinmez.",
+    ],
+    stepsEn: [
+      "Sign in at spotify.com and go to your 'Account Overview' page.",
+      "Open the 'Change Plan' section.",
+      "Scroll down and select 'Cancel Spotify Premium'.",
+      "Choose a cancellation reason to complete the process.",
+      "You'll move to the Free plan; your saved playlists won't be deleted.",
     ],
   },
   {
@@ -116,10 +131,18 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "İptal sebebini belirtip onayla.",
     ],
     tip: "Google Play üzerinden ödeme yapıyorsan play.google.com/store/account/subscriptions adresinden de yönetebilirsin.",
+    stepsEn: [
+      "Click your profile picture in the top right on YouTube.",
+      "Open the 'Paid Memberships' page.",
+      "Next to YouTube Premium, select 'Manage Membership' > 'Deactivate'.",
+      "Pick a reason and confirm the cancellation.",
+    ],
+    tipEn: "If you pay through Google Play, you can also manage it at play.google.com/store/account/subscriptions.",
   },
   {
     id: "apple-subscription",
     displayName: "Apple Abonelikleri (Music, iCloud+, TV+)",
+    displayNameEn: "Apple Subscriptions (Music, iCloud+, TV+)",
     aliases: [
       "apple music",
       "icloud",
@@ -136,16 +159,28 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "'Aboneliği İptal Et' butonuna dokun ve onayla.",
     ],
     tip: "Mac'te App Store > hesabın > Abonelikler; Windows'ta apps.apple.com/account/subscriptions adresini kullan.",
+    stepsEn: [
+      "On iPhone/iPad go to Settings > [your name] > 'Subscriptions'.",
+      "Select the subscription you want to cancel.",
+      "Tap 'Cancel Subscription' and confirm.",
+    ],
+    tipEn: "On Mac: App Store > your account > Subscriptions; on Windows use apps.apple.com/account/subscriptions.",
   },
   {
     id: "google-play",
     displayName: "Google Play Abonelikleri",
+    displayNameEn: "Google Play Subscriptions",
     aliases: ["google play", "google one", "google storage", "play store"],
     cancelUrl: "https://play.google.com/store/account/subscriptions",
     steps: [
       "play.google.com/store/account/subscriptions adresine git.",
       "İptal etmek istediğin aboneliği seç.",
       "'Aboneliği İptal Et'i seç ve ekrandaki adımları tamamla.",
+    ],
+    stepsEn: [
+      "Go to play.google.com/store/account/subscriptions.",
+      "Select the subscription you want to cancel.",
+      "Choose 'Cancel Subscription' and follow the on-screen steps.",
     ],
   },
   {
@@ -158,6 +193,12 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Amazon'un sunduğu devam seçeneklerini geç ve iptali onayla.",
     ],
     tip: "Yalnızca Prime Video için ödediğin ayrı bir abonelik varsa aynı sayfadan sadece video üyeliğini de iptal edebilirsin.",
+    stepsEn: [
+      "Sign in at amazon.com and go to 'Account' > 'Prime Membership'.",
+      "Click 'End Membership'.",
+      "Skip past Amazon's retention offers and confirm the cancellation.",
+    ],
+    tipEn: "If you have a separate Prime Video–only subscription, you can cancel just that from the same page.",
   },
   {
     id: "disney-plus",
@@ -170,6 +211,12 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Adımları onaylayarak iptali tamamla.",
     ],
     tip: "Dönem sonuna kadar erişim devam eder; hesabını tamamen silmek istemiyorsan sadece yenilemeyi durdurman yeterli.",
+    stepsEn: [
+      "Go to disneyplus.com and open the 'Account' page from your profile.",
+      "Under 'Subscription', click 'Cancel Subscription'.",
+      "Follow the on-screen steps to confirm.",
+    ],
+    tipEn: "Access continues until the end of the billing period — you don't need to delete your account, just stop the renewal.",
   },
   {
     id: "game-pass",
@@ -180,6 +227,11 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "account.microsoft.com/services adresine gir.",
       "Game Pass aboneliğinin altında 'Aboneliği Yönet' seçeneğine tıkla.",
       "'İptal Et'i seç; kalan sürenin iade veya süre uzatma seçeneklerini değerlendir.",
+    ],
+    stepsEn: [
+      "Go to account.microsoft.com/services.",
+      "Under your Game Pass subscription, click 'Manage'.",
+      "Select 'Cancel'; review any refund or time-extension options first.",
     ],
   },
   {
@@ -192,6 +244,12 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "'Otomatik Yenilemeyi Kapat' seçeneğini işaretle.",
     ],
     tip: "Web üzerinden: store.playstation.com > hesabım > aboneliklerden de kapatabilirsin.",
+    stepsEn: [
+      "On PS5/PS4 go to Settings > Users and Accounts > Account > Payment and Subscriptions.",
+      "Select PlayStation Plus from the 'Subscriptions' list.",
+      "Turn off 'Auto-Renewal'.",
+    ],
+    tipEn: "You can also do this on the web at store.playstation.com > your account > subscriptions.",
   },
   {
     id: "canva",
@@ -204,6 +262,13 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "İptal nedeni anketini geçirerek onayla.",
     ],
     tip: "Dönem başında yıllık ödeme yaptıysan iade politikasını kontrol et.",
+    stepsEn: [
+      "Go to canva.com and click 'Settings' in the top right.",
+      "Open 'Billing & Plans'.",
+      "Next to Canva Pro, select 'Cancel Plan'.",
+      "Complete the cancellation survey to confirm.",
+    ],
+    tipEn: "If you paid annually at the start of the period, check the refund policy.",
   },
   {
     id: "chatgpt-plus",
@@ -213,6 +278,11 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "chat.openai.com'a gir ve sol alttan profilini aç.",
       "'My Plan' > 'Manage My Subscription' yolunu izle.",
       "Stripe ödeme portalında 'Cancel Plan' seçeneğini kullan ve onayla.",
+    ],
+    stepsEn: [
+      "Go to chat.openai.com and open your profile menu in the bottom left.",
+      "Go to 'My Plan' > 'Manage My Subscription'.",
+      "In the Stripe billing portal, select 'Cancel Plan' and confirm.",
     ],
   },
   {
@@ -239,6 +309,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
   {
     id: "genel",
     displayName: "Genel Rehber (Bilinmeyen Servis)",
+    displayNameEn: "General Guide (Unknown Service)",
     aliases: [],
     steps: [
       "Servisin web sitesinde 'Hesabım', 'Ayarlar' veya 'Abonelik' sayfasını ara.",
@@ -248,6 +319,14 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Son çare olarak kartı değiştirip eski kartı iptal ettirebilirsin; yeni otomatik ödemeler kesilir.",
     ],
     tip: "Banka ekstrende tanımadığın periyodik ödemeleri aylık kontrol etmek, unutulmuş abonelikleri yakalamanın en etkili yoludur.",
+    stepsEn: [
+      "Look for an 'Account', 'Settings', or 'Subscription' page on the service's website.",
+      "Try turning off 'Auto-Renewal' — that's enough to cancel on most services.",
+      "Can't find it? Search the site's help/FAQ section for 'cancel'.",
+      "If it wasn't an in-app purchase but you're still being charged, contact your bank and ask them to block the recurring charge on your card.",
+      "As a last resort, replace your card — new recurring charges will then be declined.",
+    ],
+    tipEn: "Checking your bank statement each month for unrecognized recurring charges is the most effective way to catch forgotten subscriptions.",
   },
 ];
 
@@ -278,7 +357,19 @@ export function findGuide(name: string): CancelGuide | null {
   return null;
 }
 
+/** İngilizce arayüzde varsa İngilizce alanları kullanır, yoksa Türkçesine düşer. */
+function resolveGuideLanguage(guide: CancelGuide, lang: Language): CancelGuide {
+  if (lang !== "en") return guide;
+  return {
+    ...guide,
+    displayName: guide.displayNameEn ?? guide.displayName,
+    steps: guide.stepsEn ?? guide.steps,
+    tip: guide.tipEn ?? guide.tip,
+  };
+}
+
 /** Eşleşme yoksa genel rehberi döndürür. */
-export function getGuideOrGeneric(name: string): CancelGuide {
-  return findGuide(name) ?? CANCEL_GUIDES.find((g) => g.id === "genel")!;
+export function getGuideOrGeneric(name: string, lang: Language): CancelGuide {
+  const guide = findGuide(name) ?? CANCEL_GUIDES.find((g) => g.id === "genel")!;
+  return resolveGuideLanguage(guide, lang);
 }

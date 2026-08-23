@@ -62,8 +62,12 @@ export interface VaultData {
 export interface CancelGuide {
   id: string;
   displayName: string;
+  /** İngilizce arayüz için karşılık; yoksa Türkçesi gösterilir (yalnızca yerel servisler). */
+  displayNameEn?: string;
   aliases: string[];
   steps: string[];
+  stepsEn?: string[];
   cancelUrl?: string;
   tip?: string;
+  tipEn?: string;
 }
