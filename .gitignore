@@ -34,3 +34,9 @@ ios/*.xcworkspace/xcuserdata
 ios/*.xcodeproj/xcuserdata
 ios/*.xcodeproj/project.xcworkspace/xcuserdata
 ios/DerivedData
+
+# Android (Gradle build caches/artifacts)
+.gradle/
+app/build/
+build/
+local.properties
