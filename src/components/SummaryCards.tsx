@@ -23,19 +23,31 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
 
   return (
     <section className="summary">
-      <div className="card summary-card">
+      <div className="card summary-card summary-indigo">
+        <span className="summary-icon" aria-hidden="true">
+          💸
+        </span>
         <span className="summary-label">{t("summary.monthly")}</span>
         <span className="summary-value">{formatTRY(monthly, lang)}</span>
       </div>
-      <div className="card summary-card">
+      <div className="card summary-card summary-violet">
+        <span className="summary-icon" aria-hidden="true">
+          📈
+        </span>
         <span className="summary-label">{t("summary.yearly")}</span>
         <span className="summary-value">{formatTRY(yearly, lang)}</span>
       </div>
-      <div className="card summary-card">
+      <div className="card summary-card summary-teal">
+        <span className="summary-icon" aria-hidden="true">
+          🧾
+        </span>
         <span className="summary-label">{t("summary.active")}</span>
         <span className="summary-value">{payments.length}</span>
       </div>
-      <div className="card summary-card">
+      <div className="card summary-card summary-amber">
+        <span className="summary-icon" aria-hidden="true">
+          ⏰
+        </span>
         <span className="summary-label">{t("summary.next")}</span>
         {upcoming ? (
           <span className="summary-value summary-next">

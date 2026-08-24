@@ -810,6 +810,9 @@ function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }
   const { t } = useI18n();
   return (
     <section className="card empty-state">
+      <div className="empty-hero" aria-hidden="true">
+        <span className="empty-hero-icon">📡</span>
+      </div>
       <h2>{t("empty.title")}</h2>
       <p>{t("empty.body")}</p>
       <div className="empty-actions">
@@ -817,8 +820,18 @@ function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }
           {t("empty.addFirst")}
         </button>
         <button className="btn btn-secondary" onClick={onDemo}>
-          {t("empty.tryDemo")}
+          <span aria-hidden="true">✨</span> {t("empty.tryDemo")}
         </button>
+      </div>
+      <div className="empty-badges" aria-hidden="true">
+        <span>🏠</span>
+        <span>🚗</span>
+        <span>🧾</span>
+        <span>📺</span>
+        <span>🏦</span>
+        <span>📜</span>
+        <span>🎮</span>
+        <span>🛡️</span>
       </div>
     </section>
   );

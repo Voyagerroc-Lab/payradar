@@ -43,7 +43,10 @@ export default function PaymentCard({
   }
 
   return (
-    <article className="card sub-card">
+    <article
+      className="card sub-card"
+      style={{ borderLeft: `4px solid ${category.color}` }}
+    >
       <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">
         <span>{payment.name.charAt(0).toLocaleUpperCase("tr-TR")}</span>
         <small>{category.emoji}</small>

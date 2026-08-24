@@ -72,7 +72,12 @@ body {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
-  background: var(--bg);
+  /* Üstten yumuşayan indigo ışıma — sayfaya derinlik verir */
+  background:
+    radial-gradient(1100px 420px at 50% -120px, rgb(99 102 241 / 0.14), transparent 70%),
+    radial-gradient(700px 300px at 90% 10%, rgb(124 58 237 / 0.07), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -183,8 +188,15 @@ button {
 }
 
 .brand h1 {
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: 800;
   line-height: 1.2;
+  letter-spacing: -0.02em;
+  background: linear-gradient(120deg, var(--accent-strong), var(--accent) 60%, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-strong);
 }
 
 .brand p {
@@ -215,11 +227,13 @@ button {
 }
 
 .summary-card {
+  --sum-color: var(--accent-strong);
+  --sum-soft: var(--accent-soft);
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px 18px;
+  gap: 5px;
+  padding: 18px 18px 16px;
   overflow: hidden;
 }
 
@@ -227,22 +241,55 @@ button {
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
-  opacity: 0.85;
+  height: 4px;
+  background: var(--sum-color);
+  opacity: 0.9;
+}
+
+.summary-indigo {
+  --sum-color: #6366f1;
+  --sum-soft: rgb(99 102 241 / 0.14);
+}
+
+.summary-violet {
+  --sum-color: #8b5cf6;
+  --sum-soft: rgb(139 92 246 / 0.14);
+}
+
+.summary-teal {
+  --sum-color: #0d9488;
+  --sum-soft: rgb(13 148 136 / 0.14);
+}
+
+.summary-amber {
+  --sum-color: #d97706;
+  --sum-soft: rgb(217 119 6 / 0.16);
+}
+
+.summary-icon {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  font-size: 19px;
+  background: var(--sum-soft);
+  border-radius: 12px;
 }
 
 .summary-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-soft);
+  color: var(--sum-color);
 }
 
 .summary-value {
-  font-size: 23px;
-  font-weight: 750;
+  font-size: 24px;
+  font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -535,20 +582,71 @@ button {
 
 /* ---------- Boş durum ---------- */
 .empty-state {
-  max-width: 520px;
-  margin: 48px auto;
-  padding: 36px 28px;
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 40px 32px 32px;
   text-align: center;
+}
+
+.empty-hero {
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+
+.empty-hero-icon {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  font-size: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-radius: 26px;
+  box-shadow: 0 12px 30px rgb(99 102 241 / 0.35);
+  animation: hero-float 3.5s ease-in-out infinite;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
 }
 
 .empty-state h2 {
   margin-bottom: 10px;
-  font-size: 22px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .empty-state p {
   margin-bottom: 22px;
   color: var(--text-soft);
+}
+
+.empty-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+
+.empty-badges span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  font-size: 19px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 13px;
 }
 
 .empty-actions {
