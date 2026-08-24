@@ -11,6 +11,8 @@ enum class CategoryId(val id: String, val emoji: String, val colorHex: Long) {
     EGITIM("egitim", "📚", 0xFFFFB224),
     SAGLIK("saglik", "💪", 0xFF30A46C),
     SIGORTA("sigorta", "🛡️", 0xFF05A2C2),
+    KREDI("kredi", "🏦", 0xFF2563EB),
+    CEK_SENET("cek_senet", "📜", 0xFF7C3AED),
     OYUN("oyun", "🎮", 0xFF7D6EE0),
     DIGER("diger", "📦", 0xFF8D8D8D);
 
@@ -48,7 +50,8 @@ enum class BillingCycle(val code: String) {
 @Serializable
 enum class AppLanguage(val code: String, val displayName: String) {
     TR("tr", "Türkçe"),
-    EN("en", "English");
+    EN("en", "English"),
+    MS("ms", "Bahasa Melayu");
 
     companion object {
         fun fromCode(code: String): AppLanguage =
@@ -84,6 +87,11 @@ data class Payment(
     val nextPaymentDate: String, // yyyy-MM-dd
     val categoryId: CategoryId = CategoryId.ABONELIK,
     val notes: String? = null,
+    val totalInstallments: Int? = null,
+    val currentInstallment: Int? = null,
+    val bankName: String? = null,
+    val checkNumber: String? = null,
+    val payee: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val priceHistory: List<PricePoint> = emptyList(),
     val isTrial: Boolean = false
@@ -101,6 +109,7 @@ data class CancelGuide(
     val tipEn: String? = null
 )
 
+@Serializable
 data class AppPrefs(
     val language: AppLanguage = AppLanguage.TR,
     val theme: AppTheme = AppTheme.AUTO,
@@ -110,6 +119,7 @@ data class AppPrefs(
     val pinSalt: String = ""
 )
 
+@Serializable
 data class VaultSettings(
     val reminderDays: Int = 3,
     val notificationsEnabled: Boolean = false,

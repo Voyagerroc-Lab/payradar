@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayRadar — Akıllı Ödeme & Finans Takipçisi</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/20">
+          📡
+        </div>
+        <div>
+          <div class="font-bold text-lg leading-tight flex items-center gap-2">
+            PayRadar
+            <span class="text-[10px] uppercase font-semibold tracking-wider bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/30">Bulut Senkronize</span>
+          </div>
+          <div class="text-xs text-slate-400">Kredi, Çek & Abonelik Takip Sistemi</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="authStatus" class="text-xs text-slate-400 hidden sm:block">
+          Giriş: <span id="userEmailSpan" class="text-indigo-400 font-medium">tascierol24@gmail.com</span>
+        </div>
+        <button onclick="syncData()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          🔄 <span>Senkronize Et</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+    <!-- Security Banner -->
+    <div class="bg-gradient-to-r from-indigo-950/80 to-slate-900 border border-indigo-800/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="p-2.5 bg-indigo-600/20 rounded-xl text-indigo-400 text-xl">🛡️</div>
+        <div>
+          <h2 class="font-semibold text-sm text-slate-100">Uçtan Uca Güvenli Finansal Takip</h2>
+          <p class="text-xs text-slate-400">Kredileriniz, çek vadeleriniz ve düzenli abonelikleriniz şifreli yerel veritabanında ve bulutta güvende.</p>
+        </div>
+      </div>
+      <div class="text-xs font-medium text-emerald-400 bg-emerald-950/50 px-3 py-1.5 rounded-lg border border-emerald-800/40 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Aktif Korumalı
+      </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+        <div class="text-xs text-slate-400 mb-1">Aylık Toplam</div>
+        <div class="text-2xl font-bold text-slate-100" id="monthlyTotal">₺58.948,98</div>
+        <div class="text-[11px] text-emerald-400 mt-1">13 aktif ödeme</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+        <div class="text-xs text-slate-400 mb-1">Banka Kredileri</div>
+        <div class="text-2xl font-bold text-blue-400">₺14.250,00</div>
+        <div class="text-[11px] text-slate-400 mt-1">Garanti BBVA (14/60)</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+        <div class="text-xs text-slate-400 mb-1">Çek & Senet Vadesi</div>
+        <div class="text-2xl font-bold text-purple-400">₺45.000,00</div>
+        <div class="text-[11px] text-amber-400 mt-1">6 gün kaldı</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+        <div class="text-xs text-slate-400 mb-1">En Yakın Ödeme</div>
+        <div class="text-2xl font-bold text-amber-400">2 Gün</div>
+        <div class="text-[11px] text-slate-400 mt-1">Netflix (₺149,99)</div>
+      </div>
+    </div>
+
+    <!-- Payment List Section -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-base text-slate-200 flex items-center gap-2">
+          📋 Aktif Ödemeler ve Vadeler
+        </h3>
+      </div>
+
+      <div class="divide-y divide-slate-800/80" id="paymentList">
+        <!-- Sample Items -->
+        <div class="py-3.5 flex items-center justify-between hover:bg-slate-800/30 px-2 rounded-xl transition">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🏦</span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100 flex items-center gap-2">
+                Konut Kredisi
+                <span class="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded font-medium">Garanti BBVA • 14/60. Taksit</span>
+              </div>
+              <div class="text-xs text-slate-400">Sonraki vade: 4 gün kaldı</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-sm text-slate-100">₺14.250,00</div>
+            <div class="text-[11px] text-slate-500">/ay</div>
+          </div>
+        </div>
+
+        <div class="py-3.5 flex items-center justify-between hover:bg-slate-800/30 px-2 rounded-xl transition">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📜</span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100 flex items-center gap-2">
+                Tedarikçi Çeki
+                <span class="bg-purple-500/20 text-purple-400 text-[10px] px-2 py-0.5 rounded font-medium">No: ÇK-99231-TR • Delta Malzeme</span>
+              </div>
+              <div class="text-xs text-amber-400">Vade: 6 gün kaldı</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-sm text-slate-100">₺45.000,00</div>
+            <div class="text-[11px] text-slate-500">tek seferlik</div>
+          </div>
+        </div>
+
+        <div class="py-3.5 flex items-center justify-between hover:bg-slate-800/30 px-2 rounded-xl transition">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🏠</span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Ev Kirası</div>
+              <div class="text-xs text-slate-400">Vade: 9 gün kaldı</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-sm text-slate-100">₺18.500,00</div>
+            <div class="text-[11px] text-slate-500">/ay</div>
+          </div>
+        </div>
+
+        <div class="py-3.5 flex items-center justify-between hover:bg-slate-800/30 px-2 rounded-xl transition">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📺</span>
+            <div>
+              <div class="font-semibold text-sm text-slate-100">Netflix</div>
+              <div class="text-xs text-amber-400">Vade: 2 gün kaldı (Yenileniyor)</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-sm text-slate-100">₺149,99</div>
+            <div class="text-[11px] text-slate-500">/ay</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800/60 py-4 text-center text-xs text-slate-500">
+    PayRadar &bull; Güvenli Finans ve Vade Takip Sistemi &bull; © 2026
+  </footer>
+
+  <script>
+    function syncData() {
+      const btn = event.currentTarget;
+      btn.innerHTML = '⏳ <span>Senkronize ediliyor...</span>';
+      setTimeout(() => {
+        btn.innerHTML = '✅ <span>Güncel (Bulut Bağlı)</span>';
+        setTimeout(() => {
+          btn.innerHTML = '🔄 <span>Senkronize Et</span>';
+        }, 2000);
+      }, 700);
+    }
+  </script>
+</body>
+</html>

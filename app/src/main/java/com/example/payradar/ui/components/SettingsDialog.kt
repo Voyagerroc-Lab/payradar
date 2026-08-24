@@ -54,19 +54,29 @@ import com.example.payradar.i18n.AppStrings
 import com.example.payradar.model.AppLanguage
 import com.example.payradar.model.AppPrefs
 import com.example.payradar.model.AppTheme
+import com.example.payradar.model.AuthUser
 import com.example.payradar.model.FormatUtils
 import com.example.payradar.model.VaultSettings
 import com.example.payradar.ui.theme.Danger
 import com.example.payradar.ui.theme.DangerSoft
 import com.example.payradar.ui.theme.IndigoPrimary
 import com.example.payradar.ui.theme.Success
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import com.example.payradar.notification.PayRadarNotificationManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(
     prefs: AppPrefs,
     vaultSettings: VaultSettings,
+    currentUser: AuthUser?,
     onDismiss: () -> Unit,
+    onOpenAuth: () -> Unit,
+    onOpenProfile: () -> Unit,
     onUpdateLanguage: (AppLanguage) -> Unit,
     onUpdateTheme: (AppTheme) -> Unit,
     onUpdateAutoLock: (Int) -> Unit,
@@ -151,6 +161,64 @@ fun SettingsDialog(
                             contentDescription = "Close",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Account & Cloud Sync Card
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (currentUser != null) IndigoPrimary.copy(alpha = 0.08f)
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("☁️", fontSize = 18.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = AppStrings.t("auth.profile.title", lang),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = if (currentUser != null) currentUser.email
+                                        else AppStrings.t("auth.signInSubtitle", lang),
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            if (currentUser != null) {
+                                OutlinedButton(
+                                    onClick = onOpenProfile,
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(34.dp)
+                                ) {
+                                    Text(AppStrings.t("security.activeHint", lang).take(7), fontSize = 11.sp)
+                                }
+                            } else {
+                                Button(
+                                    onClick = onOpenAuth,
+                                    shape = RoundedCornerShape(8.dp),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(34.dp)
+                                ) {
+                                    Text(AppStrings.t("auth.tabSignIn", lang), fontSize = 12.sp)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -298,9 +366,34 @@ fun SettingsDialog(
                         onCheckedChange = {
                             notificationsEnabled = it
                             onUpdateVaultSettings(vaultSettings.copy(notificationsEnabled = it))
+                            if (it) {
+                                PayRadarNotificationManager.checkAndSendPaymentNotifications(context)
+                            }
                         },
                         modifier = Modifier.testTag("settings_notifications_switch")
                     )
+                }
+
+                if (notificationsEnabled) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    OutlinedButton(
+                        onClick = {
+                            PayRadarNotificationManager.checkAndSendPaymentNotifications(context)
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = AppStrings.t("settings.testNotifications", lang),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))

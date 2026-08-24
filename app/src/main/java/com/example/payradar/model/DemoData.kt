@@ -12,12 +12,19 @@ object DemoData {
         val billingCycle: BillingCycle = BillingCycle.MONTHLY,
         val daysFromNow: Long,
         val categoryId: CategoryId,
-        val isTrial: Boolean = false
+        val isTrial: Boolean = false,
+        val bankName: String? = null,
+        val totalInstallments: Int? = null,
+        val currentInstallment: Int? = null,
+        val checkNumber: String? = null,
+        val payee: String? = null
     )
 
     fun buildDemoPayments(): List<Payment> {
         val inputs = listOf(
             DemoPaymentInput(name = "Ev Kirası", price = 18500.0, daysFromNow = 9, categoryId = CategoryId.KONUT),
+            DemoPaymentInput(name = "Konut Kredisi", price = 14250.0, daysFromNow = 4, categoryId = CategoryId.KREDI, bankName = "Garanti BBVA", currentInstallment = 14, totalInstallments = 60),
+            DemoPaymentInput(name = "Tedarikçi Çeki", price = 45000.0, daysFromNow = 6, categoryId = CategoryId.CEK_SENET, checkNumber = "ÇK-99231-TR", payee = "Delta Malzeme San. Tic."),
             DemoPaymentInput(name = "Araç Kirası", price = 24000.0, daysFromNow = 14, categoryId = CategoryId.ULASIM),
             DemoPaymentInput(name = "Elektrik Faturası", price = 850.0, daysFromNow = 3, categoryId = CategoryId.FATURALAR),
             DemoPaymentInput(name = "İnternet (Türk Telekom)", price = 649.0, daysFromNow = 7, categoryId = CategoryId.FATURALAR),
@@ -44,6 +51,11 @@ object DemoData {
                 billingCycle = input.billingCycle,
                 nextPaymentDate = paymentDate,
                 categoryId = input.categoryId,
+                bankName = input.bankName,
+                totalInstallments = input.totalInstallments,
+                currentInstallment = input.currentInstallment,
+                checkNumber = input.checkNumber,
+                payee = input.payee,
                 createdAt = now + index,
                 isTrial = input.isTrial,
                 priceHistory = if (input.name == "Netflix") {

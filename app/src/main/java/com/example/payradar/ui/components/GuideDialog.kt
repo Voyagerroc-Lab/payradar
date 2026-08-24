@@ -105,10 +105,15 @@ fun GuideDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Steps list
+                val localizedSteps = if (lang == AppLanguage.EN || lang == AppLanguage.MS) {
+                    guide.stepsEn ?: guide.steps
+                } else {
+                    guide.steps
+                }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    guide.steps.forEachIndexed { index, step ->
+                    localizedSteps.forEachIndexed { index, step ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.Top
@@ -140,7 +145,12 @@ fun GuideDialog(
                 }
 
                 // Tip if present
-                if (!guide.tip.isNullOrBlank()) {
+                val localizedTip = if (lang == AppLanguage.EN || lang == AppLanguage.MS) {
+                    guide.tipEn ?: guide.tip
+                } else {
+                    guide.tip
+                }
+                if (!localizedTip.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Surface(
                         shape = RoundedCornerShape(10.dp),
@@ -165,7 +175,7 @@ fun GuideDialog(
                                     )
                                 )
                                 Text(
-                                    text = guide.tip,
+                                    text = localizedTip,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )

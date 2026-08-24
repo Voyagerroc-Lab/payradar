@@ -153,6 +153,59 @@ fun PaymentCardItem(
                             )
                         }
 
+                        if (payment.categoryId == CategoryId.KREDI && (payment.bankName != null || payment.currentInstallment != null)) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            ) {
+                                val loanText = buildString {
+                                    payment.bankName?.let { append(it) }
+                                    if (payment.currentInstallment != null && payment.totalInstallments != null) {
+                                        if (isNotEmpty()) append(" • ")
+                                        val badge = AppStrings.t(
+                                            "form.installmentBadge",
+                                            lang,
+                                            mapOf("current" to payment.currentInstallment, "total" to payment.totalInstallments)
+                                        )
+                                        append(badge)
+                                    }
+                                }
+                                Text(
+                                    text = "🏦 $loanText",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        if (payment.categoryId == CategoryId.CEK_SENET && (payment.checkNumber != null || payment.payee != null)) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFF7C3AED).copy(alpha = 0.12f)
+                            ) {
+                                val checkText = buildString {
+                                    payment.checkNumber?.let { append("No: $it") }
+                                    payment.payee?.let {
+                                        if (isNotEmpty()) append(" • ")
+                                        append(it)
+                                    }
+                                }
+                                Text(
+                                    text = "📜 $checkText",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = Color(0xFF7C3AED),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
                         if (payment.isTrial && days >= 0) {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),

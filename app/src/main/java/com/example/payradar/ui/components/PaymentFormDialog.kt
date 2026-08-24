@@ -66,6 +66,11 @@ fun PaymentFormDialog(
         )
     }
     var categoryId by remember { mutableStateOf(initialPayment?.categoryId ?: CategoryId.ABONELIK) }
+    var bankName by remember { mutableStateOf(initialPayment?.bankName ?: "") }
+    var totalInstallmentsStr by remember { mutableStateOf(initialPayment?.totalInstallments?.toString() ?: "") }
+    var currentInstallmentStr by remember { mutableStateOf(initialPayment?.currentInstallment?.toString() ?: "") }
+    var checkNumber by remember { mutableStateOf(initialPayment?.checkNumber ?: "") }
+    var payee by remember { mutableStateOf(initialPayment?.payee ?: "") }
     var notes by remember { mutableStateOf(initialPayment?.notes ?: "") }
     var isTrial by remember { mutableStateOf(initialPayment?.isTrial ?: false) }
     var errorMessage by remember { mutableStateOf("") }
@@ -244,6 +249,68 @@ fun PaymentFormDialog(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                // Specialized fields for Bank Loan
+                if (categoryId == CategoryId.KREDI) {
+                    OutlinedTextField(
+                        value = bankName,
+                        onValueChange = { bankName = it },
+                        label = { Text(AppStrings.t("form.bankName", lang)) },
+                        placeholder = { Text(AppStrings.t("form.bankNamePlaceholder", lang)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = currentInstallmentStr,
+                            onValueChange = { currentInstallmentStr = it },
+                            label = { Text(AppStrings.t("form.currentInstallment", lang)) },
+                            placeholder = { Text("12") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = totalInstallmentsStr,
+                            onValueChange = { totalInstallmentsStr = it },
+                            label = { Text(AppStrings.t("form.totalInstallments", lang)) },
+                            placeholder = { Text("36") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                // Specialized fields for Check & Promissory Note
+                if (categoryId == CategoryId.CEK_SENET) {
+                    OutlinedTextField(
+                        value = checkNumber,
+                        onValueChange = { checkNumber = it },
+                        label = { Text(AppStrings.t("form.checkNumber", lang)) },
+                        placeholder = { Text(AppStrings.t("form.checkNumberPlaceholder", lang)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = payee,
+                        onValueChange = { payee = it },
+                        label = { Text(AppStrings.t("form.payee", lang)) },
+                        placeholder = { Text(AppStrings.t("form.payeePlaceholder", lang)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
                 // Next payment date
                 OutlinedTextField(
                     value = nextPaymentDate,
@@ -360,6 +427,11 @@ fun PaymentFormDialog(
                                     nextPaymentDate = nextPaymentDate,
                                     categoryId = categoryId,
                                     notes = notes.trim().ifEmpty { null },
+                                    bankName = if (categoryId == CategoryId.KREDI) bankName.trim().ifEmpty { null } else null,
+                                    totalInstallments = if (categoryId == CategoryId.KREDI) totalInstallmentsStr.toIntOrNull() else null,
+                                    currentInstallment = if (categoryId == CategoryId.KREDI) currentInstallmentStr.toIntOrNull() else null,
+                                    checkNumber = if (categoryId == CategoryId.CEK_SENET) checkNumber.trim().ifEmpty { null } else null,
+                                    payee = if (categoryId == CategoryId.CEK_SENET) payee.trim().ifEmpty { null } else null,
                                     createdAt = initialPayment?.createdAt ?: System.currentTimeMillis(),
                                     priceHistory = history,
                                     isTrial = isTrial

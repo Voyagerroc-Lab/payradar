@@ -20,7 +20,12 @@ data class PaymentEntity(
     val notes: String?,
     val createdAt: Long,
     val priceHistoryJson: String,
-    val isTrial: Boolean
+    val isTrial: Boolean,
+    val bankName: String? = null,
+    val totalInstallments: Int? = null,
+    val currentInstallment: Int? = null,
+    val checkNumber: String? = null,
+    val payee: String? = null
 ) {
     fun toDomain(priceHistory: List<PricePoint>): Payment {
         return Payment(
@@ -34,7 +39,12 @@ data class PaymentEntity(
             notes = notes,
             createdAt = createdAt,
             priceHistory = priceHistory,
-            isTrial = isTrial
+            isTrial = isTrial,
+            bankName = bankName,
+            totalInstallments = totalInstallments,
+            currentInstallment = currentInstallment,
+            checkNumber = checkNumber,
+            payee = payee
         )
     }
 
@@ -51,7 +61,12 @@ data class PaymentEntity(
                 notes = payment.notes,
                 createdAt = payment.createdAt,
                 priceHistoryJson = priceHistoryJson,
-                isTrial = payment.isTrial
+                isTrial = payment.isTrial,
+                bankName = payment.bankName,
+                totalInstallments = payment.totalInstallments,
+                currentInstallment = payment.currentInstallment,
+                checkNumber = payment.checkNumber,
+                payee = payment.payee
             )
         }
     }

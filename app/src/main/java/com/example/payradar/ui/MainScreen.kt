@@ -2,6 +2,7 @@ package com.example.payradar.ui
 
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +53,8 @@ import com.example.payradar.i18n.AppStrings
 import com.example.payradar.model.CancelGuide
 import com.example.payradar.model.GuidesData
 import com.example.payradar.model.Payment
+import com.example.payradar.ui.components.AccountProfileDialog
+import com.example.payradar.ui.components.AuthDialog
 import com.example.payradar.ui.components.ConfirmDialog
 import com.example.payradar.ui.components.GuideDialog
 import com.example.payradar.ui.components.LockScreenView
@@ -61,6 +65,7 @@ import com.example.payradar.ui.components.PriceChartDialog
 import com.example.payradar.ui.components.SettingsDialog
 import com.example.payradar.ui.components.SummaryCards
 import com.example.payradar.ui.components.ToolbarView
+import com.example.payradar.ui.theme.IndigoPrimary
 
 @Composable
 fun MainScreen(
@@ -70,6 +75,10 @@ fun MainScreen(
     val context = LocalContext.current
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val vaultSettings by viewModel.vaultSettings.collectAsStateWithLifecycle()
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val syncState by viewModel.syncState.collectAsStateWithLifecycle()
+    val lastSyncTimestamp by viewModel.lastSyncTimestamp.collectAsStateWithLifecycle()
+
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
     val filteredPayments by viewModel.filteredPayments.collectAsStateWithLifecycle()
     val allPayments by viewModel.allPaymentsList.collectAsStateWithLifecycle()
@@ -85,6 +94,8 @@ fun MainScreen(
     var activeGuide by remember { mutableStateOf<CancelGuide?>(null) }
     var chartPayment by remember { mutableStateOf<Payment?>(null) }
     var showSettingsDialog by remember { mutableStateOf(false) }
+    var showAuthDialog by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) }
     var paymentToDelete by remember { mutableStateOf<Payment?>(null) }
     var showWipeConfirm by remember { mutableStateOf(false) }
 
@@ -126,6 +137,15 @@ fun MainScreen(
             PayRadarHeader(
                 lang = lang,
                 lockEnabled = prefs.lockEnabled,
+                currentUser = currentUser,
+                syncState = syncState,
+                onAccountClick = {
+                    if (currentUser != null) {
+                        showProfileDialog = true
+                    } else {
+                        showAuthDialog = true
+                    }
+                },
                 onLockClick = { viewModel.lock() },
                 onSettingsClick = { showSettingsDialog = true }
             )
@@ -154,6 +174,52 @@ fun MainScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Cloud Sync Banner if guest
+            if (currentUser == null) {
+                item(key = "cloud_sync_banner") {
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = IndigoPrimary.copy(alpha = 0.08f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showAuthDialog = true }
+                            .testTag("cloud_guest_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("☁️", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = AppStrings.t("auth.banner.text", lang),
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { showAuthDialog = true },
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Text(AppStrings.t("auth.banner.btn", lang), fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Top Summary Cards
             item(key = "summary_cards") {
                 SummaryCards(
@@ -289,6 +355,42 @@ fun MainScreen(
         }
     }
 
+    // Auth & Profile Dialogs
+    if (showAuthDialog) {
+        AuthDialog(
+            onDismiss = { showAuthDialog = false },
+            onSignIn = { email, pass, callback ->
+                viewModel.signIn(email, pass, callback)
+            },
+            onSignUp = { email, pass, name, callback ->
+                viewModel.signUp(email, pass, name, callback)
+            },
+            onGoogleSignIn = { callback ->
+                viewModel.signInWithGoogle(callback)
+            },
+            lang = lang
+        )
+    }
+
+    if (showProfileDialog && currentUser != null) {
+        AccountProfileDialog(
+            user = currentUser!!,
+            syncState = syncState,
+            lastSyncTimestamp = lastSyncTimestamp,
+            onDismiss = { showProfileDialog = false },
+            onSyncNow = { viewModel.syncCloudNow() },
+            onSignOut = {
+                viewModel.signOut()
+                showProfileDialog = false
+            },
+            onSwitchAccount = {
+                showProfileDialog = false
+                showAuthDialog = true
+            },
+            lang = lang
+        )
+    }
+
     // Dialogs
     if (showFormDialog) {
         PaymentFormDialog(
@@ -322,7 +424,16 @@ fun MainScreen(
         SettingsDialog(
             prefs = prefs,
             vaultSettings = vaultSettings,
+            currentUser = currentUser,
             onDismiss = { showSettingsDialog = false },
+            onOpenAuth = {
+                showSettingsDialog = false
+                showAuthDialog = true
+            },
+            onOpenProfile = {
+                showSettingsDialog = false
+                showProfileDialog = true
+            },
             onUpdateLanguage = { viewModel.updateLanguage(it) },
             onUpdateTheme = { viewModel.updateTheme(it) },
             onUpdateAutoLock = { viewModel.updateAutoLock(it) },
@@ -366,3 +477,4 @@ fun MainScreen(
         )
     }
 }
+

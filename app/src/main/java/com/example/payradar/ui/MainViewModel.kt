@@ -3,18 +3,19 @@ package com.example.payradar.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.payradar.data.csv.CsvHelper
-import com.example.payradar.data.csv.CsvImportResult
+import com.example.payradar.data.repository.AuthRepository
 import com.example.payradar.data.repository.PaymentRepository
 import com.example.payradar.data.repository.SettingsRepository
 import com.example.payradar.i18n.AppStrings
 import com.example.payradar.model.AppLanguage
 import com.example.payradar.model.AppPrefs
 import com.example.payradar.model.AppTheme
+import com.example.payradar.model.AuthUser
 import com.example.payradar.model.CategoryId
 import com.example.payradar.model.DemoData
 import com.example.payradar.model.FormatUtils
 import com.example.payradar.model.Payment
-import com.example.payradar.model.PricePoint
+import com.example.payradar.model.SyncState
 import com.example.payradar.model.VaultSettings
 import com.example.payradar.ui.components.SortKey
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,11 +31,16 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val paymentRepository: PaymentRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     val prefs: StateFlow<AppPrefs> = settingsRepository.appPrefs
     val vaultSettings: StateFlow<VaultSettings> = settingsRepository.vaultSettings
+
+    val currentUser: StateFlow<AuthUser?> = authRepository.currentUser
+    val syncState: StateFlow<SyncState> = authRepository.syncState
+    val lastSyncTimestamp: StateFlow<Long> = authRepository.lastSyncTimestamp
 
     private val _isLocked = MutableStateFlow(prefs.value.lockEnabled)
     val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
@@ -104,6 +110,7 @@ class MainViewModel(
         viewModelScope.launch {
             paymentRepository.insertPayment(payment)
             _snackbarMessage.emit(AppStrings.t("toast.saved", prefs.value.language))
+            triggerAutoSync()
         }
     }
 
@@ -111,6 +118,7 @@ class MainViewModel(
         viewModelScope.launch {
             paymentRepository.deletePayment(id)
             _snackbarMessage.emit(AppStrings.t("toast.deleted", prefs.value.language))
+            triggerAutoSync()
         }
     }
 
@@ -119,10 +127,11 @@ class MainViewModel(
             val nextDate = FormatUtils.nextOccurrence(payment.nextPaymentDate, payment.billingCycle)
             val updated = payment.copy(
                 nextPaymentDate = nextDate,
-                isTrial = false // If it was a trial, advancing date converts to normal active cycle
+                isTrial = false
             )
             paymentRepository.insertPayment(updated)
             _snackbarMessage.emit(AppStrings.t("toast.saved", prefs.value.language))
+            triggerAutoSync()
         }
     }
 
@@ -131,6 +140,7 @@ class MainViewModel(
             val demos = DemoData.buildDemoPayments()
             paymentRepository.insertPayments(demos)
             _snackbarMessage.emit(AppStrings.t("toast.demoLoaded", prefs.value.language))
+            triggerAutoSync()
         }
     }
 
@@ -138,10 +148,96 @@ class MainViewModel(
         viewModelScope.launch {
             paymentRepository.deleteAll()
             settingsRepository.wipeAllData()
+            authRepository.signOut()
             _isLocked.value = false
-            _snackbarMessage.emit("Tüm veriler temizlendi")
+            _snackbarMessage.emit(AppStrings.t("confirm.wipe", prefs.value.language))
         }
     }
+
+    // --- Authentication & Cloud Sync ---
+
+    fun signIn(email: String, pass: String, onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            val result = authRepository.signIn(email, pass)
+            result.onSuccess { user ->
+                _snackbarMessage.emit(AppStrings.t("toast.signedIn", prefs.value.language, mapOf("email" to user.email)))
+                // Load cloud data for this user if available
+                syncFromCloudOnLogin(user.email)
+                onResult(true, null)
+            }.onFailure { err ->
+                onResult(false, err.message)
+            }
+        }
+    }
+
+    fun signUp(email: String, pass: String, name: String, onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            val result = authRepository.signUp(email, pass, name)
+            result.onSuccess { user ->
+                _snackbarMessage.emit(AppStrings.t("toast.signedUp", prefs.value.language))
+                // Perform initial sync of current local data
+                triggerAutoSync()
+                onResult(true, null)
+            }.onFailure { err ->
+                onResult(false, err.message)
+            }
+        }
+    }
+
+    fun signInWithGoogle(onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            val result = authRepository.signInWithGoogle()
+            result.onSuccess { user ->
+                _snackbarMessage.emit(AppStrings.t("toast.signedIn", prefs.value.language, mapOf("email" to user.email)))
+                syncFromCloudOnLogin(user.email)
+                onResult(true, null)
+            }.onFailure { err ->
+                onResult(false, err.message)
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            authRepository.signOut()
+            _snackbarMessage.emit(AppStrings.t("toast.signedOut", prefs.value.language))
+        }
+    }
+
+    fun syncCloudNow() {
+        viewModelScope.launch {
+            val res = authRepository.syncWithCloud(allPaymentsList.value, vaultSettings.value)
+            if (res.isSuccess) {
+                _snackbarMessage.emit(AppStrings.t("toast.syncSuccess", prefs.value.language))
+            }
+        }
+    }
+
+    private fun triggerAutoSync() {
+        if (currentUser.value != null) {
+            viewModelScope.launch {
+                authRepository.syncWithCloud(allPaymentsList.value, vaultSettings.value)
+            }
+        }
+    }
+
+    private suspend fun syncFromCloudOnLogin(email: String) {
+        val cloudSnapshot = authRepository.getCloudSnapshot(email)
+        if (cloudSnapshot != null && cloudSnapshot.payments.isNotEmpty()) {
+            val currentLocal = allPaymentsList.value
+            val toAdd = cloudSnapshot.payments.filter { cloudP ->
+                currentLocal.none { it.id == cloudP.id }
+            }
+            if (toAdd.isNotEmpty()) {
+                paymentRepository.insertPayments(toAdd)
+            }
+        } else if (allPaymentsList.value.isNotEmpty()) {
+            // Push local data to cloud
+            authRepository.syncWithCloud(allPaymentsList.value, vaultSettings.value)
+        }
+    }
+
+    // --- Security & Settings ---
 
     fun unlock(pin: String): Boolean {
         val success = settingsRepository.verifyPin(pin)
@@ -194,6 +290,7 @@ class MainViewModel(
 
     fun updateVaultSettings(settings: VaultSettings) {
         settingsRepository.updateVaultSettings(settings)
+        triggerAutoSync()
     }
 
     fun exportCsv(): String {
@@ -205,6 +302,7 @@ class MainViewModel(
             val result = CsvHelper.parseCsv(text, allPaymentsList.value)
             if (result.payments.isNotEmpty()) {
                 paymentRepository.insertPayments(result.payments)
+                triggerAutoSync()
             }
             val msg = AppStrings.t(
                 "toast.importDone",
@@ -215,3 +313,4 @@ class MainViewModel(
         }
     }
 }
+
