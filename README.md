@@ -8,15 +8,18 @@ PayRadar is a free, open-source recurring payment tracker that runs entirely in 
 ## ✨ Features
 
 - 📊 **Instant overview** — monthly/yearly totals, active payments, next upcoming charge
-- 🏠🚗🧾📺 **Everything recurring** — housing, transport, utilities, subscriptions, insurance, education… 9 categories
-- 🔁 **Flexible cycles** — weekly, monthly, quarterly, yearly billing
+- 🏠🚗🧾📺 **Everything recurring** — housing, transport, utilities, subscriptions, insurance, education, bank loans, checks… 11 categories
+- 🏦 **Loan & check tracking** — bank name, installment counter (14/60), check serial number and payee on the card
+- 🔁 **Flexible cycles** — weekly, monthly, quarterly, yearly billing; one-tap "Paid / Advance" rolls the due date forward
 - 🌍 **Multi-currency** — TRY / USD / EUR payments with editable exchange rates for TL totals
 - 🗓️ **Renewal tracking** — color-coded countdown badges on every card
-- 🔔 **Reminders** — browser notifications 1–7 days before renewal
-- 🚫 **Cancellation guides** — step-by-step Turkish guides + direct links for Netflix, Spotify, BluTV, TOD, Game Pass and [17 more](src/data/guides.ts)
-- 🌐 **Bilingual** — full Turkish & English UI (`tr` / `en`), auto-detected from your browser
-- 🌙 **Dark mode** — follows system or manual override
+- 🔔 **Reminders** — browser notifications 1–7 days before renewal (and up to 2 days overdue), with a grouped digest when several payments are due
+- 🚫 **Cancellation guides** — step-by-step guides + direct links for Netflix, Spotify, BluTV, TOD, Game Pass and [17 more](src/data/guides.ts), in Turkish and English
+- 🌐 **Trilingual** — Turkish, English & Malay UI (`tr` / `en` / `ms`), auto-detected from your browser
+- 🌙 **Dark mode** — follows system or manual override; theme & language roam across devices with cloud sync
 - 📱 **PWA** — installable on phone/desktop, works fully offline
+
+> 🌿 **Branches:** `main` holds the web app (which also powers the Android TWA and iOS wrapper in [`ios/`](ios/)). An experimental native Android (Kotlin/Compose) client lives on the [`android-native`](https://github.com/Voyagerroc/payradar/tree/android-native) branch; all of its features have been ported into the web app.
 
 ## 🔒 Security
 
