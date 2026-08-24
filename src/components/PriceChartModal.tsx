@@ -1,4 +1,4 @@
-import { CURRENCY_SYMBOL, formatDateTR, localeFor, todayISO } from "../lib/format";
+import { formatDateTR, localeFor, todayISO } from "../lib/format";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
@@ -53,7 +53,12 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
   return (
     <Modal title={t("chart.title", { name: payment.name })} onClose={onClose} wide>
       <div className="chart-wrap">
-        <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" role="img">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="chart-svg"
+          role="img"
+          aria-label={t("chart.title", { name: payment.name })}
+        >
           {/* yatay kılavuz çizgileri */}
           {[0, 0.5, 1].map((r) => (
             <line
@@ -78,7 +83,10 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
                   textAnchor="middle"
                   className="chart-label"
                 >
-                  {c.date.slice(2, 7)}
+                  {new Intl.DateTimeFormat(localeFor(lang), {
+                    month: "short",
+                    year: "2-digit",
+                  }).format(new Date(c.date))}
                 </text>
               )}
             </g>
@@ -96,7 +104,7 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
           <div>
             <span className="summary-label">{t("chart.current")}</span>
             <strong>
-              {fmt(payment.price)} {CURRENCY_SYMBOL[payment.currency]}
+              {fmt(payment.price)}
               <small> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</small>
             </strong>
           </div>

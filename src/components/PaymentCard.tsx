@@ -1,4 +1,4 @@
-import { CATEGORIES, CURRENCY_SYMBOL, formatDateTR } from "../lib/format";
+import { CATEGORIES, CURRENCY_SYMBOL, formatDateTR, localeFor } from "../lib/format";
 import { findGuide } from "../data/guides";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
@@ -33,8 +33,8 @@ export default function PaymentCard({
   async function handleShare() {
     const cycle = t(`suffix.${payment.billingCycle}` as TranslationKey);
     const text = payment.notes
-      ? `${payment.name}: ${formatPrice(payment.price, payment.currency)}${cycle}\n${payment.notes}`
-      : `${payment.name}: ${formatPrice(payment.price, payment.currency)}${cycle}`;
+      ? `${payment.name}: ${formatPrice(payment.price, payment.currency, lang)}${cycle}\n${payment.notes}`
+      : `${payment.name}: ${formatPrice(payment.price, payment.currency, lang)}${cycle}`;
     try {
       await navigator.share({ title: payment.name, text });
     } catch {
@@ -44,23 +44,23 @@ export default function PaymentCard({
 
   return (
     <article className="card sub-card">
-      <div className="sub-avatar" style={{ background: category.color }}>
+      <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">
         <span>{payment.name.charAt(0).toLocaleUpperCase("tr-TR")}</span>
         <small>{category.emoji}</small>
       </div>
 
       <div className="sub-info">
         <div className="sub-title-row">
-          <h3 title={payment.name}>{payment.name}</h3>
+          <h2 title={payment.name}>{payment.name}</h2>
           <span className="chip" style={{ borderColor: category.color }}>
-            {category.emoji} {t(category.labelKey)}
+            <span aria-hidden="true">{category.emoji}</span> {t(category.labelKey)}
           </span>
           {payment.isTrial && days >= 0 && (
             <span className="chip chip-trial">🎁 {t("card.trial")}</span>
           )}
         </div>
         <p className="sub-price">
-          {formatPrice(payment.price, payment.currency)}
+          {formatPrice(payment.price, payment.currency, lang)}
           <span> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</span>
         </p>
         <p className="sub-date">
@@ -98,9 +98,9 @@ export default function PaymentCard({
       </div>
 
       <div className="sub-actions">
-        <button className={`badge ${badge.className}`} title={badge.text}>
+        <span className={`badge ${badge.className}`} title={badge.text} aria-label={badge.text}>
           {badge.short}
-        </button>
+        </span>
         {hasGuide && (
           <button className="btn btn-secondary" onClick={onShowGuide}>
             {t("card.guide")}
@@ -162,8 +162,12 @@ function daysLeft(iso: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
-function formatPrice(price: number, currency: keyof typeof CURRENCY_SYMBOL): string {
-  return new Intl.NumberFormat("tr-TR", {
+function formatPrice(
+  price: number,
+  currency: keyof typeof CURRENCY_SYMBOL,
+  lang: "tr" | "en" | "ms",
+): string {
+  return new Intl.NumberFormat(localeFor(lang), {
     style: "currency",
     currency,
     minimumFractionDigits: 2,

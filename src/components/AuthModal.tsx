@@ -143,6 +143,8 @@ export default function AuthModal({
             <input
               className="input"
               inputMode="numeric"
+              name="otp"
+              spellCheck={false}
               autoComplete="one-time-code"
               maxLength={8}
               value={otpCode}
@@ -152,7 +154,11 @@ export default function AuthModal({
               }}
             />
           </label>
-          {error && <p className="form-error">{error}</p>}
+          {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
           <div className="form-actions security-actions">
             <button
               className="btn btn-secondary"
@@ -176,10 +182,12 @@ export default function AuthModal({
 
   return (
     <Modal title={t("auth.dialogTitle")} onClose={onClose}>
-      <div className="auth-tabs">
+      <div className="auth-tabs" role="tablist" aria-label={t("auth.dialogTitle")}>
         <button
           type="button"
           className={`auth-tab ${tab === "signin" ? "active" : ""}`}
+          role="tab"
+          aria-selected={tab === "signin"}
           onClick={() => switchTab("signin")}
         >
           {t("auth.tabSignIn")}
@@ -187,6 +195,8 @@ export default function AuthModal({
         <button
           type="button"
           className={`auth-tab ${tab === "signup" ? "active" : ""}`}
+          role="tab"
+          aria-selected={tab === "signup"}
           onClick={() => switchTab("signup")}
         >
           {t("auth.tabSignUp")}
@@ -219,6 +229,7 @@ export default function AuthModal({
           <button
             type="button"
             className={`chip-btn ${method === "email" ? "active" : ""}`}
+            aria-pressed={method === "email"}
             onClick={() => {
               setMethod("email");
               setError("");
@@ -229,6 +240,7 @@ export default function AuthModal({
           <button
             type="button"
             className={`chip-btn ${method === "phone" ? "active" : ""}`}
+            aria-pressed={method === "phone"}
             onClick={() => {
               setMethod("phone");
               setError("");
@@ -244,6 +256,8 @@ export default function AuthModal({
             <input
               className="input"
               type="email"
+              name="email"
+              spellCheck={false}
               autoComplete="email"
               value={email}
               onChange={(e) => {
@@ -259,6 +273,8 @@ export default function AuthModal({
             <input
               className="input"
               type="tel"
+              name="phone"
+              spellCheck={false}
               autoComplete="tel"
               value={phone}
               onChange={(e) => {
@@ -325,8 +341,16 @@ export default function AuthModal({
 
         <p className="field-hint auth-sync-hint">💡 {t("auth.syncHint")}</p>
 
-        {info && <p className="field-hint strong-hint">✉️ {info}</p>}
-        {error && <p className="form-error">{error}</p>}
+        {info && (
+          <p className="field-hint strong-hint" aria-live="polite">
+            <span aria-hidden="true">✉️</span> {info}
+          </p>
+        )}
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
 
         <button className="btn btn-primary auth-submit" type="submit" disabled={busy}>
           {busy ? "…" : tab === "signin" ? t("auth.btnSignIn") : t("auth.btnSignUp")}

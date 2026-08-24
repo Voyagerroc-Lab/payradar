@@ -31,14 +31,17 @@ export default function Toolbar({
       <input
         className="input search"
         type="search"
+        name="search"
+        aria-label={t("toolbar.searchPlaceholder")}
         placeholder={t("toolbar.searchPlaceholder")}
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
       />
 
-      <div className="chips" role="tablist" aria-label={t("form.category")}>
+      <div className="chips" aria-label={t("form.category")}>
         <button
           className={`chip-btn ${category === "all" ? "active" : ""}`}
+          aria-pressed={category === "all"}
           onClick={() => onCategoryChange("all")}
         >
           {t("filter.all")}
@@ -47,9 +50,11 @@ export default function Toolbar({
           <button
             key={id}
             className={`chip-btn ${category === id ? "active" : ""}`}
+            aria-pressed={category === id}
             onClick={() => onCategoryChange(id)}
           >
-            {CATEGORIES[id].emoji} {t(CATEGORIES[id].labelKey as TranslationKey)}
+            <span aria-hidden="true">{CATEGORIES[id].emoji}</span>{" "}
+            {t(CATEGORIES[id].labelKey as TranslationKey)}
           </button>
         ))}
       </div>
@@ -59,7 +64,7 @@ export default function Toolbar({
           className="input select"
           value={sort}
           onChange={(e) => onSortChange(e.target.value as SortKey)}
-          aria-label={t("sort.date")}
+          aria-label={t("sort.label")}
         >
           <option value="date">{t("sort.date")}</option>
           <option value="price-desc">{t("sort.priceDesc")}</option>

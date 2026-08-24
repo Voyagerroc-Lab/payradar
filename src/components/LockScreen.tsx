@@ -29,8 +29,10 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
   return (
     <div className="lock-screen">
       <form className="lock-box card" onSubmit={handleSubmit}>
-        <span className="brand-icon lock-icon">📡</span>
-        <h1>PayRadar</h1>
+        <span className="brand-icon lock-icon" aria-hidden="true">
+          📡
+        </span>
+        <h1 translate="no">PayRadar</h1>
         <p className="lock-subtitle">{t("lock.enterPin")}</p>
 
         <input
@@ -49,11 +51,21 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
           aria-label={t("lock.enterPin")}
         />
 
-        <button className="btn btn-primary lock-btn" type="submit" disabled={busy || !pin}>
-          {busy ? t("lock.verifying") : `🔓 ${t("lock.unlock")}`}
+        <button className="btn btn-primary lock-btn" type="submit" disabled={busy}>
+          {busy ? (
+            t("lock.verifying")
+          ) : (
+            <>
+              <span aria-hidden="true">🔓</span> {t("lock.unlock")}
+            </>
+          )}
         </button>
 
-        {error && <p className="form-error">{t("lock.wrongPin")}</p>}
+        {error && (
+          <p className="form-error" role="alert">
+            {t("lock.wrongPin")}
+          </p>
+        )}
 
         <button
           type="button"

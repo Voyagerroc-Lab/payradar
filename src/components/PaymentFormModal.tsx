@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Modal from "./Modal";
 import { CATEGORIES, parseAmount, parseInstallment, sanitizeCategoryFields } from "../lib/format";
 import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
@@ -40,17 +40,28 @@ export default function PaymentFormModal({
   const [checkNumber, setCheckNumber] = useState(initial?.checkNumber ?? "");
   const [payee, setPayee] = useState(initial?.payee ?? "");
   const [error, setError] = useState("");
+  const nameRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmedName = name.trim();
     const parsedPrice = parseAmount(price);
 
-    if (!trimmedName) return setError(t("form.error.name"));
-    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0)
+    // Hata durumunda ilgili alana odaklan — ekran okuyucu ve klavye kullanıcısı için
+    if (!trimmedName) {
+      nameRef.current?.focus();
+      return setError(t("form.error.name"));
+    }
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      priceRef.current?.focus();
       return setError(t("form.error.amount"));
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate))
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate)) {
+      dateRef.current?.focus();
       return setError(t("form.error.date"));
+    }
 
     // sanitizeCategoryFields kategoriye ait olmayan alanları düşürür
     onSave(
@@ -80,11 +91,13 @@ export default function PaymentFormModal({
         <label className="field">
           <span>{t("form.name")}</span>
           <input
+            ref={nameRef}
             className="input"
+            name="payment-name"
+            autoComplete="off"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("form.namePlaceholder")}
-            autoFocus
             maxLength={60}
           />
         </label>
@@ -93,7 +106,10 @@ export default function PaymentFormModal({
           <label className="field">
             <span>{t("form.amount")}</span>
             <input
+              ref={priceRef}
               className="input"
+              name="amount"
+              autoComplete="off"
               inputMode="decimal"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
@@ -214,8 +230,11 @@ export default function PaymentFormModal({
         <label className="field">
           <span>{isTrial ? t("form.trialEndDate") : t("form.nextDate")}</span>
           <input
+            ref={dateRef}
             className="input"
             type="date"
+            name="next-payment-date"
+            autoComplete="off"
             value={nextPaymentDate}
             onChange={(e) => setNextPaymentDate(e.target.value)}
           />
@@ -243,7 +262,11 @@ export default function PaymentFormModal({
           />
         </label>
 
-        {error && <p className="form-error">{error}</p>}
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose}>

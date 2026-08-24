@@ -25,9 +25,11 @@ export default function Header({
     <header className="header">
       <div className="container header-inner">
         <div className="brand">
-          <span className="brand-icon">📡</span>
+          <span className="brand-icon" aria-hidden="true">
+            📡
+          </span>
           <div>
-            <h1>PayRadar</h1>
+            <h1 translate="no">PayRadar</h1>
             <p>{t("tagline")}</p>
           </div>
         </div>
@@ -49,7 +51,12 @@ export default function Header({
             </button>
           )}
           {onLock && (
-            <button className="icon-btn" onClick={onLock} aria-label="Kilitle" title="Kilitle">
+            <button
+              className="icon-btn"
+              onClick={onLock}
+              aria-label={t("action.lock")}
+              title={t("action.lock")}
+            >
               🔒
             </button>
           )}

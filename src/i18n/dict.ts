@@ -96,6 +96,12 @@ const tr = {
   "action.cancel": "Vazgeç",
   "action.save": "Kaydet",
   "action.confirm": "Onayla",
+  "action.close": "Kapat",
+  "action.lock": "Kilitle",
+  "action.delete": "Sil",
+  "sort.label": "Sıralama",
+  "a11y.skipToContent": "İçeriğe atla",
+  "confirm.demoReplace": "Mevcut ödemelerin örnek verilerle değiştirilsin mi?",
 
   // İptal rehberi
   "guide.modalTitle": "{name} — İptal Rehberi",
@@ -360,6 +366,12 @@ const en: Record<TranslationKey, string> = {
   "action.cancel": "Cancel",
   "action.save": "Save",
   "action.confirm": "Confirm",
+  "action.close": "Close",
+  "action.lock": "Lock",
+  "action.delete": "Delete",
+  "sort.label": "Sort by",
+  "a11y.skipToContent": "Skip to content",
+  "confirm.demoReplace": "Replace your current payments with sample data?",
 
   "guide.modalTitle": "{name} — Cancel Guide",
   "guide.intro":
@@ -615,6 +627,12 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "action.cancel": "Batal",
   "action.save": "Simpan",
   "action.confirm": "Sahkan",
+  "action.close": "Tutup",
+  "action.lock": "Kunci",
+  "action.delete": "Padam",
+  "sort.label": "Susun ikut",
+  "a11y.skipToContent": "Langkau ke kandungan",
+  "confirm.demoReplace": "Gantikan pembayaran semasa dengan data contoh?",
 
   "guide.modalTitle": "{name} — Panduan Pembatalan",
   "guide.intro":

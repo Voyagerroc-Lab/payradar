@@ -1,5 +1,5 @@
 import type { Payment, VaultData } from "../types";
-import { toTryPerMonth } from "../lib/format";
+import { localeFor, toTryPerMonth } from "../lib/format";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
 
@@ -9,7 +9,7 @@ interface SummaryCardsProps {
 }
 
 export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const monthly = payments.reduce(
     (sum, p) => sum + toTryPerMonth(p, vault.usdTry, vault.eurTry),
     0,
@@ -25,11 +25,11 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
     <section className="summary">
       <div className="card summary-card">
         <span className="summary-label">{t("summary.monthly")}</span>
-        <span className="summary-value">{formatTRY(monthly)}</span>
+        <span className="summary-value">{formatTRY(monthly, lang)}</span>
       </div>
       <div className="card summary-card">
         <span className="summary-label">{t("summary.yearly")}</span>
-        <span className="summary-value">{formatTRY(yearly)}</span>
+        <span className="summary-value">{formatTRY(yearly, lang)}</span>
       </div>
       <div className="card summary-card">
         <span className="summary-label">{t("summary.active")}</span>
@@ -65,8 +65,8 @@ function describeDays(days: number, t: TFn): string {
   return t("time.daysLeft", { n: days });
 }
 
-function formatTRY(amount: number): string {
-  return new Intl.NumberFormat("tr-TR", {
+function formatTRY(amount: number, lang: "tr" | "en" | "ms"): string {
+  return new Intl.NumberFormat(localeFor(lang), {
     style: "currency",
     currency: "TRY",
     minimumFractionDigits: 2,

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import Modal from "./Modal";
 import { requestNotificationPermission } from "../lib/notify";
+import { parseAmount } from "../lib/format";
 import type { Language, Prefs, VaultData } from "../types";
 import type { CloudUser } from "../lib/cloud";
 import { useI18n } from "../i18n";
@@ -48,6 +49,10 @@ export default function SettingsModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
+  // Kur alanları yazım sırasında ham metin tutar; kayıt anında ayrıştırılır —
+  // aksi halde "3," yazarken virgül anında silinir, alan hiç boşaltılamaz.
+  const [usdText, setUsdText] = useState(String(vault.usdTry));
+  const [eurText, setEurText] = useState(String(vault.eurTry));
 
   // PIN form durumları
   const [newPin, setNewPin] = useState("");
@@ -175,28 +180,22 @@ export default function SettingsModal({
             <span>{t("settings.usdRate")}</span>
             <input
               className="input"
+              name="usd-rate"
+              autoComplete="off"
               inputMode="decimal"
-              value={String(draftVault.usdTry)}
-              onChange={(e) =>
-                setDraftVault({
-                  ...draftVault,
-                  usdTry: Number(e.target.value.replace(",", ".")) || 0,
-                })
-              }
+              value={usdText}
+              onChange={(e) => setUsdText(e.target.value)}
             />
           </label>
           <label className="field">
             <span>{t("settings.eurRate")}</span>
             <input
               className="input"
+              name="eur-rate"
+              autoComplete="off"
               inputMode="decimal"
-              value={String(draftVault.eurTry)}
-              onChange={(e) =>
-                setDraftVault({
-                  ...draftVault,
-                  eurTry: Number(e.target.value.replace(",", ".")) || 0,
-                })
-              }
+              value={eurText}
+              onChange={(e) => setEurText(e.target.value)}
             />
           </label>
         </div>
@@ -220,14 +219,14 @@ export default function SettingsModal({
         {/* ---------- Hesap ---------- */}
         <h3 className="section-title">{t("auth.profile.title")}</h3>
         {cloudEnabled && draftPrefs.lockEnabled && (
-          <p className="field-hint strong-hint">⚠️ {t("account.cloudNotEncryptedHint")}</p>
+          <p className="field-hint strong-hint"><span aria-hidden="true">⚠️</span> {t("account.cloudNotEncryptedHint")}</p>
         )}
         {!cloudEnabled ? (
           <p className="field-hint">{t("account.disabledHint")}</p>
         ) : cloudUser ? (
           <div className="settings-account-card">
             <span>
-              ☁️{" "}
+              <span aria-hidden="true">☁️</span>{" "}
               {t("account.signedInAs", {
                 identity: (cloudUser.email ?? cloudUser.phone ?? "") as string,
               })}
@@ -250,13 +249,13 @@ export default function SettingsModal({
         <p className="field-hint">{t("data.importHint")}</p>
         <div className="form-row">
           <button className="btn btn-secondary" onClick={onExportCsv}>
-            ⬇️ {t("data.exportBtn")}
+            <span aria-hidden="true">⬇️</span> {t("data.exportBtn")}
           </button>
           <button
             className="btn btn-secondary"
             onClick={() => fileInputRef.current?.click()}
           >
-            ⬆️ {t("data.importBtn")}
+            <span aria-hidden="true">⬆️</span> {t("data.importBtn")}
           </button>
         </div>
         <input
@@ -275,7 +274,7 @@ export default function SettingsModal({
           className="btn btn-secondary full-width-btn"
           onClick={onLoadDemo}
         >
-          ✨ {t("empty.tryDemo")}
+          <span aria-hidden="true">✨</span> {t("empty.tryDemo")}
         </button>
 
         {/* ---------- Güvenlik ---------- */}
@@ -284,7 +283,7 @@ export default function SettingsModal({
         {!draftPrefs.lockEnabled ? (
           <>
             <p className="field-hint">{t("security.offHint")}</p>
-            <p className="field-hint strong-hint">🔓 {t("security.enableTitle")}</p>
+            <p className="field-hint strong-hint"><span aria-hidden="true">🔓</span> {t("security.enableTitle")}</p>
             <div className="form-row">
               <label className="field">
                 <span>{t("security.newPin")}</span>
@@ -311,10 +310,14 @@ export default function SettingsModal({
                 />
               </label>
             </div>
-            {pinError && <p className="form-error">{pinError}</p>}
+            {pinError && (
+              <p className="form-error" role="alert">
+                {pinError}
+              </p>
+            )}
             <div className="form-actions">
               <button className="btn btn-primary" disabled={busy} onClick={() => void handleEnable()}>
-                🔒 {t("security.enableTitle")}
+                <span aria-hidden="true">🔒</span> {t("security.enableTitle")}
               </button>
             </div>
           </>
@@ -366,7 +369,11 @@ export default function SettingsModal({
                 />
               </label>
             </div>
-            {pinError && <p className="form-error">{pinError}</p>}
+            {pinError && (
+              <p className="form-error" role="alert">
+                {pinError}
+              </p>
+            )}
             <div className="form-actions security-actions">
               <button
                 className="btn btn-danger"
@@ -377,7 +384,7 @@ export default function SettingsModal({
               </button>
               <button
                 className="btn btn-secondary"
-                disabled={busy || !newPin}
+                disabled={busy}
                 onClick={() => void handleChange()}
               >
                 {t("security.changePinBtn")}
@@ -402,8 +409,15 @@ export default function SettingsModal({
   );
 
   function onSaveBoth(p: Prefs, v: VaultData) {
+    // Kur metinlerini kayıt anında ayrıştır; geçersiz/boş girişte mevcut değer korunur
+    const usd = parseAmount(usdText);
+    const eur = parseAmount(eurText);
     onSavePrefs(p);
-    onSaveVault(v);
+    onSaveVault({
+      ...v,
+      usdTry: Number.isFinite(usd) && usd > 0 ? usd : v.usdTry,
+      eurTry: Number.isFinite(eur) && eur > 0 ? eur : v.eurTry,
+    });
   }
 }
 

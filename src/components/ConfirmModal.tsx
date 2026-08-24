@@ -5,9 +5,16 @@ interface ConfirmModalProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Onay butonunun eyleme özgü etiketi (örn. "Sil"); verilmezse genel "Onayla" */
+  confirmLabel?: string;
 }
 
-export default function ConfirmModal({ message, onConfirm, onCancel }: ConfirmModalProps) {
+export default function ConfirmModal({
+  message,
+  onConfirm,
+  onCancel,
+  confirmLabel,
+}: ConfirmModalProps) {
   const { t } = useI18n();
   return (
     <Modal title={t("confirm.title")} onClose={onCancel}>
@@ -17,7 +24,7 @@ export default function ConfirmModal({ message, onConfirm, onCancel }: ConfirmMo
           {t("action.cancel")}
         </button>
         <button className="btn btn-danger" onClick={onConfirm}>
-          {t("action.confirm")}
+          {confirmLabel ?? t("action.confirm")}
         </button>
       </div>
     </Modal>

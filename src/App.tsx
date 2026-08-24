@@ -93,6 +93,7 @@ export default function App() {
   const [guideFor, setGuideFor] = useState<Payment | null>(null);
   const [chartFor, setChartFor] = useState<Payment | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const [demoConfirmOpen, setDemoConfirmOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -561,7 +562,17 @@ export default function App() {
   }
 
   function handleDemo() {
+    // Gerçek veri varken örnek veriler onaysız üzerine yazılmasın
+    if (vault.payments.length > 0) {
+      setDemoConfirmOpen(true);
+      return;
+    }
+    loadDemoData();
+  }
+
+  function loadDemoData() {
     touchVault((v) => ({ ...v, payments: buildDemoPayments() }));
+    setDemoConfirmOpen(false);
     setToast(t("toast.demoLoaded"));
   }
 
@@ -601,6 +612,9 @@ export default function App() {
         <LockScreen onUnlock={handleUnlock} onWipe={handleWipe} />
       ) : (
         <div className="app">
+          <a className="skip-link" href="#main">
+            {t("a11y.skipToContent")}
+          </a>
           <Header
             onOpenSettings={() => setSettingsOpen(true)}
             onLock={prefs.lockEnabled ? handleLock : undefined}
@@ -609,7 +623,7 @@ export default function App() {
             onOpenAccount={() => (cloudUser ? setProfileOpen(true) : setAuthOpen(true))}
           />
 
-          <main className="container">
+          <main className="container" id="main" tabIndex={-1}>
             {cloudEnabled && !cloudUser && (
               <button className="cloud-banner" onClick={() => setAuthOpen(true)}>
                 <span>{t("auth.banner.text")}</span>
@@ -682,8 +696,17 @@ export default function App() {
           {deleteTarget && (
             <ConfirmModal
               message={t("confirm.deletePayment", { name: deleteTarget.name })}
+              confirmLabel={t("action.delete")}
               onCancel={() => setDeleteTarget(null)}
               onConfirm={confirmDelete}
+            />
+          )}
+
+          {demoConfirmOpen && (
+            <ConfirmModal
+              message={t("confirm.demoReplace")}
+              onCancel={() => setDemoConfirmOpen(false)}
+              onConfirm={loadDemoData}
             />
           )}
 
@@ -753,7 +776,14 @@ export default function App() {
               />
             )}
 
-          {toast && <div className="toast">{toast}</div>}
+          {/* Kalıcı canlı bölge: ekran okuyucular metin değişimini duyurur */}
+          <div
+            className={`toast ${toast ? "" : "toast-hidden"}`}
+            role="status"
+            aria-live="polite"
+          >
+            {toast}
+          </div>
 
           <Footer />
         </div>
@@ -817,8 +847,8 @@ function NotificationBanner({
         <button
           className="icon-btn"
           onClick={onDismiss}
-          aria-label="✕"
-          title="✕"
+          aria-label={t("action.close")}
+          title={t("action.close")}
         >
           ✕
         </button>
