@@ -1,4 +1,5 @@
 import type { Payment, Prefs, VaultData } from "../types";
+import { sanitizeCategoryFields } from "./format";
 import {
   decryptJSON,
   deriveVaultKey,
@@ -10,8 +11,25 @@ import {
 
 const PREFS_KEY = "payradar:prefs:v1";
 const VAULT_KEY = "payradar:vault:v1";
+const LAST_SYNC_KEY = "payradar:lastSync:v1";
 /** Eski uygulamanın anahtarları — bir kereliğine migrate edilir */
 const LEGACY_SUBS_KEY = "abonelik-takipci:subscriptions:v1";
+
+export function loadLastSync(): number {
+  try {
+    return Number(localStorage.getItem(LAST_SYNC_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function saveLastSync(ts: number): void {
+  try {
+    localStorage.setItem(LAST_SYNC_KEY, String(ts));
+  } catch {
+    /* önemsiz */
+  }
+}
 
 export const DEFAULT_PREFS: Prefs = {
   language: detectLanguage(),
@@ -40,8 +58,11 @@ interface VaultFile {
   data?: VaultData;
 }
 
-function detectLanguage(): "tr" | "en" {
-  return navigator.language?.toLowerCase().startsWith("tr") ? "tr" : "en";
+function detectLanguage(): "tr" | "en" | "ms" {
+  const lang = navigator.language?.toLowerCase() ?? "";
+  if (lang.startsWith("tr")) return "tr";
+  if (lang.startsWith("ms")) return "ms";
+  return "en";
 }
 
 /* ---------------- Prefs ---------------- */
@@ -176,17 +197,18 @@ export async function disableLock(pin: string): Promise<VaultData | null> {
 export function wipeAllData(): void {
   localStorage.removeItem(PREFS_KEY);
   localStorage.removeItem(VAULT_KEY);
+  localStorage.removeItem(LAST_SYNC_KEY);
   localStorage.removeItem(LEGACY_SUBS_KEY);
 }
 
 /* ---------------- Migrasyon & doğrulama ---------------- */
 
-function sanitize(data: Partial<VaultData>): VaultData {
+export function sanitize(data: Partial<VaultData>): VaultData {
   return {
     ...DEFAULT_VAULT,
     ...data,
     payments: Array.isArray(data.payments)
-      ? (data.payments.filter(isValidPayment) as Payment[])
+      ? (data.payments.filter(isValidPayment) as Payment[]).map(sanitizeCategoryFields)
       : [],
   };
 }

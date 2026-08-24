@@ -1,8 +1,8 @@
 import type { BillingCycle, CategoryId, Currency, Payment, PricePoint } from "../types";
-import { parseAmount, todayISO } from "./format";
+import { parseAmount, parseInstallment, sanitizeCategoryFields, todayISO } from "./format";
 
 const HEADER =
-  "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory";
+  "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial";
 
 const CURRENCIES: Currency[] = ["TRY", "USD", "EUR"];
 const CYCLES: BillingCycle[] = ["weekly", "monthly", "quarterly", "yearly"];
@@ -14,6 +14,8 @@ const CATEGORY_IDS: CategoryId[] = [
   "egitim",
   "saglik",
   "sigorta",
+  "kredi",
+  "cek_senet",
   "oyun",
   "diger",
 ];
@@ -30,6 +32,12 @@ export function exportCsv(payments: Payment[]): void {
       p.categoryId,
       p.notes ?? "",
       p.priceHistory?.length ? JSON.stringify(p.priceHistory) : "",
+      p.bankName ?? "",
+      p.currentInstallment ?? "",
+      p.totalInstallments ?? "",
+      p.checkNumber ?? "",
+      p.payee ?? "",
+      p.isTrial ? "1" : "",
     ]
       .map(csvEscape)
       .join(","),
@@ -130,8 +138,22 @@ function parseCsvLine(line: string): string[] {
 }
 
 function toPayment(fields: string[]): Payment | null {
-  const [rawName, rawPrice, rawCurrency, rawCycle, rawDate, rawCategory, notes, rawHistory] =
-    fields.map((f) => f.trim());
+  const [
+    rawName,
+    rawPrice,
+    rawCurrency,
+    rawCycle,
+    rawDate,
+    rawCategory,
+    notes,
+    rawHistory,
+    rawBankName,
+    rawCurrentInst,
+    rawTotalInst,
+    rawCheckNumber,
+    rawPayee,
+    rawIsTrial,
+  ] = fields.map((f) => f.trim());
 
   const name = rawName;
   const price = parseAmount(rawPrice);
@@ -147,7 +169,7 @@ function toPayment(fields: string[]): Payment | null {
   if (!CATEGORY_IDS.includes(categoryId)) return null;
   if (!nextPaymentDate) return null;
 
-  return {
+  return sanitizeCategoryFields({
     id: crypto.randomUUID(),
     name,
     price,
@@ -158,7 +180,13 @@ function toPayment(fields: string[]): Payment | null {
     notes: notes || undefined,
     createdAt: Date.now(),
     priceHistory: parsePriceHistory(rawHistory),
-  };
+    bankName: rawBankName || undefined,
+    currentInstallment: parseInstallment(rawCurrentInst),
+    totalInstallments: parseInstallment(rawTotalInst),
+    checkNumber: rawCheckNumber || undefined,
+    payee: rawPayee || undefined,
+    isTrial: rawIsTrial === "1" || rawIsTrial?.toLowerCase() === "true" || undefined,
+  });
 }
 
 function parsePriceHistory(raw: string | undefined): PricePoint[] | undefined {
@@ -182,8 +210,9 @@ function parsePriceHistory(raw: string | undefined): PricePoint[] | undefined {
 function normalizeDate(input: string): string | null {
   // yyyy-mm-dd
   if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
-  // gg.aa.yyyy veya gg/aa/yyyy
-  const m = input.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+  // gg.aa.yyyy, gg/aa/yyyy veya gg-aa-yyyy — tire de gün-önce kabul edilir,
+  // yoksa new Date("12-05-2024") ay/gün sırasını ters çevirirdi.
+  const m = input.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
   if (m) {
     const [, d, mo, y] = m;
     return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;

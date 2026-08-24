@@ -6,6 +6,8 @@ export type CategoryId =
   | "egitim"
   | "saglik"
   | "sigorta"
+  | "kredi"
+  | "cek_senet"
   | "oyun"
   | "diger";
 
@@ -13,7 +15,7 @@ export type Currency = "TRY" | "USD" | "EUR";
 
 export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
-export type Language = "tr" | "en";
+export type Language = "tr" | "en" | "ms";
 
 /** Fiyat geçmişindeki tek nokta */
 export interface PricePoint {
@@ -38,6 +40,16 @@ export interface Payment {
   priceHistory?: PricePoint[];
   /** true ise nextPaymentDate, deneme süresinin bittiği/ilk ücretlendirme günüdür */
   isTrial?: boolean;
+  /** Yalnızca kredi kategorisi: kredinin çekildiği banka */
+  bankName?: string;
+  /** Yalnızca kredi kategorisi: toplam taksit sayısı */
+  totalInstallments?: number;
+  /** Yalnızca kredi kategorisi: kaçıncı taksitte olunduğu */
+  currentInstallment?: number;
+  /** Yalnızca cek_senet kategorisi: çek/senet seri numarası */
+  checkNumber?: string;
+  /** Yalnızca cek_senet kategorisi: keşideci/alacaklı firma */
+  payee?: string;
 }
 
 /** Kilit açılmadan önce okunması güvenli tercihler (şifresiz saklanır) */
@@ -57,6 +69,9 @@ export interface VaultData {
   eurTry: number;
   /** Son değişiklik zamanı (bulut çakışma çözümü için) */
   updatedAt: number;
+  /** Cihazlar arası taşınan görünüm tercihleri (bulut senkronuyla gelir) */
+  appTheme?: "auto" | "light" | "dark";
+  appLanguage?: Language;
 }
 
 export interface CancelGuide {

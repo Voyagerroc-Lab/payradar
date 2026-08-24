@@ -1,5 +1,5 @@
 import type { Payment, VaultData } from "../types";
-import { monthlyAmount } from "../lib/format";
+import { toTryPerMonth } from "../lib/format";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
 
@@ -8,16 +8,12 @@ interface SummaryCardsProps {
   vault: VaultData;
 }
 
-function toTryPerMonth(payment: Payment, vault: VaultData): number {
-  let amount = monthlyAmount(payment.price, payment.billingCycle);
-  if (payment.currency === "USD") amount *= vault.usdTry || 1;
-  if (payment.currency === "EUR") amount *= vault.eurTry || 1;
-  return amount;
-}
-
 export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
   const { t } = useI18n();
-  const monthly = payments.reduce((sum, p) => sum + toTryPerMonth(p, vault), 0);
+  const monthly = payments.reduce(
+    (sum, p) => sum + toTryPerMonth(p, vault.usdTry, vault.eurTry),
+    0,
+  );
   const yearly = monthly * 12;
 
   const upcoming = [...payments]

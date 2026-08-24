@@ -18,15 +18,10 @@ interface SettingsModalProps {
   onImportCsv: (file: File) => void;
   cloudEnabled: boolean;
   cloudUser: CloudUser | null;
-  onCloudSignIn: (email: string, password: string) => Promise<string | null>;
-  onCloudSignUp: (email: string, password: string) => Promise<string | null>;
-  onCloudSignInPhone: (phone: string, password: string) => Promise<string | null>;
-  onCloudSignUpPhone: (
-    phone: string,
-    password: string,
-  ) => Promise<{ error: string | null; needsOtp: boolean }>;
-  onCloudVerifyPhoneOtp: (phone: string, token: string) => Promise<string | null>;
-  onCloudSignOut: () => Promise<void>;
+  onOpenAuth: () => void;
+  onOpenProfile: () => void;
+  onTestNotifications: () => void;
+  onLoadDemo: () => void;
 }
 
 const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
@@ -44,27 +39,15 @@ export default function SettingsModal({
   onImportCsv,
   cloudEnabled,
   cloudUser,
-  onCloudSignIn,
-  onCloudSignUp,
-  onCloudSignInPhone,
-  onCloudSignUpPhone,
-  onCloudVerifyPhoneOtp,
-  onCloudSignOut,
+  onOpenAuth,
+  onOpenProfile,
+  onTestNotifications,
+  onLoadDemo,
 }: SettingsModalProps) {
   const { t, setLang } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
-
-  // Hesap formu
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPhone, setAuthPhone] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
-  const [otpPendingPhone, setOtpPendingPhone] = useState<string | null>(null);
-  const [otpCode, setOtpCode] = useState("");
 
   // PIN form durumları
   const [newPin, setNewPin] = useState("");
@@ -131,86 +114,6 @@ export default function SettingsModal({
     setPinError("");
   }
 
-  async function runAuth(
-    action: (email: string, password: string) => Promise<string | null>,
-  ) {
-    if (!authEmail || !authPassword) {
-      setAuthError(t("account.error.missing"));
-      return;
-    }
-    setAuthBusy(true);
-    const error = await action(authEmail.trim(), authPassword);
-    setAuthBusy(false);
-    setAuthError(error ? t("account.error.generic", { msg: error }) : "");
-    if (!error) {
-      setAuthEmail("");
-      setAuthPassword("");
-    }
-  }
-
-  async function runPhoneSignIn() {
-    if (!authPhone || !authPassword) {
-      setAuthError(t("account.error.missing"));
-      return;
-    }
-    if (!isValidPhone(authPhone)) {
-      setAuthError(t("account.error.invalidPhone"));
-      return;
-    }
-    setAuthBusy(true);
-    const error = await onCloudSignInPhone(authPhone.trim(), authPassword);
-    setAuthBusy(false);
-    setAuthError(error ? t("account.error.generic", { msg: error }) : "");
-    if (!error) {
-      setAuthPhone("");
-      setAuthPassword("");
-    }
-  }
-
-  async function runPhoneSignUp() {
-    if (!authPhone || !authPassword) {
-      setAuthError(t("account.error.missing"));
-      return;
-    }
-    if (!isValidPhone(authPhone)) {
-      setAuthError(t("account.error.invalidPhone"));
-      return;
-    }
-    setAuthBusy(true);
-    const { error, needsOtp } = await onCloudSignUpPhone(authPhone.trim(), authPassword);
-    setAuthBusy(false);
-    if (error) {
-      setAuthError(t("account.error.generic", { msg: error }));
-      return;
-    }
-    setAuthError("");
-    if (needsOtp) {
-      setOtpPendingPhone(authPhone.trim());
-      setOtpCode("");
-    } else {
-      setAuthPhone("");
-      setAuthPassword("");
-    }
-  }
-
-  async function runVerifyOtp() {
-    if (!otpPendingPhone) return;
-    if (!/^\d{4,8}$/.test(otpCode)) {
-      setAuthError(t("account.error.invalidOtp"));
-      return;
-    }
-    setAuthBusy(true);
-    const error = await onCloudVerifyPhoneOtp(otpPendingPhone, otpCode.trim());
-    setAuthBusy(false);
-    setAuthError(error ? t("account.error.generic", { msg: error }) : "");
-    if (!error) {
-      setOtpPendingPhone(null);
-      setOtpCode("");
-      setAuthPhone("");
-      setAuthPassword("");
-    }
-  }
-
   return (
     <Modal title={t("settings.title")} onClose={onClose} wide>
       <div className="form">
@@ -227,6 +130,7 @@ export default function SettingsModal({
           >
             <option value="tr">Türkçe</option>
             <option value="en">English</option>
+            <option value="ms">Bahasa Melayu</option>
           </select>
         </label>
 
@@ -255,6 +159,16 @@ export default function SettingsModal({
           />
           <span>{t("settings.notifications")}</span>
         </label>
+
+        {draftVault.notificationsEnabled && (
+          <button
+            type="button"
+            className="btn btn-secondary full-width-btn"
+            onClick={onTestNotifications}
+          >
+            {t("settings.testNotifications")}
+          </button>
+        )}
 
         <div className="form-row">
           <label className="field">
@@ -304,151 +218,31 @@ export default function SettingsModal({
         </label>
 
         {/* ---------- Hesap ---------- */}
-        <h3 className="section-title">{t("account.title")}</h3>
+        <h3 className="section-title">{t("auth.profile.title")}</h3>
         {cloudEnabled && draftPrefs.lockEnabled && (
           <p className="field-hint strong-hint">⚠️ {t("account.cloudNotEncryptedHint")}</p>
         )}
         {!cloudEnabled ? (
           <p className="field-hint">{t("account.disabledHint")}</p>
         ) : cloudUser ? (
-          <>
-            <p className="field-hint strong-hint">
-              ✅{" "}
+          <div className="settings-account-card">
+            <span>
+              ☁️{" "}
               {t("account.signedInAs", {
                 identity: (cloudUser.email ?? cloudUser.phone ?? "") as string,
               })}
-            </p>
-            <div className="form-actions">
-              <button
-                className="btn btn-secondary"
-                disabled={authBusy}
-                onClick={() => void onCloudSignOut()}
-              >
-                {t("account.signOut")}
-              </button>
-            </div>
-          </>
-        ) : otpPendingPhone ? (
-          <>
-            <p className="field-hint">
-              {t("account.otpHint", { phone: otpPendingPhone })}
-            </p>
-            <label className="field">
-              <span>{t("account.otpCode")}</span>
-              <input
-                className="input"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={8}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-              />
-            </label>
-            {authError && <p className="form-error">{authError}</p>}
-            <div className="form-actions security-actions">
-              <button
-                className="btn btn-secondary"
-                disabled={authBusy}
-                onClick={() => {
-                  setOtpPendingPhone(null);
-                  setOtpCode("");
-                  setAuthError("");
-                }}
-              >
-                {t("action.cancel")}
-              </button>
-              <button
-                className="btn btn-primary"
-                disabled={authBusy}
-                onClick={() => void runVerifyOtp()}
-              >
-                {t("account.verifyOtp")}
-              </button>
-            </div>
-          </>
+            </span>
+            <button className="btn btn-secondary" onClick={onOpenProfile}>
+              {t("auth.profile.title")}
+            </button>
+          </div>
         ) : (
-          <>
-            <p className="field-hint">{t("account.hint")}</p>
-            <div className="chips">
-              <button
-                type="button"
-                className={`chip-btn ${authMethod === "email" ? "active" : ""}`}
-                onClick={() => {
-                  setAuthMethod("email");
-                  setAuthError("");
-                }}
-              >
-                {t("account.methodEmail")}
-              </button>
-              <button
-                type="button"
-                className={`chip-btn ${authMethod === "phone" ? "active" : ""}`}
-                onClick={() => {
-                  setAuthMethod("phone");
-                  setAuthError("");
-                }}
-              >
-                {t("account.methodPhone")}
-              </button>
-            </div>
-            {authMethod === "email" ? (
-              <label className="field">
-                <span>{t("account.email")}</span>
-                <input
-                  className="input"
-                  type="email"
-                  autoComplete="email"
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="ornek@mail.com"
-                />
-              </label>
-            ) : (
-              <label className="field">
-                <span>{t("account.phone")}</span>
-                <input
-                  className="input"
-                  type="tel"
-                  autoComplete="tel"
-                  value={authPhone}
-                  onChange={(e) => setAuthPhone(e.target.value)}
-                  placeholder="+905551234567"
-                />
-              </label>
-            )}
-            <label className="field">
-              <span>{t("account.password")}</span>
-              <input
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                minLength={6}
-                value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
-              />
-            </label>
-            {authError && <p className="form-error">{authError}</p>}
-            <div className="form-actions security-actions">
-              <button
-                className="btn btn-secondary"
-                disabled={authBusy}
-                onClick={() =>
-                  void (authMethod === "email" ? runAuth(onCloudSignUp) : runPhoneSignUp())
-                }
-              >
-                {t("account.signUp")}
-              </button>
-              <button
-                className="btn btn-primary"
-                disabled={authBusy}
-                onClick={() =>
-                  void (authMethod === "email" ? runAuth(onCloudSignIn) : runPhoneSignIn())
-                }
-              >
-                {t("account.signIn")}
-              </button>
-            </div>
-          </>
+          <div className="settings-account-card">
+            <span>{t("auth.signInSubtitle")}</span>
+            <button className="btn btn-primary" onClick={onOpenAuth}>
+              {t("auth.tabSignIn")}
+            </button>
+          </div>
         )}
 
         {/* ---------- Veri Yedekleme ---------- */}
@@ -476,6 +270,13 @@ export default function SettingsModal({
             e.target.value = "";
           }}
         />
+        <button
+          type="button"
+          className="btn btn-secondary full-width-btn"
+          onClick={onLoadDemo}
+        >
+          ✨ {t("empty.tryDemo")}
+        </button>
 
         {/* ---------- Güvenlik ---------- */}
         <h3 className="section-title">{t("security.title")}</h3>
@@ -610,7 +411,3 @@ function isValidPin(pin: string): boolean {
   return /^\d{4,8}$/.test(pin);
 }
 
-/** E.164: + ile başlar, 0 olmayan bir rakamla devam eder, toplam 8-15 hane. */
-function isValidPhone(phone: string): boolean {
-  return /^\+[1-9]\d{7,14}$/.test(phone.trim());
-}

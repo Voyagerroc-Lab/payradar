@@ -7,24 +7,33 @@ import {
   disableLock,
   enableLock,
   isVaultLocked,
+  loadLastSync,
   loadPrefs,
   loadUnlockedVault,
+  sanitize,
+  saveLastSync,
   saveLockedVault,
   savePrefs,
   saveUnlockedVault,
   unlockVault,
   wipeAllData,
 } from "./lib/storage";
-import { checkUpcomingPayments, requestNotificationPermission } from "./lib/notify";
+import {
+  checkUpcomingPayments,
+  clearNotifiedToday,
+  requestNotificationPermission,
+} from "./lib/notify";
 import { buildDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
-import { monthlyAmount, nextOccurrence, todayISO } from "./lib/format";
+import { advanceCycle, nextOccurrence, todayISO, toTryPerMonth } from "./lib/format";
 import {
   cloudEnabled,
   getCloudUser,
+  onAuthChange,
   pullVaultData,
   pushVaultData,
   signInEmail,
+  signInGoogle,
   signInPhone,
   signOutCloud,
   signUpEmail,
@@ -32,7 +41,7 @@ import {
   verifyPhoneOtp,
   type CloudUser,
 } from "./lib/cloud";
-import { getGuideOrGeneric } from "./data/guides";
+import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
 import Header from "./components/Header";
@@ -45,8 +54,12 @@ import PriceChartModal from "./components/PriceChartModal";
 import SettingsModal from "./components/SettingsModal";
 import LockScreen from "./components/LockScreen";
 import ConfirmModal from "./components/ConfirmModal";
+import AuthModal from "./components/AuthModal";
+import AccountProfileModal from "./components/AccountProfileModal";
 
 const REPO_URL = "https://github.com/Voyagerroc/payradar";
+
+export type SyncState = "idle" | "syncing" | "success" | "error";
 
 type EditorState = Payment | "new" | null;
 type Mode = "loading" | "locked" | "ready";
@@ -84,9 +97,52 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [syncState, setSyncState] = useState<SyncState>("idle");
+  const [lastSyncTime, setLastSyncTime] = useState<number>(loadLastSync);
   const lastPushedAtRef = useRef(0);
+  // Güncel state'e updater dışında erişim için (pullAndMerge yan etkisiz kalsın)
+  const vaultRef = useRef(vault);
+  const prefsRef = useRef(prefs);
+  useEffect(() => {
+    vaultRef.current = vault;
+  }, [vault]);
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
+  // Buluttan uygulanan pref değişikliği geri-push tetiklemesin
+  const prefsFromCloudRef = useRef(false);
+  const syncResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const t = useMemo(() => makeT(prefs.language), [prefs.language]);
+
+  /** Buluta yazarken senkron durumunu ve son eşitleme zamanını da günceller. */
+  const syncedPush = useCallback(
+    async (data: VaultData, theme: Prefs["theme"], language: Language) => {
+      setSyncState("syncing");
+      const ok = await pushVaultData({ ...data, appTheme: theme, appLanguage: language });
+      if (ok) {
+        const now = Date.now();
+        setLastSyncTime(now);
+        saveLastSync(now);
+        setSyncState("success");
+        if (syncResetTimerRef.current) clearTimeout(syncResetTimerRef.current);
+        syncResetTimerRef.current = setTimeout(() => setSyncState("idle"), 1200);
+      } else {
+        setSyncState("error");
+      }
+      return ok;
+    },
+    [],
+  );
+
+  useEffect(
+    () => () => {
+      if (syncResetTimerRef.current) clearTimeout(syncResetTimerRef.current);
+    },
+    [],
+  );
 
   /* ---------- Bulut oturumu ---------- */
   useEffect(() => {
@@ -104,24 +160,50 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cloudEnabled, mode]);
 
-  /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle. */
+  /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
+   *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
   async function pullAndMerge() {
     const remote = await pullVaultData();
     if (!remote) return;
     const remoteData = asVaultData(remote.data, remote.updatedAt);
+    const current = vaultRef.current;
 
-    setVault((current) => {
-      if (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0)) {
-        // Yerel daha güncel -> buluta yaz
-        lastPushedAtRef.current = Date.now();
-        void pushVaultData(current);
-        return current;
-      }
+    if (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0)) {
+      // Yerel daha güncel -> buluta yaz
       lastPushedAtRef.current = Date.now();
-      setToast(t("toast.cloudPulled"));
-      return { ...current, ...remoteData };
-    });
+      void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
+      return;
+    }
+
+    lastPushedAtRef.current = Date.now();
+    setToast(t("toast.cloudPulled"));
+    // Tema/dil buluttan geliyorsa cihazlar arası taşı (geri-push tetiklemeden)
+    if (remoteData.appTheme || remoteData.appLanguage) {
+      prefsFromCloudRef.current = true;
+      setPrefs((p) => ({
+        ...p,
+        theme: remoteData.appTheme ?? p.theme,
+        language: remoteData.appLanguage ?? p.language,
+      }));
+    }
+    // appTheme/appLanguage prefs'e uygulandı; vault state'inde bayat kopya tutma
+    const { appTheme: _theme, appLanguage: _lang, ...vaultOnly } = remoteData;
+    setVault((v) => ({ ...v, ...vaultOnly }));
   }
+
+  /* ---------- Dış oturum değişikliği (Google OAuth dönüşü, başka sekme) ---------- */
+  useEffect(() => {
+    if (!cloudEnabled || mode !== "ready") return;
+    return onAuthChange(() => {
+      void (async () => {
+        const user = await getCloudUser();
+        if (!user) return;
+        setCloudUser(user);
+        await pullAndMerge();
+      })();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   /* ---------- Buluta otomatik kaydetme (1.5 sn debounced) ---------- */
   useEffect(() => {
@@ -129,10 +211,27 @@ export default function App() {
     if (vault.updatedAt <= lastPushedAtRef.current) return;
     const timer = setTimeout(() => {
       lastPushedAtRef.current = Date.now();
-      void pushVaultData(vault);
+      void syncedPush(vault, prefsRef.current.theme, prefsRef.current.language);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [vault, cloudUser, mode]);
+  }, [vault, cloudUser, mode, syncedPush]);
+
+  /* ---------- Tema/dil değişince de buluta yaz (vault'a dokunulmasa bile) ---------- */
+  const prefsSyncMountedRef = useRef(false);
+  useEffect(() => {
+    if (!prefsSyncMountedRef.current) {
+      prefsSyncMountedRef.current = true;
+      return;
+    }
+    if (prefsFromCloudRef.current) {
+      prefsFromCloudRef.current = false;
+      return;
+    }
+    if (mode !== "ready" || !cloudUser) return;
+    // Vault'u "kirli" işaretle; debounced push güncel tema/dili de taşır
+    setVault((v) => ({ ...v, updatedAt: Date.now() }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefs.theme, prefs.language]);
 
   /* ---------- Kalıcılık ---------- */
   useEffect(() => {
@@ -154,15 +253,24 @@ export default function App() {
   /* ---------- Bildirimler ---------- */
   useEffect(() => {
     if (mode !== "ready" || !vault.notificationsEnabled) return;
-    checkUpcomingPayments(vault.payments, vault.reminderDays);
+    const opts = { lang: prefs.language, usdTry: vault.usdTry, eurTry: vault.eurTry };
+    checkUpcomingPayments(vault.payments, vault.reminderDays, opts);
     // Uygulama uzun süre açık kalırsa (kurulu PWA/TWA) bir ödeme hatırlatma
     // aralığına saatler sonra girebilir; periyodik olarak yeniden kontrol et.
     const interval = setInterval(
-      () => checkUpcomingPayments(vault.payments, vault.reminderDays),
+      () => checkUpcomingPayments(vault.payments, vault.reminderDays, opts),
       30 * 60_000,
     );
     return () => clearInterval(interval);
-  }, [vault.payments, vault.notificationsEnabled, vault.reminderDays, mode]);
+  }, [
+    vault.payments,
+    vault.notificationsEnabled,
+    vault.reminderDays,
+    vault.usdTry,
+    vault.eurTry,
+    prefs.language,
+    mode,
+  ]);
 
   /* ---------- Toast ---------- */
   useEffect(() => {
@@ -255,7 +363,7 @@ export default function App() {
     // Bulutta hâlâ eski veri kalmasın; oturum açıksa boş vault'u hemen üzerine yaz.
     if (cloudUser) {
       lastPushedAtRef.current = Date.now();
-      void pushVaultData(wiped);
+      void syncedPush(wiped, DEFAULT_PREFS.theme, DEFAULT_PREFS.language);
     }
   }
 
@@ -313,11 +421,12 @@ export default function App() {
     let added = 0;
 
     touchVault((v) => {
-      const existing = new Set(
-        v.payments.map((p) => `${p.name}|${p.nextPaymentDate}|${p.price}`),
-      );
+      // normalizeName: tr küçük harf + ı→i katlama — "NETFLIX" ile "Netflix" aynı kayıt
+      const dupeKey = (p: Payment) =>
+        `${normalizeName(p.name)}|${p.nextPaymentDate}|${p.price}`;
+      const existing = new Set(v.payments.map(dupeKey));
       const fresh = payments.filter((p) => {
-        const key = `${p.name}|${p.nextPaymentDate}|${p.price}`;
+        const key = dupeKey(p);
         if (existing.has(key)) return false;
         existing.add(key);
         added++;
@@ -340,23 +449,24 @@ export default function App() {
     const user = await getCloudUser();
     setCloudUser(user);
     await pullAndMerge();
-    setToast(t("toast.cloudSynced"));
+    setToast(t("toast.signedIn", { email }));
     return null;
   }
 
-  async function handleCloudSignUp(email: string, password: string): Promise<string | null> {
-    const result = await signUpEmail(email, password);
-    if (!result.ok) return result.error ?? "error";
-    if (result.needsConfirm) {
-      setToast(t("account.needsConfirm"));
-      return null;
-    }
+  async function handleCloudSignUp(
+    email: string,
+    password: string,
+    name: string,
+  ): Promise<{ error: string | null; needsConfirm: boolean }> {
+    const result = await signUpEmail(email, password, name);
+    if (!result.ok) return { error: result.error ?? "error", needsConfirm: false };
+    if (result.needsConfirm) return { error: null, needsConfirm: true };
     const user = await getCloudUser();
     setCloudUser(user);
-    await pushVaultData(vault);
     lastPushedAtRef.current = Date.now();
-    setToast(t("toast.cloudSynced"));
-    return null;
+    await syncedPush(vault, prefs.theme, prefs.language);
+    setToast(t("toast.signedUp"));
+    return { error: null, needsConfirm: false };
   }
 
   async function handleCloudSignInPhone(phone: string, password: string): Promise<string | null> {
@@ -365,7 +475,7 @@ export default function App() {
     const user = await getCloudUser();
     setCloudUser(user);
     await pullAndMerge();
-    setToast(t("toast.cloudSynced"));
+    setToast(t("toast.signedIn", { email: phone }));
     return null;
   }
 
@@ -378,9 +488,9 @@ export default function App() {
     if (result.needsConfirm) return { error: null, needsOtp: true };
     const user = await getCloudUser();
     setCloudUser(user);
-    await pushVaultData(vault);
     lastPushedAtRef.current = Date.now();
-    setToast(t("toast.cloudSynced"));
+    await syncedPush(vault, prefs.theme, prefs.language);
+    setToast(t("toast.signedUp"));
     return { error: null, needsOtp: false };
   }
 
@@ -389,16 +499,65 @@ export default function App() {
     if (!result.ok) return result.error ?? "error";
     const user = await getCloudUser();
     setCloudUser(user);
-    await pushVaultData(vault);
     lastPushedAtRef.current = Date.now();
-    setToast(t("toast.cloudSynced"));
+    await syncedPush(vault, prefs.theme, prefs.language);
+    setToast(t("toast.signedUp"));
     return null;
+  }
+
+  async function handleCloudGoogle(): Promise<string | null> {
+    const result = await signInGoogle();
+    // Başarıda sayfa Google'a yönlenir; dönüşte oturum efekti devralır
+    return result.ok ? null : (result.error ?? "error");
   }
 
   async function handleCloudSignOut(): Promise<void> {
     await signOutCloud();
     setCloudUser(null);
+    setProfileOpen(false);
     lastPushedAtRef.current = 0;
+    setToast(t("toast.signedOut"));
+  }
+
+  async function handleSyncNow(): Promise<void> {
+    if (!cloudUser) return;
+    lastPushedAtRef.current = Date.now();
+    const ok = await syncedPush(vault, prefs.theme, prefs.language);
+    if (ok) setToast(t("toast.syncSuccess"));
+  }
+
+  /** Ödendi/İleri Sar: vadeyi en az bir tam dönem ileri taşır; kredi taksit sayacını artırır. */
+  function handleAdvance(id: string) {
+    touchVault((v) => ({
+      ...v,
+      payments: v.payments.map((p) => {
+        if (p.id !== id) return p;
+        const bumpedInstallment =
+          p.categoryId === "kredi" && p.currentInstallment != null
+            ? Math.min(
+                p.currentInstallment + 1,
+                p.totalInstallments ?? p.currentInstallment + 1,
+              )
+            : p.currentInstallment;
+        return {
+          ...p,
+          nextPaymentDate: advanceCycle(p.nextPaymentDate, p.billingCycle),
+          isTrial: false,
+          currentInstallment: bumpedInstallment,
+        };
+      }),
+    }));
+    setToast(t("toast.saved"));
+  }
+
+  function handleTestNotifications() {
+    // Bugünün "gönderildi" kaydını temizle ki test bildirimi gerçekten görünsün
+    clearNotifiedToday();
+    checkUpcomingPayments(vault.payments, vault.reminderDays, {
+      lang: prefs.language,
+      usdTry: vault.usdTry,
+      eurTry: vault.eurTry,
+    });
   }
 
   function handleDemo() {
@@ -410,7 +569,11 @@ export default function App() {
     void requestNotificationPermission().then((granted) => {
       if (granted) {
         setVault((v) => ({ ...v, notificationsEnabled: true }));
-        checkUpcomingPayments(vault.payments, vault.reminderDays);
+        checkUpcomingPayments(vault.payments, vault.reminderDays, {
+          lang: prefs.language,
+          usdTry: vault.usdTry,
+          eurTry: vault.eurTry,
+        });
         setToast(t("toast.notifEnabled"));
       } else {
         setToast(t("toast.notifDenied"));
@@ -441,9 +604,19 @@ export default function App() {
           <Header
             onOpenSettings={() => setSettingsOpen(true)}
             onLock={prefs.lockEnabled ? handleLock : undefined}
+            cloudEnabled={cloudEnabled}
+            cloudUser={cloudUser}
+            onOpenAccount={() => (cloudUser ? setProfileOpen(true) : setAuthOpen(true))}
           />
 
           <main className="container">
+            {cloudEnabled && !cloudUser && (
+              <button className="cloud-banner" onClick={() => setAuthOpen(true)}>
+                <span>{t("auth.banner.text")}</span>
+                <span className="btn btn-primary">{t("auth.banner.btn")}</span>
+              </button>
+            )}
+
             <SummaryCards payments={vault.payments} vault={vault} />
 
             {vault.payments.length === 0 ? (
@@ -476,6 +649,7 @@ export default function App() {
                           ? () => setChartFor(payment)
                           : undefined
                       }
+                      onAdvance={() => handleAdvance(payment.id)}
                       />
                     ))}
                   </div>
@@ -531,12 +705,42 @@ export default function App() {
               onImportCsv={(file) => void handleImportCsv(file)}
               cloudEnabled={cloudEnabled}
               cloudUser={cloudUser}
-              onCloudSignIn={handleCloudSignIn}
-              onCloudSignUp={handleCloudSignUp}
-              onCloudSignInPhone={handleCloudSignInPhone}
-              onCloudSignUpPhone={handleCloudSignUpPhone}
-              onCloudVerifyPhoneOtp={handleCloudVerifyPhoneOtp}
-              onCloudSignOut={handleCloudSignOut}
+              onOpenAuth={() => {
+                setSettingsOpen(false);
+                setAuthOpen(true);
+              }}
+              onOpenProfile={() => {
+                setSettingsOpen(false);
+                setProfileOpen(true);
+              }}
+              onTestNotifications={handleTestNotifications}
+              onLoadDemo={handleDemo}
+            />
+          )}
+
+          {authOpen && (
+            <AuthModal
+              onClose={() => setAuthOpen(false)}
+              onSignIn={handleCloudSignIn}
+              onSignUp={handleCloudSignUp}
+              onSignInPhone={handleCloudSignInPhone}
+              onSignUpPhone={handleCloudSignUpPhone}
+              onVerifyPhoneOtp={handleCloudVerifyPhoneOtp}
+              onGoogle={handleCloudGoogle}
+            />
+          )}
+
+          {profileOpen && cloudUser && (
+            <AccountProfileModal
+              user={cloudUser}
+              syncState={syncState}
+              lastSyncTime={lastSyncTime}
+              onSyncNow={() => void handleSyncNow()}
+              onSignOut={() => void handleCloudSignOut()}
+              onSwitchAccount={() => {
+                void handleCloudSignOut().then(() => setAuthOpen(true));
+              }}
+              onClose={() => setProfileOpen(false)}
             />
           )}
 
@@ -623,26 +827,27 @@ function NotificationBanner({
   );
 }
 
-function toTryPerMonth(payment: Payment, vault: VaultData): number {
-  let amount = monthlyAmount(payment.price, payment.billingCycle);
-  if (payment.currency === "USD") amount *= vault.usdTry || 1;
-  if (payment.currency === "EUR") amount *= vault.eurTry || 1;
-  return amount;
-}
 
 /** Buluttan gelen ham veriyi VaultData'ya çevirir; bozuksa null döner. */
 function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
   if (!Array.isArray(r.payments)) return null;
-  return {
+  const theme = r.appTheme;
+  const language = r.appLanguage;
+  // sanitize: geçersiz ödeme kayıtlarını eler, kategori-dışı alanları temizler
+  return sanitize({
     payments: r.payments as Payment[],
     reminderDays: Number(r.reminderDays ?? 3),
     notificationsEnabled: Boolean(r.notificationsEnabled ?? false),
     usdTry: Number(r.usdTry ?? 42),
     eurTry: Number(r.eurTry ?? 48),
     updatedAt: Number(r.updatedAt ?? fallbackUpdatedAt),
-  };
+    appTheme:
+      theme === "auto" || theme === "light" || theme === "dark" ? theme : undefined,
+    appLanguage:
+      language === "tr" || language === "en" || language === "ms" ? language : undefined,
+  });
 }
 
 function filterAndSort(
@@ -652,11 +857,17 @@ function filterAndSort(
   sort: SortKey,
   vault: VaultData,
 ): Payment[] {
-  const q = query.toLocaleLowerCase("tr-TR").trim();
+  // normalizeName ı→i katlar; "IPTV" araması Türkçe küçük harf tuzağına düşmez
+  const q = normalizeName(query);
   let result = payments;
 
   if (category !== "all") result = result.filter((p) => p.categoryId === category);
-  if (q) result = result.filter((p) => p.name.toLocaleLowerCase("tr-TR").includes(q));
+  if (q)
+    result = result.filter(
+      (p) =>
+        normalizeName(p.name).includes(q) ||
+        normalizeName(p.notes ?? "").includes(q),
+    );
 
   const sorted = [...result];
   switch (sort) {
@@ -668,7 +879,11 @@ function filterAndSort(
       );
       break;
     case "price-desc":
-      sorted.sort((a, b) => toTryPerMonth(b, vault) - toTryPerMonth(a, vault));
+      sorted.sort(
+        (a, b) =>
+          toTryPerMonth(b, vault.usdTry, vault.eurTry) -
+          toTryPerMonth(a, vault.usdTry, vault.eurTry),
+      );
       break;
     case "name":
       sorted.sort((a, b) => a.name.localeCompare(b.name, "tr"));

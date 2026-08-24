@@ -1,5 +1,45 @@
-import type { BillingCycle, CategoryId, Currency } from "../types";
+import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
 import type { TranslationKey } from "../i18n/dict";
+
+/** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı. */
+export function localeFor(lang: "tr" | "en" | "ms"): string {
+  if (lang === "tr") return "tr-TR";
+  if (lang === "ms") return "ms-MY";
+  return "en-GB";
+}
+
+/** Taksit girişini ayrıştırır: boş/geçersiz/0 → undefined. Form ve CSV ortak kullanır. */
+export function parseInstallment(raw: string | undefined): number | undefined {
+  if (!raw?.trim()) return undefined;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+/** Aylık TL eşdeğeri: USD/EUR kurla çevrilir. Özet kartları ve sıralama ortak kullanır. */
+export function toTryPerMonth(payment: Payment, usdTry: number, eurTry: number): number {
+  let amount = monthlyAmount(payment.price, payment.billingCycle);
+  if (payment.currency === "USD") amount *= usdTry || 1;
+  if (payment.currency === "EUR") amount *= eurTry || 1;
+  return amount;
+}
+
+/**
+ * Kategoriye özel alanları temizler: bankName/taksitler yalnızca kredi'de,
+ * checkNumber/payee yalnızca cek_senet'te kalır. Tüm üreticiler (form, CSV,
+ * bulut) bu tek kapıdan geçmeli ki alan sızıntısı olmasın.
+ */
+export function sanitizeCategoryFields(p: Payment): Payment {
+  const isKredi = p.categoryId === "kredi";
+  const isCekSenet = p.categoryId === "cek_senet";
+  return {
+    ...p,
+    bankName: isKredi ? p.bankName : undefined,
+    currentInstallment: isKredi ? p.currentInstallment : undefined,
+    totalInstallments: isKredi ? p.totalInstallments : undefined,
+    checkNumber: isCekSenet ? p.checkNumber : undefined,
+    payee: isCekSenet ? p.payee : undefined,
+  };
+}
 
 export const CATEGORIES: Record<
   CategoryId,
@@ -12,6 +52,8 @@ export const CATEGORIES: Record<
   egitim: { emoji: "📚", color: "#ffb224", labelKey: "cat.egitim" },
   saglik: { emoji: "💪", color: "#30a46c", labelKey: "cat.saglik" },
   sigorta: { emoji: "🛡️", color: "#05a2c2", labelKey: "cat.sigorta" },
+  kredi: { emoji: "🏦", color: "#2563eb", labelKey: "cat.kredi" },
+  cek_senet: { emoji: "📜", color: "#7c3aed", labelKey: "cat.cek_senet" },
   oyun: { emoji: "🎮", color: "#7d6ee0", labelKey: "cat.oyun" },
   diger: { emoji: "📦", color: "#8d8d8d", labelKey: "cat.diger" },
 };
@@ -82,12 +124,25 @@ export function daysUntil(iso: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
-export function formatDateTR(iso: string, lang: "tr" | "en" = "tr"): string {
-  return new Intl.DateTimeFormat(lang === "tr" ? "tr-TR" : "en-GB", {
+export function formatDateTR(iso: string, lang: "tr" | "en" | "ms" = "tr"): string {
+  return new Intl.DateTimeFormat(localeFor(lang), {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(parseISO(iso));
+}
+
+/**
+ * "Ödendi" işlemi: tarihten bağımsız olarak EN AZ bir tam dönem ileri sarar;
+ * çok gecikmişse bugünün ilerisine gelene kadar dönem atlamaya devam eder.
+ */
+export function advanceCycle(iso: string, cycle: BillingCycle): string {
+  const date = parseISO(iso);
+  const next =
+    cycle === "weekly"
+      ? addDays(date, 7)
+      : addMonths(date, cycle === "monthly" ? 1 : cycle === "quarterly" ? 3 : 12);
+  return nextOccurrence(toISO(next), cycle);
 }
 
 /** Ödeme tarihini bugüne göre ileri sar; geçmişse bir sonraki döneme atla. */

@@ -8,11 +8,33 @@ interface DemoPaymentInput {
   daysFromNow: number;
   categoryId: CategoryId;
   isTrial?: boolean;
+  bankName?: string;
+  currentInstallment?: number;
+  totalInstallments?: number;
+  checkNumber?: string;
+  payee?: string;
 }
 
 export function buildDemoPayments(): Payment[] {
   const inputs: DemoPaymentInput[] = [
     { name: "Ev Kirası", price: 18500, daysFromNow: 9, categoryId: "konut" },
+    {
+      name: "Konut Kredisi",
+      price: 14250,
+      daysFromNow: 4,
+      categoryId: "kredi",
+      bankName: "Garanti BBVA",
+      currentInstallment: 14,
+      totalInstallments: 60,
+    },
+    {
+      name: "Tedarikçi Çeki",
+      price: 45000,
+      daysFromNow: 6,
+      categoryId: "cek_senet",
+      checkNumber: "ÇK-99231-TR",
+      payee: "Delta Malzeme San. Tic.",
+    },
     { name: "Araç Kirası", price: 24000, daysFromNow: 14, categoryId: "ulasim" },
     { name: "Elektrik Faturası", price: 850, daysFromNow: 3, categoryId: "faturalar" },
     { name: "İnternet (Türk Telekom)", price: 649, daysFromNow: 7, categoryId: "faturalar" },
@@ -62,6 +84,11 @@ export function buildDemoPayments(): Payment[] {
       categoryId: input.categoryId,
       createdAt: now + index,
       isTrial: input.isTrial,
+      bankName: input.bankName,
+      currentInstallment: input.currentInstallment,
+      totalInstallments: input.totalInstallments,
+      checkNumber: input.checkNumber,
+      payee: input.payee,
       // Netflix'e örnek zam geçmişi: grafik özelliğini göstermek için
       priceHistory:
         input.name === "Netflix"

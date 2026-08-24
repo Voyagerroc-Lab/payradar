@@ -1,4 +1,4 @@
-import { CURRENCY_SYMBOL } from "../lib/format";
+import { CURRENCY_SYMBOL, formatDateTR, localeFor, todayISO } from "../lib/format";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
@@ -18,32 +18,37 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
   const { t, lang } = useI18n();
 
   const history = payment.priceHistory ?? [];
-  // Geçmiş + bugünkü fiyat = son nokta
-  const points = [
-    ...history,
-    { date: payment.nextPaymentDate, price: payment.price },
-  ];
+  // Geçmiş + bugünkü fiyat = son nokta (bugünün tarihiyle; gelecek ödeme tarihi değil)
+  const points = [...history, { date: todayISO(), price: payment.price }];
 
   const prices = points.map((p) => p.price);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  const range = max - min || max || 1;
+  // Eksen aralığına %15 nefes payı — çizgi kutunun kenarlarına yapışmasın
+  const domainMin = min * 0.85;
+  const domainMax = max * 1.15;
+  const range = domainMax - domainMin || domainMax || 1;
   const spanX = W - PAD_X * 2;
   const spanY = H - PAD_Y * 2;
 
   const coords = points.map((point, i) => ({
     x: PAD_X + (points.length === 1 ? spanX / 2 : (spanX * i) / (points.length - 1)),
-    y: PAD_Y + spanY - ((point.price - min) / range) * spanY,
+    y: PAD_Y + spanY - ((point.price - domainMin) / range) * spanY,
     ...point,
   }));
 
   const path = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
   const fmt = (v: number) =>
-    new Intl.NumberFormat(lang === "tr" ? "tr-TR" : "en-GB", {
+    new Intl.NumberFormat(localeFor(lang), {
       style: "currency",
       currency: payment.currency,
       maximumFractionDigits: v % 1 === 0 ? 0 : 2,
     }).format(v);
+
+  // "İlk fiyattan değişim" — etiketin dediği gibi ilk kayda göre yüzde
+  const firstPrice = points[0].price;
+  const changePct =
+    firstPrice > 0 ? Math.round(((payment.price - firstPrice) / firstPrice) * 100) : 0;
 
   return (
     <Modal title={t("chart.title", { name: payment.name })} onClose={onClose} wide>
@@ -95,16 +100,26 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
               <small> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</small>
             </strong>
           </div>
-          {max !== min && (
+          {points.length > 1 && (
             <div>
               <span className="summary-label">{t("chart.change")}</span>
-              <strong className={payment.price >= min ? "up" : "down"}>
-                {payment.price >= min ? "▲" : "▼"}{" "}
-                {(((payment.price - min) / min) * 100).toFixed(1)}%
+              <strong className={changePct > 0 ? "up" : changePct < 0 ? "down" : ""}>
+                {changePct > 0 ? `▲ +${changePct}%` : changePct < 0 ? `▼ ${changePct}%` : "0%"}
               </strong>
             </div>
           )}
         </div>
+
+        {points.length > 1 && (
+          <ul className="chart-history-list">
+            {points.map((p, i) => (
+              <li key={i}>
+                <span>{formatDateTR(p.date, lang)}</span>
+                <strong>{fmt(p.price)}</strong>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </Modal>
   );

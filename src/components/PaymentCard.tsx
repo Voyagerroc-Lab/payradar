@@ -10,6 +10,7 @@ interface PaymentCardProps {
   onDelete: () => void;
   onShowGuide: () => void;
   onShowHistory?: () => void;
+  onAdvance?: () => void;
 }
 
 const canShare = typeof navigator !== "undefined" && "share" in navigator;
@@ -20,6 +21,7 @@ export default function PaymentCard({
   onDelete,
   onShowGuide,
   onShowHistory,
+  onAdvance,
 }: PaymentCardProps) {
   const { t, lang } = useI18n();
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
@@ -69,6 +71,30 @@ export default function PaymentCard({
               : t("card.trialCharge", { n: days })
             : badge.text}
         </p>
+        {payment.categoryId === "kredi" &&
+          (payment.bankName || payment.currentInstallment != null) && (
+            <p className="sub-detail-chip detail-kredi">
+              {payment.bankName ? `🏦 ${payment.bankName}` : "🏦"}
+              {payment.currentInstallment != null &&
+                payment.totalInstallments != null && (
+                  <>
+                    {" • "}
+                    {t("form.installmentBadge", {
+                      current: payment.currentInstallment,
+                      total: payment.totalInstallments,
+                    })}
+                  </>
+                )}
+            </p>
+          )}
+        {payment.categoryId === "cek_senet" &&
+          (payment.checkNumber || payment.payee) && (
+            <p className="sub-detail-chip detail-cek">
+              {payment.checkNumber ? `📜 No: ${payment.checkNumber}` : "📜"}
+              {payment.checkNumber && payment.payee ? ` • ${payment.payee}` : payment.payee ?? ""}
+            </p>
+          )}
+        {payment.notes && <p className="sub-notes">{payment.notes}</p>}
       </div>
 
       <div className="sub-actions">
@@ -98,6 +124,16 @@ export default function PaymentCard({
             title={t("aria.share", { name: payment.name })}
           >
             📤
+          </button>
+        )}
+        {onAdvance && days <= 0 && (
+          <button
+            className="icon-btn"
+            onClick={onAdvance}
+            aria-label={t("card.advance")}
+            title={t("card.advance")}
+          >
+            ✅
           </button>
         )}
         <button

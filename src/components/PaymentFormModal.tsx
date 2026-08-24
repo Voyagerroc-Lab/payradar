@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
-import { CATEGORIES, parseAmount } from "../lib/format";
+import { CATEGORIES, parseAmount, parseInstallment, sanitizeCategoryFields } from "../lib/format";
 import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 
@@ -30,6 +30,15 @@ export default function PaymentFormModal({
   );
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [isTrial, setIsTrial] = useState(initial?.isTrial ?? false);
+  const [bankName, setBankName] = useState(initial?.bankName ?? "");
+  const [currentInstallment, setCurrentInstallment] = useState(
+    initial?.currentInstallment != null ? String(initial.currentInstallment) : "",
+  );
+  const [totalInstallments, setTotalInstallments] = useState(
+    initial?.totalInstallments != null ? String(initial.totalInstallments) : "",
+  );
+  const [checkNumber, setCheckNumber] = useState(initial?.checkNumber ?? "");
+  const [payee, setPayee] = useState(initial?.payee ?? "");
   const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -43,18 +52,26 @@ export default function PaymentFormModal({
     if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate))
       return setError(t("form.error.date"));
 
-    onSave({
-      id: initial?.id ?? crypto.randomUUID(),
-      name: trimmedName,
-      price: parsedPrice,
-      currency,
-      billingCycle,
-      nextPaymentDate,
-      categoryId,
-      notes: notes.trim() || undefined,
-      createdAt: initial?.createdAt ?? Date.now(),
-      isTrial,
-    });
+    // sanitizeCategoryFields kategoriye ait olmayan alanları düşürür
+    onSave(
+      sanitizeCategoryFields({
+        id: initial?.id ?? crypto.randomUUID(),
+        name: trimmedName,
+        price: parsedPrice,
+        currency,
+        billingCycle,
+        nextPaymentDate,
+        categoryId,
+        notes: notes.trim() || undefined,
+        createdAt: initial?.createdAt ?? Date.now(),
+        isTrial,
+        bankName: bankName.trim() || undefined,
+        currentInstallment: parseInstallment(currentInstallment),
+        totalInstallments: parseInstallment(totalInstallments),
+        checkNumber: checkNumber.trim() || undefined,
+        payee: payee.trim() || undefined,
+      }),
+    );
   }
 
   return (
@@ -129,6 +146,70 @@ export default function PaymentFormModal({
             </select>
           </label>
         </div>
+
+        {categoryId === "kredi" && (
+          <>
+            <label className="field">
+              <span>{t("form.bankName")}</span>
+              <input
+                className="input"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder={t("form.bankNamePlaceholder")}
+                maxLength={60}
+              />
+            </label>
+            <div className="form-row">
+              <label className="field">
+                <span>{t("form.currentInstallment")}</span>
+                <input
+                  className="input"
+                  inputMode="numeric"
+                  value={currentInstallment}
+                  onChange={(e) => setCurrentInstallment(e.target.value.replace(/\D/g, ""))}
+                  placeholder="12"
+                  maxLength={4}
+                />
+              </label>
+              <label className="field">
+                <span>{t("form.totalInstallments")}</span>
+                <input
+                  className="input"
+                  inputMode="numeric"
+                  value={totalInstallments}
+                  onChange={(e) => setTotalInstallments(e.target.value.replace(/\D/g, ""))}
+                  placeholder="36"
+                  maxLength={4}
+                />
+              </label>
+            </div>
+          </>
+        )}
+
+        {categoryId === "cek_senet" && (
+          <>
+            <label className="field">
+              <span>{t("form.checkNumber")}</span>
+              <input
+                className="input"
+                value={checkNumber}
+                onChange={(e) => setCheckNumber(e.target.value)}
+                placeholder={t("form.checkNumberPlaceholder")}
+                maxLength={40}
+              />
+            </label>
+            <label className="field">
+              <span>{t("form.payee")}</span>
+              <input
+                className="input"
+                value={payee}
+                onChange={(e) => setPayee(e.target.value)}
+                placeholder={t("form.payeePlaceholder")}
+                maxLength={80}
+              />
+            </label>
+          </>
+        )}
 
         <label className="field">
           <span>{isTrial ? t("form.trialEndDate") : t("form.nextDate")}</span>
