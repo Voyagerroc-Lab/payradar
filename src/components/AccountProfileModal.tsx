@@ -3,12 +3,20 @@ import Modal from "./Modal";
 import type { CloudUser } from "../lib/cloud";
 import type { SyncState } from "../App";
 import { localeFor } from "../lib/format";
+import {
+  canShowCheckout,
+  checkoutUrl,
+  isEntitled,
+  premiumGateEnabled,
+  type Subscription,
+} from "../lib/premium";
 import { useI18n } from "../i18n";
 
 interface AccountProfileModalProps {
   user: CloudUser;
   syncState: SyncState;
   lastSyncTime: number;
+  subscription: Subscription;
   onSyncNow: () => void;
   onSignOut: () => void;
   onSwitchAccount: () => void;
@@ -19,6 +27,7 @@ export default function AccountProfileModal({
   user,
   syncState,
   lastSyncTime,
+  subscription,
   onSyncNow,
   onSignOut,
   onSwitchAccount,
@@ -56,7 +65,51 @@ export default function AccountProfileModal({
         </div>
       </div>
 
-      <p className="profile-synced">✅ {t("auth.profile.synced")}</p>
+      {premiumGateEnabled && (
+        <div className="premium-box">
+          {isEntitled(subscription) ? (
+            <>
+              <strong>
+                {subscription.status === "on_trial"
+                  ? t("premium.statusTrial")
+                  : t("premium.statusActive")}
+              </strong>
+              {subscription.currentPeriodEnd && (
+                <p>
+                  {t("premium.periodEnd", {
+                    date: new Intl.DateTimeFormat(localeFor(lang), {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date(subscription.currentPeriodEnd)),
+                  })}
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <strong>⭐ {t("premium.title")}</strong>
+              <p>{t("premium.locked")}</p>
+              {canShowCheckout() && checkoutUrl(user) ? (
+                <a
+                  className="btn btn-primary premium-cta"
+                  href={checkoutUrl(user)!}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {t("premium.upgrade")}
+                </a>
+              ) : (
+                <p className="field-hint">{t("premium.webOnlyHint")}</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {(!premiumGateEnabled || isEntitled(subscription)) && (
+        <p className="profile-synced">✅ {t("auth.profile.synced")}</p>
+      )}
       <p className="field-hint">{t("auth.profile.lastSync", { time: lastSyncText })}</p>
 
       <button

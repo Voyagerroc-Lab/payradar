@@ -222,6 +222,16 @@ const tr = {
   "toast.signedOut": "Çıkış yapıldı",
   "toast.syncSuccess": "Bulut ile senkronize edildi ✓",
 
+  // Premium
+  "premium.title": "Premium",
+  "premium.statusActive": "Premium aktif ⭐",
+  "premium.statusTrial": "Ücretsiz deneme sürümündesin 🎁",
+  "premium.periodEnd": "Geçerlilik: {date}",
+  "premium.locked":
+    "Bulut senkron ve çok cihaz erişimi Premium özelliğidir. Verilerin bu cihazda güvende; Premium'a geçince tüm cihazlarına yayılır.",
+  "premium.upgrade": "Premium'a Geç — ilk ay ücretsiz, sonra 1 $/ay",
+  "premium.webOnlyHint": "Premium, web sitemiz üzerinden yönetilir.",
+
   // Bildirim metinleri
   "notif.overdue": "{n} gün gecikti!",
   "notif.today": "Bugün son ödeme günü!",
@@ -484,6 +494,15 @@ const en: Record<TranslationKey, string> = {
   "toast.signedUp": "Account created and connected to cloud!",
   "toast.signedOut": "Signed out",
   "toast.syncSuccess": "Synced with cloud ✓",
+
+  "premium.title": "Premium",
+  "premium.statusActive": "Premium is active ⭐",
+  "premium.statusTrial": "You're on a free trial 🎁",
+  "premium.periodEnd": "Valid until: {date}",
+  "premium.locked":
+    "Cloud sync and multi-device access are Premium features. Your data is safe on this device; go Premium to sync it everywhere.",
+  "premium.upgrade": "Go Premium — first month free, then $1/mo",
+  "premium.webOnlyHint": "Premium is managed on our website.",
 
   "notif.overdue": "{n} days overdue!",
   "notif.today": "Due today!",
@@ -754,6 +773,15 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "toast.signedOut": "Telah log keluar",
   "toast.syncSuccess": "Disegerakkan dengan awan ✓",
   "toast.cloudPulled": "Data anda dipulihkan dari awan",
+
+  "premium.title": "Premium",
+  "premium.statusActive": "Premium aktif ⭐",
+  "premium.statusTrial": "Anda dalam percubaan percuma 🎁",
+  "premium.periodEnd": "Sah sehingga: {date}",
+  "premium.locked":
+    "Penyegerakan awan dan akses berbilang peranti ialah ciri Premium. Data anda selamat pada peranti ini; langgan Premium untuk menyegerak ke semua peranti.",
+  "premium.upgrade": "Langgan Premium — bulan pertama percuma, kemudian $1/bln",
+  "premium.webOnlyHint": "Premium diuruskan di laman web kami.",
 
   // Akaun (telefon/OTP aliran)
   "account.disabledHint":

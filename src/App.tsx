@@ -41,6 +41,12 @@ import {
   verifyPhoneOtp,
   type CloudUser,
 } from "./lib/cloud";
+import {
+  getSubscription,
+  isEntitled,
+  premiumGateEnabled,
+  type Subscription,
+} from "./lib/premium";
 import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
@@ -102,6 +108,15 @@ export default function App() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [syncState, setSyncState] = useState<SyncState>("idle");
   const [lastSyncTime, setLastSyncTime] = useState<number>(loadLastSync);
+  const [subscription, setSubscription] = useState<Subscription>({
+    status: "none",
+    currentPeriodEnd: null,
+  });
+  const entitled = isEntitled(subscription);
+  const entitledRef = useRef(entitled);
+  useEffect(() => {
+    entitledRef.current = entitled;
+  }, [entitled]);
   const lastPushedAtRef = useRef(0);
   // Güncel state'e updater dışında erişim için (pullAndMerge yan etkisiz kalsın)
   const vaultRef = useRef(vault);
@@ -164,6 +179,11 @@ export default function App() {
   /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
    *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
   async function pullAndMerge() {
+    // Abonelik durumunu tazele; premium kapısı aktifken yetkisiz hesaplar senkron yapmaz
+    const sub = await getSubscription();
+    setSubscription(sub);
+    if (premiumGateEnabled && !isEntitled(sub)) return;
+
     const remote = await pullVaultData();
     if (!remote) return;
     const remoteData = asVaultData(remote.data, remote.updatedAt);
@@ -209,13 +229,14 @@ export default function App() {
   /* ---------- Buluta otomatik kaydetme (1.5 sn debounced) ---------- */
   useEffect(() => {
     if (mode !== "ready" || !cloudUser) return;
+    if (premiumGateEnabled && !entitled) return;
     if (vault.updatedAt <= lastPushedAtRef.current) return;
     const timer = setTimeout(() => {
       lastPushedAtRef.current = Date.now();
       void syncedPush(vault, prefsRef.current.theme, prefsRef.current.language);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [vault, cloudUser, mode, syncedPush]);
+  }, [vault, cloudUser, mode, entitled, syncedPush]);
 
   /* ---------- Tema/dil değişince de buluta yaz (vault'a dokunulmasa bile) ---------- */
   const prefsSyncMountedRef = useRef(false);
@@ -515,6 +536,7 @@ export default function App() {
   async function handleCloudSignOut(): Promise<void> {
     await signOutCloud();
     setCloudUser(null);
+    setSubscription({ status: "none", currentPeriodEnd: null });
     setProfileOpen(false);
     lastPushedAtRef.current = 0;
     setToast(t("toast.signedOut"));
@@ -522,6 +544,7 @@ export default function App() {
 
   async function handleSyncNow(): Promise<void> {
     if (!cloudUser) return;
+    if (premiumGateEnabled && !entitledRef.current) return;
     lastPushedAtRef.current = Date.now();
     const ok = await syncedPush(vault, prefs.theme, prefs.language);
     if (ok) setToast(t("toast.syncSuccess"));
@@ -758,6 +781,7 @@ export default function App() {
               user={cloudUser}
               syncState={syncState}
               lastSyncTime={lastSyncTime}
+              subscription={subscription}
               onSyncNow={() => void handleSyncNow()}
               onSignOut={() => void handleCloudSignOut()}
               onSwitchAccount={() => {
