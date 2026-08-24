@@ -1,0 +1,6 @@
+{
+  "name": "PayRadar",
+  "description": "Track recurring payments (rent, bills, subscriptions) privately with PIN lock, cancellation guides, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
