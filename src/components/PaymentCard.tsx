@@ -27,6 +27,8 @@ export default function PaymentCard({
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
   const days = daysLeft(payment.nextPaymentDate);
   const badge = badgeFor(days, t);
+  // Aciliyet, kartın sahnedeki derinliğini belirler (styles.css > 3B DERİNLİK)
+  const urgency = days < 0 ? "overdue" : days === 0 ? "today" : days <= 7 ? "soon" : "later";
   // Rehber: bilinen bir servis eşleşmesi varsa ya da abonelik kategorisindeyse göster
   const hasGuide = Boolean(findGuide(payment.name)) || payment.categoryId === "abonelik";
 
@@ -45,6 +47,7 @@ export default function PaymentCard({
   return (
     <article
       className="card sub-card"
+      data-urgency={urgency}
       style={{ borderLeft: `4px solid ${category.color}` }}
     >
       <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">

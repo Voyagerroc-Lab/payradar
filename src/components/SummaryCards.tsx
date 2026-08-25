@@ -1,6 +1,7 @@
 import type { Payment, VaultData } from "../types";
 import { localeFor, toTryPerMonth } from "../lib/format";
 import { useI18n } from "../i18n";
+import { useTilt } from "../lib/tilt";
 import type { TranslationKey } from "../i18n/dict";
 
 interface SummaryCardsProps {
@@ -10,6 +11,7 @@ interface SummaryCardsProps {
 
 export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
   const { t, lang } = useI18n();
+  const sceneRef = useTilt<HTMLElement>(".summary-card");
   const monthly = payments.reduce(
     (sum, p) => sum + toTryPerMonth(p, vault.usdTry, vault.eurTry),
     0,
@@ -22,7 +24,7 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
     .sort((a, b) => a.days - b.days)[0];
 
   return (
-    <section className="summary">
+    <section className="summary" ref={sceneRef}>
       <div className="card summary-card summary-indigo">
         <span className="summary-icon" aria-hidden="true">
           💸

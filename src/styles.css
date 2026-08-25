@@ -16,6 +16,11 @@
   --ok-soft: #dcfce7;
   --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 2px 6px rgb(16 24 40 / 0.05);
   --shadow-lift: 0 4px 10px rgb(16 24 40 / 0.08), 0 10px 28px rgb(16 24 40 / 0.1);
+  /* 3B derinlik: yuzeyde gezen isik ve kartin zemine dusen golgesi */
+  --sheen: rgb(99 102 241 / 0.20);
+  --cast-rgb: 30 27 75;
+  --cast-a: 0.07;
+  --cast-a-lift: 0.13;
   --radius: 14px;
   color-scheme: light;
 }
@@ -37,6 +42,10 @@
   --ok-soft: #14321f;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
+  --sheen: rgb(255 255 255 / 0.09);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
   color-scheme: dark;
 }
 
@@ -58,6 +67,10 @@
     --ok-soft: #14321f;
     --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
     --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
+  --sheen: rgb(255 255 255 / 0.09);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
     color-scheme: dark;
   }
 }
@@ -213,15 +226,14 @@ button {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.sub-card:hover {
-  transform: translateY(-2px);
+.sub-card:hover,
+.summary-card:hover {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
-  box-shadow: var(--shadow-lift);
 }
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 22px 0;
 }
@@ -234,7 +246,6 @@ button {
   flex-direction: column;
   gap: 5px;
   padding: 18px 18px 16px;
-  overflow: hidden;
 }
 
 .summary-card::before {
@@ -243,6 +254,7 @@ button {
   inset: 0 0 auto;
   height: 4px;
   background: var(--sum-color);
+  border-radius: var(--radius) var(--radius) 0 0;
   opacity: 0.9;
 }
 
@@ -309,7 +321,9 @@ button {
 .summary-value {
   min-width: 0;
   overflow: hidden;
-  font-size: 24px;
+  /* Kolon daraldıkça tutar da küçülür: dar ekranda "₺545.175,64" 24px'te
+     kolona sığmıyor ve ucu kırpılıyordu. Kırpmak yerine ölçekle. */
+  font-size: clamp(16px, 5.2vw, 24px);
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -476,6 +490,7 @@ button {
 }
 
 .sub-card {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -695,6 +710,7 @@ button {
   padding: 20px;
   background: rgb(0 0 0 / 0.45);
   backdrop-filter: blur(3px);
+  perspective: 1200px;
   animation: fade-in 0.15s ease-out;
 }
 
@@ -745,7 +761,7 @@ button {
 @keyframes pop-in {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(8px);
+    transform: translateY(26px) rotateX(12deg) scale(0.94);
   }
 }
 
@@ -1518,7 +1534,9 @@ textarea.input {
 /* ---------- Duyarlılık ---------- */
 @media (max-width: 900px) {
   .summary {
-    grid-template-columns: repeat(2, 1fr);
+    /* minmax(0, ...) şart: 1fr'nin örtük asgarisi min-content olduğu için
+       bölünemeyen uzun bir tutar kolonu şişirip yatay taşma yaratıyor */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1540,4 +1558,227 @@ textarea.input {
   .sub-actions {
     width: 100%;
   }
+}
+
+/* =============================================================
+   3B DERİNLİK SİSTEMİ
+   -------------------------------------------------------------
+   İlke: derinlik dekor değil, hiyerarşidir. Bir ödeme ne kadar
+   acilse kartı kullanıcıya o kadar yakın durur — ızgaraya bakan
+   göz tutarları okumadan önce hangisinin yaklaştığını gölgenin
+   ağırlığından anlar.
+
+   Üç katman:
+     1) Sahne  — .grid ve .summary ortak bir kaçış noktası paylaşır,
+                 böylece soldaki kart sahnenin içine doğru eğilir.
+     2) Yüzey  — kart işaretçiye doğru eğilir, üstünde ışık gezer.
+     3) İçerik — avatar ve rozet yüzeyin üstünde yüzer; eğim
+                 sırasında gerçek parallax oluşur.
+
+   Eğim motoru dokunmatikte ve prefers-reduced-motion'da hiç
+   bağlanmaz (src/lib/tilt.ts). Geriye yalnızca dingin derinlik
+   kalır: hareket yok, hiyerarşi duruyor.
+   ============================================================= */
+
+/* Özellikleri tiplemek şart: tipsiz bir custom property'den beslenen
+   transform, üzerinde transition varken Chrome'da güncellenmiyor — değer
+   eski karede takılı kalıyor ve eğim hiç görünmüyor. @property hem bunu
+   çözer hem de açıların kendisinin yumuşatılabilmesini sağlar. */
+@property --rx {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --ry {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --lift {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: false;
+}
+@property --rest-z {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
+}
+@property --hover-z {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
+}
+@property --mx {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: false;
+}
+@property --my {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: false;
+}
+
+/* --- 1) Sahne --- */
+.summary,
+.grid {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+  /* 3B sahne asla sayfa düzenine taşmamalı: Z ekseninde yükselen kart
+     perspektif yüzünden bir tık büyür ve dar ekranda yatay kaydırma
+     yaratabilir. clip kaydırma üretmez; clip-margin gölgelerin ve eğimin
+     dışarı taşmasına izin verir. Desteği olmayan tarayıcı görünüre
+     döner, yani en fazla eski davranışa geri gider. */
+  overflow-x: clip;
+  overflow-y: visible;
+  overflow-clip-margin: 60px;
+}
+
+/* --- 2) Yüzey --- */
+.sub-card,
+.summary-card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  /* --lift (0..1) aciliyetin tek kadranı: hem kartı ne kadar yükselttiğini
+     hem gölgesinin ne kadar koyulaştığını buradan türetiyoruz. İkisi birlikte
+     hareket etmezse derinlik göz tarafından okunmuyor. */
+  --lift: 0;
+  --rest-z: calc(var(--lift) * 24px);
+  --hover-z: 0px;
+  --z: calc(var(--rest-z) + var(--hover-z));
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--z));
+  /* Gölge doğrudan yükseklikten türetilir: yükseldikçe uzar ve dağılır */
+  box-shadow:
+    0 calc(1px + var(--z) * 0.35) calc(4px + var(--z) * 0.6) rgb(16 24 40 / 0.05),
+    0 calc(3px + var(--z) * 0.7) calc(10px + var(--z) * 1.7)
+      rgb(var(--cast-rgb) / calc(var(--cast-a) + var(--lift) * var(--cast-a-lift)));
+  /* Geçiş transform'a değil özelliklerin kendisine bağlanır; transform ve
+     box-shadow onlardan her karede yeniden türetilir. @property desteği
+     olmayan tarayıcıda geçiş yok sayılır, eğim yine çalışır. */
+  transition:
+    --rx 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    --ry 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    --hover-z 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.3s ease;
+}
+
+/* İşaretçi kartın üstündeyken takip gecikmesiz olmalı, yoksa el
+   kartı sürüklüyormuş gibi hissedilir */
+.sub-card.is-tilting,
+.summary-card.is-tilting {
+  transition:
+    --rx 0.09s linear,
+    --ry 0.09s linear,
+    --hover-z 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.3s ease;
+  will-change: transform;
+}
+
+/* Aciliyet = yakınlık. Gölge formülü gerisini kendisi halleder. */
+.sub-card[data-urgency="later"] { --lift: 0; }
+.sub-card[data-urgency="soon"] { --lift: 0.38; }
+.sub-card[data-urgency="today"] { --lift: 0.72; }
+.sub-card[data-urgency="overdue"] { --lift: 1; }
+
+.sub-card:hover { --hover-z: 12px; }
+
+.summary-card { --lift: 0.16; }
+.summary-card:hover { --hover-z: 14px; }
+
+/* Yüzeyde gezen ışık — eğimden çok bunu "gerçek yüzey" hissettiriyor.
+   .summary-card::before renk şeridi olduğu için orada ::after kullanılır. */
+.sub-card::before,
+.summary-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mx) var(--my),
+    var(--sheen),
+    transparent 62%
+  );
+  opacity: 0;
+  transform: translateZ(1px);
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.sub-card.is-tilting::before,
+.summary-card.is-tilting::after {
+  opacity: 1;
+}
+
+/* Renk şeridi yüzeyle aynı düzlemde kalmasın (z-fighting) */
+.summary-card::before {
+  transform: translateZ(1px);
+}
+
+/* --- 3) İçerik katmanları --- */
+/* Yalnızca büyük tipografi ve grafik öğeler Z'ye çıkar; küçük gövde
+   metni yüzeyde bırakılır, eğimde bulanıklaşmasın diye. */
+.sub-card .sub-avatar {
+  transform: translateZ(30px);
+  box-shadow: 0 calc(4px + var(--z) * 0.4) calc(12px + var(--z))
+    rgb(16 24 40 / calc(0.22 + var(--lift) * 0.12));
+}
+
+.sub-card .badge {
+  transform: translateZ(18px);
+}
+
+.sub-card .sub-title-row .chip {
+  transform: translateZ(9px);
+}
+
+.summary-card .summary-icon {
+  transform: translateZ(36px);
+  box-shadow: 0 calc(3px + var(--z) * 0.5) calc(10px + var(--z)) rgb(16 24 40 / 0.16);
+}
+
+.summary-card .summary-value {
+  transform: translateZ(20px);
+}
+
+.summary-card .summary-label {
+  transform: translateZ(11px);
+}
+
+/* --- Boş durum: uygulamanın ilk izlenimi --- */
+.empty-hero {
+  perspective: 900px;
+}
+
+.empty-hero-icon {
+  transform-style: preserve-3d;
+  animation: hero-orbit 7s ease-in-out infinite;
+}
+
+@keyframes hero-orbit {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translateY(-9px) rotateX(9deg) rotateY(-13deg);
+  }
+  50% {
+    transform: translateY(-3px) rotateX(0deg) rotateY(0deg);
+  }
+  75% {
+    transform: translateY(-9px) rotateX(-7deg) rotateY(13deg);
+  }
+}
+
+/* --- Marka işareti: küçük ama karakter veren detay --- */
+.brand-icon {
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.brand:hover .brand-icon {
+  transform: perspective(600px) rotateY(-20deg) rotateX(10deg) translateZ(8px);
 }

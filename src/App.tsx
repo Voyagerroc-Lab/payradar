@@ -51,6 +51,7 @@ import {
   type Subscription,
 } from "./lib/premium";
 import { clearSyncKey, getRecoveryKey, importRecoveryKey } from "./lib/syncCrypto";
+import { useTilt } from "./lib/tilt";
 import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
@@ -96,6 +97,9 @@ export default function App() {
   const [prefs, setPrefs] = useState<Prefs>(boot.prefs);
   const [vault, setVault] = useState<VaultData>(boot.vault);
   const sessionKeyRef = useRef<CryptoKey | null>(null);
+
+  // Ödeme ızgarası: işaretçi takipli 3B eğim (tek dinleyici, olay delegasyonu)
+  const gridRef = useTilt<HTMLDivElement>(".sub-card");
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryId | "all">("all");
@@ -754,7 +758,7 @@ export default function App() {
                 {visiblePayments.length === 0 ? (
                   <NoResults />
                 ) : (
-                  <div className="grid">
+                  <div className="grid" ref={gridRef}>
                     {visiblePayments.map((payment) => (
                       <PaymentCard
                         key={payment.id}
