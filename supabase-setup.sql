@@ -120,3 +120,35 @@ $$;
 
 revoke all on function public.delete_own_account() from public, anon;
 grant execute on function public.delete_own_account() to authenticated;
+
+-- -------------------------------------------------------------
+-- 6) 6 AY ÜCRETSİZ KULLANIM (sunucu tarafında verilir)
+--    Her hesap, kaydolduğu andan itibaren 6 ay boyunca Premium
+--    sayılır. Süre dolunca abonelik ($1/ay) gerekir.
+--    Not: Lemon Squeezy ürününde AYRICA deneme tanımlamayın —
+--    ücretsiz dönem burada yönetiliyor.
+-- -------------------------------------------------------------
+create or replace function public.grant_intro_period()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.subscriptions (user_id, status, current_period_end, trial_used)
+  values (new.id, 'on_trial', now() + interval '6 months', true)
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_grant_intro on auth.users;
+create trigger on_auth_user_created_grant_intro
+  after insert on auth.users
+  for each row execute function public.grant_intro_period();
+
+-- Mevcut hesaplar da 6 ay alsın (kapı açıldığında kimse kilitlenmesin)
+insert into public.subscriptions (user_id, status, current_period_end, trial_used)
+select id, 'on_trial', now() + interval '6 months', true
+from auth.users
+on conflict (user_id) do nothing;

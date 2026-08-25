@@ -1,7 +1,8 @@
 # PayRadar Premium — Lemon Squeezy Kurulum Rehberi
 
 Model: **Freemium** — yerel takip herkese süresiz ücretsiz; **bulut senkron + çok
-cihaz erişimi** Premium (ilk ay ücretsiz deneme, sonra 1 $/ay). Satın alma
+cihaz erişimi** Premium. Her hesap kaydolduğu günden itibaren **6 ay ücretsiz**
+kullanır (sunucuda verilir), sonrasında **1 $/ay**. Satın alma
 yalnızca web sitesinde yapılır (Spotify modeli); mobil uygulamada ödeme
 görünmez, giriş yapan premium hakkını her cihazında kullanır.
 
@@ -35,7 +36,12 @@ https://supabase.com/dashboard/project/ejpokjesrvlgdqhmorfq/sql/new
 2. **Products → New product**:
    - Ad: `PayRadar Premium`
    - Pricing: **Subscription**, **$1 / month**
-   - **Free trial: 30 days** (ilk ay ücretsiz)
+   - **Deneme süresi TANIMLAMAYIN.** 6 aylık ücretsiz kullanım PayRadar
+     tarafında (Supabase trigger'ı ile) veriliyor; LS'de ayrıca deneme
+     açarsanız süre iki kez tanınmış olur.
+   - İsteğe bağlı: herkesi ayın aynı gününde faturalamak isterseniz
+     Lemon Squeezy'nin **billing anchor** (fatura günü) ayarını kullanın;
+     varsayılan davranış, aboneliğin başladığı günün her ay tekrarıdır.
 3. Ürünü kaydedin → **Share** düğmesinden **checkout linkini** kopyalayın
    (`https://<mağaza>.lemonsqueezy.com/buy/<uuid>` biçiminde)
 
@@ -57,7 +63,7 @@ https://supabase.com/dashboard/project/ejpokjesrvlgdqhmorfq/sql/new
 itibaren premium kapısı aktifleşir:
 
 - Girişli ama aboneliksiz kullanıcı: senkron durur, profilde
-  "Premium'a Geç — ilk ay ücretsiz, sonra $1/ay" butonu çıkar (yalnızca
+  "Premium'a Geç — 6 ay ücretsiz, sonra $1/ay" butonu çıkar (yalnızca
   tarayıcıda; kurulu uygulamada buton gizlenir, politika gereği)
 - Checkout, kullanıcının Supabase kimliğini `custom[user_id]` olarak taşır;
   webhook aboneliği doğru hesaba yazar
