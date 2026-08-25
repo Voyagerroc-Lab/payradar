@@ -199,21 +199,14 @@ export async function pushVaultData(data: unknown): Promise<boolean> {
   return !error;
 }
 
-/** Hesabı ve buluttaki tüm verisini kalıcı olarak siler (uygulama içi hesap silme). */
+/**
+ * Hesabı ve buluttaki tüm verisini kalıcı olarak siler (uygulama içi hesap silme).
+ * Sunucuda delete_own_account() yalnızca auth.uid()'in kendi kaydını siler.
+ */
 export async function deleteCloudAccount(): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: "cloud-disabled" };
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
-  if (!token) return { ok: false, error: "not-signed-in" };
-  try {
-    const res = await fetch(`${url}/functions/v1/delete-account`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return { ok: false, error: `delete-failed-${res.status}` };
-    await supabase.auth.signOut();
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: String(e) };
-  }
+  const { error } = await supabase.rpc("delete_own_account");
+  if (error) return { ok: false, error: error.message };
+  await supabase.auth.signOut();
+  return { ok: true };
 }

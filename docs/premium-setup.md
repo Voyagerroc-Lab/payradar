@@ -13,7 +13,7 @@ kurulum tamamlanmadan hiçbir kullanıcı kilitlenmez.
 
 ## 1) Supabase: abonelik tablosu (2 dk)
 
-SQL Editor'de `supabase-premium.sql` dosyasının içeriğini çalıştırın:
+SQL Editor'de `supabase-setup.sql` dosyasının içeriğini çalıştırın (kasa + abonelik + webhook + hesap silme, hepsi tek dosyada):
 https://supabase.com/dashboard/project/ejpokjesrvlgdqhmorfq/sql/new
 
 ## 2) Supabase: webhook fonksiyonu (5 dk)
