@@ -6,8 +6,9 @@
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "background_color": "#101114",
-  "theme_color": "#4f46e5",
+  "background_color": "#07080c",
+  "theme_color": "#07080c",
+  "categories": ["finance", "productivity"],
   "icons": [
     {
       "src": "./favicon.svg",

@@ -125,6 +125,11 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  /* Kurulu uygulamada sayfanın lastik gibi esnemesi "web sitesi" hissi verir */
+  overscroll-behavior-y: none;
+  /* iOS yatay modda metni kendiliğinden büyütmesin */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 h1,
@@ -191,11 +196,16 @@ button {
 .container {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 0 20px;
+  /* Yatay moddaki çentik/oyuk içeriği kesmesin */
+  padding-left: calc(20px + env(safe-area-inset-left, 0px));
+  padding-right: calc(20px + env(safe-area-inset-right, 0px));
 }
 
 /* ---------- Üst bar ---------- */
 .header {
+  /* Çentikli cihazlarda üst bar durum çubuğunun altına girmesin.
+     env() desteklenmeyen yerde 0px'e düşer, yani zararsızdır. */
+  padding-top: env(safe-area-inset-top, 0px);
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--card) 82%, transparent);
   backdrop-filter: blur(12px) saturate(1.4);
@@ -742,7 +752,10 @@ button {
 .modal {
   width: 100%;
   max-width: 480px;
+  /* iOS'ta 100vh gizlenebilir araç çubuğunu da sayar; dvh gerçek görünür
+     yüksekliktir. vh satırı desteklemeyen tarayıcı için yedek kalır. */
   max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--card);
@@ -1081,6 +1094,7 @@ textarea.input {
   display: grid;
   place-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 20px;
 }
 
@@ -1885,4 +1899,57 @@ textarea.input {
   .brand:hover .brand-icon {
     transform: perspective(600px) rotateY(-20deg) rotateX(10deg) translateZ(8px);
   }
+}
+
+/* =============================================================
+   iOS / ANDROID UYUMU
+   -------------------------------------------------------------
+   Kurulu uygulamada (TWA / iOS wrapper / ana ekrana eklenmiş PWA)
+   web sayfası gibi değil, uygulama gibi davranması için gereken
+   düzeltmeler. Çentik payları, gerçek görünür yükseklik ve lastik
+   esneme yukarıda body/header/modal kurallarında ele alındı;
+   burada kalan iki konu var: parmak ölçüsü ve dokunma davranışı.
+   ============================================================= */
+
+/* Dokunmatikte hedefler parmağa göre büyür, masaüstünde yoğunluk korunur.
+   iOS HIG 44pt ister, Android Material 48dp; 44px ikisini de karşılayan
+   pratik taban ve WCAG 2.5.5'i de geçer. Kartta beş ikon yan yana
+   durduğu için burası yanlış dokunuşun en pahalı olduğu yer. */
+@media (pointer: coarse) {
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn,
+  .chip-btn,
+  .auth-tab,
+  .password-toggle {
+    min-height: 44px;
+  }
+
+  .input,
+  .select {
+    min-height: 44px;
+  }
+
+  /* Aksiyon satırı büyüyen hedeflerle sıkışmasın */
+  .sub-actions {
+    gap: 2px;
+  }
+}
+
+/* Uzun basınca seçim tutamakları ve kopyala balonu çıkması kurulu
+   uygulamada "web sayfası" hissi verir. Yalnızca kontrollerde kapatılır;
+   ödeme adı, tutar ve notlar seçilebilir kalır — kullanıcı onları
+   kopyalamak isteyebilir. */
+button,
+.chip-btn,
+.badge,
+.sub-avatar,
+.summary-icon,
+.brand-icon {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
