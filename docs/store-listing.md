@@ -18,7 +18,9 @@ Kira, kredi, fatura ve abonelikleri tek yerde takip et. Reklamsız, izlemesiz.
 
 **Tam açıklama** (maks. 4000 karakter):
 ```
-Netflix'ten ev kirasına, banka kredisi taksitinden çek vadesine kadar tüm düzenli ödemelerinizi tek ekranda görün. PayRadar tamamen ücretsiz ve açık kaynaklıdır — reklam yok, izleme yok.
+Netflix'ten ev kirasına, banka kredisi taksitinden çek vadesine kadar tüm düzenli ödemelerinizi tek ekranda görün. Reklam yok, izleme yok — ve uygulama açık kaynak.
+
+Ödeme takibinin tamamı süresiz ücretsizdir. Yalnızca isteğe bağlı bulut yedekleme ve çok cihaz senkronu, ilk 6 aydan sonra aylık 1 $ abonelik gerektirir.
 
 📊 ANINDA GENEL BAKIŞ
 • Aylık toplam, yıllık tahmin, aktif ödeme sayısı ve en yakın ödeme tek bakışta
@@ -47,7 +49,8 @@ Netflix'ten ev kirasına, banka kredisi taksitinden çek vadesine kadar tüm dü
 🔒 GİZLİLİK ÖNCE GELİR
 • Verileriniz varsayılan olarak yalnızca cihazınızda durur
 • İsteğe bağlı PIN kilidi: AES-256 ile cihazda şifreleme, otomatik kilitlenme
-• İsteğe bağlı ücretsiz bulut senkronu: e-posta, telefon veya Google ile giriş yapın, verileriniz tüm cihazlarınızda buluşsun
+• İsteğe bağlı bulut senkronu: e-posta veya Google ile giriş yapın, verileriniz tüm cihazlarınızda buluşsun (ilk 6 ay ücretsiz, sonrasında 1 $/ay)
+• Bulut yedeğiniz cihazınızda şifrelenir — sunucu ödeme içeriğinizi okuyamaz
 • Reklam SDK'sı yok, analitik yok, veri satışı yok — kod tamamen açık kaynak
 
 🌍 DİĞER
@@ -75,7 +78,9 @@ Track rent, loans, bills & subscriptions in one place. No ads, no tracking.
 
 **Full description** (max 4000):
 ```
-See every recurring payment on one screen — from Netflix to rent, from bank loan installments to check due dates. PayRadar is completely free and open source: no ads, no tracking.
+See every recurring payment on one screen — from Netflix to rent, from bank loan installments to check due dates. No ads, no tracking, and fully open source.
+
+Payment tracking is free forever. Only the optional cloud backup and multi-device sync require a subscription of $1/month after the first 6 months.
 
 📊 INSTANT OVERVIEW
 • Monthly total, yearly estimate, active payment count and next due date at a glance
@@ -104,7 +109,8 @@ See every recurring payment on one screen — from Netflix to rent, from bank lo
 🔒 PRIVACY FIRST
 • Your data stays on your device by default
 • Optional PIN lock: on-device AES-256 encryption with auto-lock
-• Optional free cloud sync: sign in with email, phone or Google and keep every device in sync
+• Optional cloud sync: sign in with email or Google and keep every device in sync (first 6 months free, then $1/month)
+• Your cloud backup is encrypted on your device — the server cannot read your payment contents
 • No ad SDKs, no analytics, no data sales — fully open source
 
 🌍 MORE
@@ -127,7 +133,7 @@ Open source: github.com/Voyagerroc/payradar
 - **İçerik derecelendirmesi anketi:** şiddet/kumar/vb. hiçbiri yok → "Herkes / Everyone" çıkar
 - **Hedef kitle:** 18+ önerilir (finans uygulaması; çocuklara yönelik değil)
 - **Reklam içerir mi?:** Hayır
-- **Uygulama içi satın alma:** Yok
+- **Uygulama içi satın alma:** Yok (Premium aboneliği yalnızca web sitesinden alınır; uygulama içinde ödeme akışı veya harici ödeme bağlantısı gösterilmez)
 
 ## Play Console → Data Safety formu cevapları
 
@@ -135,8 +141,8 @@ Open source: github.com/Voyagerroc/payradar
 |---|---|
 | Veri topluyor veya paylaşıyor mu? | **Evet, isteğe bağlı** (yalnızca kullanıcı bulut senkronu hesabı açarsa) |
 | Toplanan veri türleri | Kişisel bilgiler → **E-posta adresi** (isteğe bağlı: telefon numarası, ad); Finansal bilgiler → **Kullanıcı ödeme kayıtları** (tutar/tarih/ad — kart numarası DEĞİL) |
-| Veri şifreli aktarılıyor mu? | **Evet** (HTTPS/TLS) |
-| Kullanıcı veri silme talep edebilir mi? | **Evet** (uygulama içi tam silme + e-posta ile bulut hesabı silme) |
+| Veri şifreli aktarılıyor mu? | **Evet** (HTTPS/TLS) — ayrıca ödeme kayıtları cihazda AES-256-GCM ile şifrelenip öyle yüklenir (uçtan uca) |
+| Kullanıcı veri silme talep edebilir mi? | **Evet** — uygulama içinden Hesap > Hesabı Sil (bulut + kimlik) ve Ayarlar > Tüm verileri sil (yerel) |
 | Üçüncü taraflarla paylaşım | **Hayır** |
 | Reklam amaçlı veri | **Hayır** |
 | Veri toplama zorunlu mu? | **Hayır — isteğe bağlı** (uygulama hesapsız tamamen çalışır) |
