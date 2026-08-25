@@ -6,7 +6,10 @@
  * Anahtar yalnızca bellekte tutulur, asla saklanmaz.
  */
 
-const PBKDF2_ITERATIONS = 150_000;
+// OWASP 2023 önerisi: PBKDF2-HMAC-SHA256 için >= 600k.
+// Eski kasalar kendi iterasyon sayısını dosyada taşır (VaultFile.it).
+export const PBKDF2_ITERATIONS = 600_000;
+export const LEGACY_PBKDF2_ITERATIONS = 150_000;
 
 type Bytes = Uint8Array<ArrayBuffer>;
 
@@ -21,7 +24,11 @@ export function randomSaltHex(): string {
   return bytesToHex(salt);
 }
 
-async function deriveBits(pin: string, saltHex: string): Promise<Bytes> {
+async function deriveBits(
+  pin: string,
+  saltHex: string,
+  iterations: number = PBKDF2_ITERATIONS,
+): Promise<Bytes> {
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(pin) as Bytes,
@@ -33,7 +40,7 @@ async function deriveBits(pin: string, saltHex: string): Promise<Bytes> {
     {
       name: "PBKDF2",
       salt: new TextEncoder().encode(saltHex) as Bytes,
-      iterations: PBKDF2_ITERATIONS,
+      iterations,
       hash: "SHA-256",
     },
     keyMaterial,
@@ -43,15 +50,43 @@ async function deriveBits(pin: string, saltHex: string): Promise<Bytes> {
 }
 
 /** PIN doğrulaması için karşılaştırma hash'i üretir. */
-export async function hashPin(pin: string, saltHex: string): Promise<string> {
-  const bits = await deriveBits(`${pin}#verify`, saltHex);
+export async function hashPin(
+  pin: string,
+  saltHex: string,
+  iterations?: number,
+): Promise<string> {
+  const bits = await deriveBits(`${pin}#verify`, saltHex, iterations);
   return bytesToHex(bits);
 }
 
 /** Veri şifrelemede kullanılacak AES-GCM anahtarını üretir. */
-export async function deriveVaultKey(pin: string, saltHex: string): Promise<CryptoKey> {
-  const bits = await deriveBits(`${pin}#data`, saltHex);
+export async function deriveVaultKey(
+  pin: string,
+  saltHex: string,
+  iterations?: number,
+): Promise<CryptoKey> {
+  const bits = await deriveBits(`${pin}#data`, saltHex, iterations);
   return crypto.subtle.importKey("raw", bits, { name: "AES-GCM" }, false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+/** Rastgele 256-bit AES-GCM anahtarı (bulut senkron anahtarı). */
+export async function generateDataKey(): Promise<CryptoKey> {
+  return crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+export async function exportKeyBase64(key: CryptoKey): Promise<string> {
+  const raw = await crypto.subtle.exportKey("raw", key);
+  return toBase64(new Uint8Array(raw));
+}
+
+export async function importKeyBase64(base64: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", fromBase64(base64), { name: "AES-GCM" }, true, [
     "encrypt",
     "decrypt",
   ]);
@@ -81,7 +116,8 @@ export async function encryptJSON(key: CryptoKey, value: unknown): Promise<Encry
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const plaintext = new TextEncoder().encode(JSON.stringify(value)) as Bytes;
   const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
-  return { iv: bytesToHex(iv), data: toBase64(new Uint8Array(ciphertext)) };
+  // IV de base64 — decryptJSON base64 çözüyor; hex yazmak kasayı açılamaz hale getirirdi.
+  return { iv: toBase64(iv), data: toBase64(new Uint8Array(ciphertext)) };
 }
 
 export async function decryptJSON<T>(key: CryptoKey, payload: EncryptedPayload): Promise<T> {

@@ -7,7 +7,8 @@
 //   https://<proje-ref>.supabase.co/functions/v1/ls-webhook
 // Dinlenecek olaylar: subscription_created, subscription_updated,
 // subscription_cancelled, subscription_resumed, subscription_expired,
-// subscription_paused, subscription_unpaused
+// subscription_paused, subscription_unpaused,
+// subscription_payment_refunded, order_refunded
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -57,6 +58,7 @@ Deno.serve(async (req) => {
         status?: string;
         customer_id?: number;
         renews_at?: string | null;
+        updated_at?: string | null;
         ends_at?: string | null;
         trial_ends_at?: string | null;
       };
@@ -69,7 +71,9 @@ Deno.serve(async (req) => {
   }
 
   const event = body.meta?.event_name ?? "";
-  if (!event.startsWith("subscription_")) {
+  const isSubscription = event.startsWith("subscription_");
+  const isRefund = event === "order_refunded" || event === "subscription_payment_refunded";
+  if (!isSubscription && !isRefund) {
     return new Response("Ignored", { status: 200 });
   }
 
@@ -77,15 +81,45 @@ Deno.serve(async (req) => {
   const userId = body.meta?.custom_data?.user_id;
   if (!userId) return new Response("Missing custom user_id", { status: 200 });
 
-  const attrs = body.data?.attributes ?? {};
-  const status = attrs.status ?? "expired";
-  // Premium bitişi: iptal edilse bile ends_at'e kadar erişim sürer
-  const periodEnd = attrs.ends_at ?? attrs.renews_at ?? attrs.trial_ends_at ?? null;
-
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  // --- Replay koruması: aynı olay ikinci kez işlenmez ---
+  const eventId =
+    req.headers.get("X-Event-Id") ??
+    `${event}:${body.data?.id ?? "?"}:${body.data?.attributes?.updated_at ?? ""}`;
+  const { error: dupErr } = await supabase
+    .from("webhook_events")
+    .insert({ event_id: eventId });
+  if (dupErr) {
+    // Birincil anahtar çakışması = bu olay daha önce işlendi
+    return new Response("Duplicate ignored", { status: 200 });
+  }
+
+  const attrs = body.data?.attributes ?? {};
+  let status = attrs.status ?? "expired";
+  // İade edilen abonelik premium sayılmaz
+  if (isRefund) status = "expired";
+
+  // Premium bitişi: iptal edilse bile ends_at'e kadar erişim sürer
+  const periodEnd = isRefund
+    ? new Date().toISOString()
+    : (attrs.ends_at ?? attrs.renews_at ?? attrs.trial_ends_at ?? null);
+
+  // --- Deneme suistimali: aynı hesap ikinci kez deneme başlatamaz ---
+  if (status === "on_trial") {
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("trial_used")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing?.trial_used) {
+      // Bu hesap denemesini kullanmış: ücretli değilse premium verme
+      status = "expired";
+    }
+  }
 
   const { error } = await supabase.from("subscriptions").upsert({
     user_id: userId,
@@ -93,6 +127,7 @@ Deno.serve(async (req) => {
     current_period_end: periodEnd,
     ls_customer_id: attrs.customer_id != null ? String(attrs.customer_id) : null,
     ls_subscription_id: body.data?.id ?? null,
+    trial_used: status === "on_trial" ? true : undefined,
     updated_at: new Date().toISOString(),
   });
 

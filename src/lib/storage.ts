@@ -1,6 +1,8 @@
 import type { Payment, Prefs, VaultData } from "../types";
 import { sanitizeCategoryFields } from "./format";
 import {
+  LEGACY_PBKDF2_ITERATIONS,
+  PBKDF2_ITERATIONS,
   decryptJSON,
   deriveVaultKey,
   encryptJSON,
@@ -12,6 +14,26 @@ import {
 const PREFS_KEY = "payradar:prefs:v1";
 const VAULT_KEY = "payradar:vault:v1";
 const LAST_SYNC_KEY = "payradar:lastSync:v1";
+const VAULT_OWNER_KEY = "payradar:vaultOwner:v1";
+const NOTIFIED_KEY = "payradar:notified";
+
+/** Yereldeki vault'un hangi bulut hesabına ait olduğu; hesap değişince veri karışmasın diye. */
+export function loadVaultOwner(): string | null {
+  try {
+    return localStorage.getItem(VAULT_OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveVaultOwner(uid: string | null): void {
+  try {
+    if (uid) localStorage.setItem(VAULT_OWNER_KEY, uid);
+    else localStorage.removeItem(VAULT_OWNER_KEY);
+  } catch {
+    /* önemsiz */
+  }
+}
 /** Eski uygulamanın anahtarları — bir kereliğine migrate edilir */
 const LEGACY_SUBS_KEY = "abonelik-takipci:subscriptions:v1";
 
@@ -54,6 +76,8 @@ interface VaultFile {
   salt?: string;
   verify?: string;
   payload?: EncryptedPayload;
+  /** Bu kasanın türetme iterasyonu; yoksa eski (150k) kasadır */
+  it?: number;
   /** locked=false iken dolu */
   data?: VaultData;
 }
@@ -108,7 +132,9 @@ export function loadUnlockedVault(): VaultData {
 }
 
 export function saveUnlockedVault(data: VaultData): void {
-  const file: VaultFile = { v: 1, locked: false, data: { ...data, updatedAt: Date.now() } };
+  // updatedAt'e DOKUNMA: yalnızca gerçek içerik değişikliği (touchVault) damgalamalı,
+  // yoksa uygulamayı açmak bile saati ilerletip senkron çakışmasını yanlış çözer.
+  const file: VaultFile = { v: 1, locked: false, data };
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
 }
 
@@ -128,6 +154,7 @@ export async function enableLock(
     salt,
     verify,
     payload,
+    it: PBKDF2_ITERATIONS,
   };
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
 }
@@ -144,12 +171,14 @@ export async function unlockVault(
   }
   if (!file.locked || !file.salt || !file.verify || !file.payload) return null;
 
-  const verify = await hashPin(pin, file.salt);
+  // Eski kasalar 150k ile türetilmişti; dosya kendi iterasyonunu taşır.
+  const iterations = file.it ?? LEGACY_PBKDF2_ITERATIONS;
+  const verify = await hashPin(pin, file.salt, iterations);
   // timing-safe karşılaştırma için sabit uzunlukta XOR
   if (!timingSafeEqual(verify, file.verify)) return null;
 
   try {
-    const key = await deriveVaultKey(pin, file.salt);
+    const key = await deriveVaultKey(pin, file.salt, iterations);
     const data = sanitize(await decryptJSON<VaultData>(key, file.payload));
     return { data, key };
   } catch {
@@ -169,9 +198,11 @@ export async function saveLockedVault(
     return;
   }
   if (!file.locked || !file.salt || !file.verify) return;
-  file.payload = await encryptJSON(key, { ...data, updatedAt: Date.now() });
+  file.payload = await encryptJSON(key, data);
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
-}/** PIN değiştirme: veriyi yeni PIN ile yeniden şifreler. */
+}
+
+/** PIN değiştirme: veriyi yeni PIN ile yeniden şifreler. */
 export async function changePin(oldPin: string, newPin: string): Promise<boolean> {
   const opened = await unlockVault(oldPin);
   if (!opened) return false;
@@ -181,7 +212,7 @@ export async function changePin(oldPin: string, newPin: string): Promise<boolean
     hashPin(newPin, salt),
   ]);
   const payload = await encryptJSON(newKey, opened.data);
-  const file: VaultFile = { v: 1, locked: true, salt, verify, payload };
+  const file: VaultFile = { v: 1, locked: true, salt, verify, payload, it: PBKDF2_ITERATIONS };
   localStorage.setItem(VAULT_KEY, JSON.stringify(file));
   return true;
 }
@@ -193,11 +224,13 @@ export async function disableLock(pin: string): Promise<VaultData | null> {
   return opened.data;
 }
 
-/** Unutulan PIN: tüm veriyi kalıcı olarak siler. */
+/** Tüm yerel veriyi kalıcı olarak siler (PIN unutma ve "verileri sil" yolu). */
 export function wipeAllData(): void {
   localStorage.removeItem(PREFS_KEY);
   localStorage.removeItem(VAULT_KEY);
   localStorage.removeItem(LAST_SYNC_KEY);
+  localStorage.removeItem(VAULT_OWNER_KEY);
+  localStorage.removeItem(NOTIFIED_KEY);
   localStorage.removeItem(LEGACY_SUBS_KEY);
 }
 

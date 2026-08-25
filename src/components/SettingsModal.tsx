@@ -23,6 +23,7 @@ interface SettingsModalProps {
   onOpenProfile: () => void;
   onTestNotifications: () => void;
   onLoadDemo: () => void;
+  onEraseData: () => void;
 }
 
 const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
@@ -44,6 +45,7 @@ export default function SettingsModal({
   onOpenProfile,
   onTestNotifications,
   onLoadDemo,
+  onEraseData,
 }: SettingsModalProps) {
   const { t, setLang } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -275,6 +277,13 @@ export default function SettingsModal({
           onClick={onLoadDemo}
         >
           <span aria-hidden="true">✨</span> {t("empty.tryDemo")}
+        </button>
+        <button
+          type="button"
+          className="btn btn-danger full-width-btn"
+          onClick={onEraseData}
+        >
+          {t("data.eraseBtn")}
         </button>
 
         {/* ---------- Güvenlik ---------- */}

@@ -10,8 +10,10 @@ import {
   loadLastSync,
   loadPrefs,
   loadUnlockedVault,
+  loadVaultOwner,
   sanitize,
   saveLastSync,
+  saveVaultOwner,
   saveLockedVault,
   savePrefs,
   saveUnlockedVault,
@@ -28,6 +30,7 @@ import { exportCsv, parseCsv } from "./lib/csv";
 import { advanceCycle, nextOccurrence, todayISO, toTryPerMonth } from "./lib/format";
 import {
   cloudEnabled,
+  deleteCloudAccount,
   getCloudUser,
   onAuthChange,
   pullVaultData,
@@ -47,6 +50,7 @@ import {
   premiumGateEnabled,
   type Subscription,
 } from "./lib/premium";
+import { clearSyncKey, getRecoveryKey, importRecoveryKey } from "./lib/syncCrypto";
 import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
@@ -62,6 +66,7 @@ import LockScreen from "./components/LockScreen";
 import ConfirmModal from "./components/ConfirmModal";
 import AuthModal from "./components/AuthModal";
 import AccountProfileModal from "./components/AccountProfileModal";
+import SyncKeyModal from "./components/SyncKeyModal";
 
 const REPO_URL = "https://github.com/Voyagerroc/payradar";
 
@@ -100,6 +105,9 @@ export default function App() {
   const [chartFor, setChartFor] = useState<Payment | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
   const [demoConfirmOpen, setDemoConfirmOpen] = useState(false);
+  const [eraseConfirmOpen, setEraseConfirmOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [needsSyncKey, setNeedsSyncKey] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -168,7 +176,7 @@ export default function App() {
       const user = await getCloudUser();
       if (cancelled || !user) return;
       setCloudUser(user);
-      await pullAndMerge();
+      await pullAndMerge(user.uid);
     })();
     return () => {
       cancelled = true;
@@ -178,23 +186,46 @@ export default function App() {
 
   /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
    *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
-  async function pullAndMerge() {
+  async function pullAndMerge(uid?: string) {
     // Abonelik durumunu tazele; premium kapısı aktifken yetkisiz hesaplar senkron yapmaz
     const sub = await getSubscription();
     setSubscription(sub);
     if (premiumGateEnabled && !isEntitled(sub)) return;
 
     const remote = await pullVaultData();
-    if (!remote) return;
+    if (!remote) {
+      // Bu hesapta bulut kaydı yok: yerel veri BAŞKA hesaba aitse yükleme
+      const owner = loadVaultOwner();
+      if (uid && owner && owner !== uid) {
+        setVault({ ...DEFAULT_VAULT, updatedAt: 0 });
+        saveVaultOwner(uid);
+      } else if (uid) {
+        saveVaultOwner(uid);
+      }
+      return;
+    }
+
+    // Bu cihazda şifre çözme anahtarı yok — buluttaki veriyi ezme, kullanıcıdan iste
+    if (remote.needsKey) {
+      setNeedsSyncKey(true);
+      return;
+    }
+
     const remoteData = asVaultData(remote.data, remote.updatedAt);
     const current = vaultRef.current;
+    const owner = loadVaultOwner();
+    // Yereldeki veri farklı bir hesaba aitse ASLA yukarı gönderme (hesap değiştirme koruması)
+    const foreignLocal = Boolean(uid && owner && owner !== uid);
 
-    if (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0)) {
+    if (!foreignLocal && (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0))) {
       // Yerel daha güncel -> buluta yaz
       lastPushedAtRef.current = Date.now();
+      if (uid) saveVaultOwner(uid);
       void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
       return;
     }
+    if (!remoteData) return;
+    if (uid) saveVaultOwner(uid);
 
     lastPushedAtRef.current = Date.now();
     setToast(t("toast.cloudPulled"));
@@ -220,7 +251,7 @@ export default function App() {
         const user = await getCloudUser();
         if (!user) return;
         setCloudUser(user);
-        await pullAndMerge();
+        await pullAndMerge(user.uid);
       })();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -442,20 +473,21 @@ export default function App() {
     const { payments, skipped } = parseCsv(text);
     let added = 0;
 
-    touchVault((v) => {
-      // normalizeName: tr küçük harf + ı→i katlama — "NETFLIX" ile "Netflix" aynı kayıt
-      const dupeKey = (p: Payment) =>
-        `${normalizeName(p.name)}|${p.nextPaymentDate}|${p.price}`;
-      const existing = new Set(v.payments.map(dupeKey));
-      const fresh = payments.filter((p) => {
-        const key = dupeKey(p);
-        if (existing.has(key)) return false;
-        existing.add(key);
-        added++;
-        return true;
-      });
-      return { ...v, payments: [...v.payments, ...fresh] };
-    });
+    // Saf hesap: updater dışında; StrictMode çifte çağrısında sayaç bozulmasın
+    const dupeKey = (p: Payment) =>
+      `${normalizeName(p.name)}|${p.nextPaymentDate}|${p.price}`;
+    const existing = new Set(vaultRef.current.payments.map(dupeKey));
+    const fresh: Payment[] = [];
+    for (const p of payments) {
+      const key = dupeKey(p);
+      if (existing.has(key)) continue;
+      existing.add(key);
+      fresh.push(p);
+    }
+    added = fresh.length;
+    if (fresh.length > 0) {
+      touchVault((v) => ({ ...v, payments: [...v.payments, ...fresh] }));
+    }
 
     setToast(t("toast.importDone", { added, skipped }));
   }
@@ -470,7 +502,7 @@ export default function App() {
     if (!result.ok) return result.error ?? "error";
     const user = await getCloudUser();
     setCloudUser(user);
-    await pullAndMerge();
+    await pullAndMerge(user?.uid);
     setToast(t("toast.signedIn", { email }));
     return null;
   }
@@ -496,7 +528,7 @@ export default function App() {
     if (!result.ok) return result.error ?? "error";
     const user = await getCloudUser();
     setCloudUser(user);
-    await pullAndMerge();
+    await pullAndMerge(user?.uid);
     setToast(t("toast.signedIn", { email: phone }));
     return null;
   }
@@ -538,8 +570,51 @@ export default function App() {
     setCloudUser(null);
     setSubscription({ status: "none", currentPeriodEnd: null });
     setProfileOpen(false);
+    setNeedsSyncKey(false);
     lastPushedAtRef.current = 0;
+    // Yereldeki kasa çıkış yapan hesaba aitti; bir sonraki hesaba taşınmasın
+    saveVaultOwner(null);
+    setVault({ ...DEFAULT_VAULT, updatedAt: 0 });
     setToast(t("toast.signedOut"));
+  }
+
+  /** Uygulama içi hesap silme: bulut verisi + kimlik silinir, yerel sıfırlanır. */
+  async function handleDeleteAccount(): Promise<void> {
+    const result = await deleteCloudAccount();
+    if (!result.ok) {
+      setToast(t("account.error.generic", { msg: result.error ?? "error" }));
+      return;
+    }
+    setCloudUser(null);
+    setSubscription({ status: "none", currentPeriodEnd: null });
+    setProfileOpen(false);
+    setDeleteAccountOpen(false);
+    saveVaultOwner(null);
+    clearSyncKey();
+    lastPushedAtRef.current = 0;
+    setToast(t("account.deleted"));
+  }
+
+  async function handleCopyRecoveryKey(): Promise<void> {
+    try {
+      const key = await getRecoveryKey();
+      await navigator.clipboard.writeText(key);
+      setToast(t("account.syncKeyCopied"));
+    } catch {
+      setToast(t("account.error.generic", { msg: "clipboard" }));
+    }
+  }
+
+  /** Ayarlar > tüm yerel verileri sil (PIN kilidi olmasa da erişilebilir). */
+  function handleEraseLocal() {
+    wipeAllData();
+    clearSyncKey();
+    sessionKeyRef.current = null;
+    setPrefs({ ...DEFAULT_PREFS });
+    setVault({ ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() });
+    setEraseConfirmOpen(false);
+    setSettingsOpen(false);
+    setToast(t("toast.erased"));
   }
 
   async function handleSyncNow(): Promise<void> {
@@ -634,7 +709,13 @@ export default function App() {
       {mode === "locked" ? (
         <LockScreen onUnlock={handleUnlock} onWipe={handleWipe} />
       ) : (
-        <div className="app">
+        <div
+          className={`app ${
+            vault.payments.length > 0 && !vault.notificationsEnabled && !bannerDismissed
+              ? "has-banner"
+              : ""
+          }`}
+        >
           <a className="skip-link" href="#main">
             {t("a11y.skipToContent")}
           </a>
@@ -733,6 +814,38 @@ export default function App() {
             />
           )}
 
+          {eraseConfirmOpen && (
+            <ConfirmModal
+              message={t("confirm.eraseLocal")}
+              confirmLabel={t("action.delete")}
+              onCancel={() => setEraseConfirmOpen(false)}
+              onConfirm={handleEraseLocal}
+            />
+          )}
+
+          {deleteAccountOpen && (
+            <ConfirmModal
+              message={t("account.deleteWarn")}
+              confirmLabel={t("account.deleteTitle")}
+              onCancel={() => setDeleteAccountOpen(false)}
+              onConfirm={() => void handleDeleteAccount()}
+            />
+          )}
+
+          {needsSyncKey && (
+            <SyncKeyModal
+              onClose={() => setNeedsSyncKey(false)}
+              onApply={async (key) => {
+                const ok = await importRecoveryKey(key);
+                if (!ok) return false;
+                setNeedsSyncKey(false);
+                const user = await getCloudUser();
+                await pullAndMerge(user?.uid);
+                return true;
+              }}
+            />
+          )}
+
           {settingsOpen && (
             <SettingsModal
               prefs={prefs}
@@ -761,6 +874,7 @@ export default function App() {
               }}
               onTestNotifications={handleTestNotifications}
               onLoadDemo={handleDemo}
+              onEraseData={() => setEraseConfirmOpen(true)}
             />
           )}
 
@@ -783,6 +897,8 @@ export default function App() {
               lastSyncTime={lastSyncTime}
               subscription={subscription}
               onSyncNow={() => void handleSyncNow()}
+              onDeleteAccount={() => setDeleteAccountOpen(true)}
+              onCopyRecoveryKey={() => void handleCopyRecoveryKey()}
               onSignOut={() => void handleCloudSignOut()}
               onSwitchAccount={() => {
                 void handleCloudSignOut().then(() => setAuthOpen(true));

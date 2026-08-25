@@ -18,6 +18,8 @@ interface AccountProfileModalProps {
   lastSyncTime: number;
   subscription: Subscription;
   onSyncNow: () => void;
+  onDeleteAccount: () => void;
+  onCopyRecoveryKey: () => void;
   onSignOut: () => void;
   onSwitchAccount: () => void;
   onClose: () => void;
@@ -29,6 +31,8 @@ export default function AccountProfileModal({
   lastSyncTime,
   subscription,
   onSyncNow,
+  onDeleteAccount,
+  onCopyRecoveryKey,
   onSignOut,
   onSwitchAccount,
   onClose,
@@ -126,14 +130,26 @@ export default function AccountProfileModal({
         <p>{t("auth.profile.webAccessDesc", { email: identity })}</p>
       </div>
 
+      <div className="recovery-box">
+        <strong>🔑 {t("account.syncKeyTitle")}</strong>
+        <p>{t("account.syncKeyHint")}</p>
+        <button className="btn btn-secondary" onClick={onCopyRecoveryKey}>
+          {t("account.syncKeyCopy")}
+        </button>
+      </div>
+
       <div className="form-actions security-actions">
         <button className="btn btn-secondary" onClick={onSwitchAccount}>
           {t("auth.profile.switchAccount")}
         </button>
-        <button className="btn btn-danger" onClick={onSignOut}>
+        <button className="btn btn-secondary" onClick={onSignOut}>
           {t("auth.profile.signOut")}
         </button>
       </div>
+
+      <button className="btn btn-danger full-width-btn delete-account-btn" onClick={onDeleteAccount}>
+        {t("account.deleteTitle")}
+      </button>
     </Modal>
   );
 }

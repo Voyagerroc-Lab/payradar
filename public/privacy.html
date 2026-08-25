@@ -41,7 +41,7 @@
       <h2>Toplanan veriler</h2>
       <ul>
         <li><strong>Varsayılan (yerel mod):</strong> Girdiğiniz ödeme kayıtları (ad, tutar, tarih, kategori, notlar) yalnızca cihazınızın tarayıcı depolamasında tutulur. Hiçbir sunucuya gönderilmez. İsteğe bağlı PIN kilidi açıldığında bu veriler cihazda AES-256-GCM ile şifrelenir.</li>
-        <li><strong>İsteğe bağlı bulut senkronizasyonu:</strong> Yalnızca siz hesap oluşturup giriş yaparsanız; e-posta adresiniz (veya telefon numaranız / Google hesabı kimliğiniz) ve ödeme kayıtlarınız, size ait satıra erişimi Satır Düzeyi Güvenlik (RLS) ile sınırlanmış şekilde Supabase (AB — Frankfurt) altyapısında saklanır. Bulut senkronunu hiç kullanmazsanız hiçbir veri cihazınızdan çıkmaz.</li>
+        <li><strong>İsteğe bağlı bulut senkronizasyonu:</strong> Yalnızca siz hesap oluşturup giriş yaparsanız; e-posta adresiniz (veya telefon numaranız / Google hesabı kimliğiniz) ve <strong>cihazınızda şifrelenmiş</strong> ödeme kayıtlarınız Supabase (AB — Frankfurt) altyapısında saklanır. Şifreleme anahtarı yalnızca cihazınızda tutulur; sunucu ödeme içeriğinizi okuyamaz. Erişim ayrıca Satır Düzeyi Güvenlik (RLS) ile yalnızca kendi satırınıza sınırlanmıştır. Bulut senkronunu hiç kullanmazsanız hiçbir veri cihazınızdan çıkmaz.</li>
       </ul>
 
       <h2>Kullanılmayanlar</h2>
@@ -56,8 +56,8 @@
 
       <h2>Veri silme</h2>
       <ul>
-        <li>Yerel veriler: uygulama içinden "tüm verileri sil" ile veya tarayıcı/uygulama verilerini temizleyerek kalıcı olarak silinir.</li>
-        <li>Bulut hesabı: hesabınızın ve buluttaki verilerinizin silinmesini istediğinizde aşağıdaki iletişim adresine yazmanız yeterlidir; talepler 30 gün içinde tamamlanır.</li>
+        <li>Yerel veriler: Ayarlar &gt; Veri Yedekleme &gt; "Tüm verileri sil" ile veya tarayıcı/uygulama verilerini temizleyerek kalıcı olarak silinir.</li>
+        <li>Bulut hesabı: uygulama içinden <strong>Hesap &gt; Hesabı Sil</strong> ile hesabınızı ve buluttaki tüm verinizi anında kalıcı olarak silebilirsiniz. Dilerseniz aşağıdaki adrese de yazabilirsiniz; talepler 30 gün içinde tamamlanır.</li>
       </ul>
 
       <h2>İletişim</h2>
@@ -77,7 +77,7 @@
       <h2>Data we process</h2>
       <ul>
         <li><strong>Default (local mode):</strong> The payment records you enter (name, amount, date, category, notes) are stored only in your device's browser storage and are never sent to any server. With the optional PIN lock enabled, this data is encrypted on-device with AES-256-GCM.</li>
-        <li><strong>Optional cloud sync:</strong> Only if you create an account and sign in, your email address (or phone number / Google account identity) and your payment records are stored on Supabase infrastructure (EU — Frankfurt), with Row Level Security restricting access to your own row. If you never enable cloud sync, no data leaves your device.</li>
+        <li><strong>Optional cloud sync:</strong> Only if you create an account and sign in, your email address (or phone number / Google account identity) and your <strong>device-encrypted</strong> payment records are stored on Supabase infrastructure (EU — Frankfurt). The encryption key never leaves your device, so the server cannot read your payment contents. Access is additionally restricted to your own row by Row Level Security. If you never enable cloud sync, no data leaves your device.</li>
       </ul>
 
       <h2>What we don't do</h2>
@@ -92,8 +92,8 @@
 
       <h2>Data deletion</h2>
       <ul>
-        <li>Local data: permanently removed via the in-app "erase all data" action or by clearing the browser/app data.</li>
-        <li>Cloud account: email the contact address below to have your account and cloud data deleted; requests are completed within 30 days.</li>
+        <li>Local data: permanently removed via Settings &gt; Data Backup &gt; "Erase all data", or by clearing the browser/app data.</li>
+        <li>Cloud account: delete your account and all cloud data instantly from <strong>Account &gt; Delete Account</strong> in the app. You may also email the address below; requests are completed within 30 days.</li>
       </ul>
 
       <h2>Contact</h2>

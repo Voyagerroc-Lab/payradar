@@ -176,6 +176,25 @@ const tr = {
   "account.error.invalidOtp": "Doğrulama kodu 4-8 haneli olmalı.",
   "account.error.generic": "İşlem başarısız: {msg}",
   "toast.cloudPulled": "Verilerin buluttan geri yüklendi",
+  "account.deleteTitle": "Hesabı Sil",
+  "account.deleteWarn":
+    "Hesabın ve buluttaki tüm verilerin kalıcı olarak silinecek. Bu işlem geri alınamaz. Bu cihazdaki yerel kayıtların silinmez.",
+  "account.deleted": "Hesabın silindi",
+  "account.syncKeyTitle": "Kurtarma Anahtarı",
+  "account.syncKeyHint":
+    "Bulut verilerin bu anahtarla şifrelenir; sunucu içeriği göremez. Yeni bir cihazda verilerini açmak için bu anahtarı oraya girmen gerekir. Güvenli bir yerde sakla.",
+  "account.syncKeyCopy": "Anahtarı kopyala",
+  "account.syncKeyCopied": "Kurtarma anahtarı kopyalandı",
+  "account.syncKeyNeeded":
+    "Buluttaki verilerin bu cihazda bilinmeyen bir anahtarla şifreli. Diğer cihazındaki kurtarma anahtarını gir.",
+  "account.syncKeyPlaceholder": "Kurtarma anahtarını yapıştır",
+  "account.syncKeyApply": "Anahtarı kullan",
+  "account.syncKeyInvalid": "Anahtar geçersiz.",
+  "account.manageBilling": "Aboneliği yönet",
+  "data.eraseBtn": "🗑️ Tüm verileri sil",
+  "confirm.eraseLocal":
+    "Bu cihazdaki tüm ödemelerin ve ayarların kalıcı olarak silinsin mi? Bu işlem geri alınamaz.",
+  "toast.erased": "Tüm veriler silindi",
 
   // Hesap diyaloğu & profil
   "auth.tabSignIn": "Giriş Yap",
@@ -194,6 +213,8 @@ const tr = {
   "auth.btnSignUp": "Hesap Oluştur",
   "auth.googleSignIn": "Google ile Devam Et",
   "auth.orDivider": "veya",
+  "auth.forgotPassword": "Şifremi unuttum",
+  "auth.resetSent": "Şifre sıfırlama bağlantısı e-postana gönderildi.",
   "auth.showPassword": "Şifreyi göster",
   "auth.hidePassword": "Şifreyi gizle",
   "auth.syncHint":
@@ -450,6 +471,25 @@ const en: Record<TranslationKey, string> = {
   "account.error.invalidOtp": "The verification code must be 4-8 digits.",
   "account.error.generic": "Action failed: {msg}",
   "toast.cloudPulled": "Your data was restored from the cloud",
+  "account.deleteTitle": "Delete Account",
+  "account.deleteWarn":
+    "Your account and all cloud data will be permanently deleted. This cannot be undone. Local records on this device are not removed.",
+  "account.deleted": "Your account was deleted",
+  "account.syncKeyTitle": "Recovery Key",
+  "account.syncKeyHint":
+    "Your cloud data is encrypted with this key — the server cannot read it. To open your data on a new device you must enter this key there. Store it somewhere safe.",
+  "account.syncKeyCopy": "Copy key",
+  "account.syncKeyCopied": "Recovery key copied",
+  "account.syncKeyNeeded":
+    "Your cloud data is encrypted with a key this device doesn't have. Enter the recovery key from your other device.",
+  "account.syncKeyPlaceholder": "Paste recovery key",
+  "account.syncKeyApply": "Use key",
+  "account.syncKeyInvalid": "That key is not valid.",
+  "account.manageBilling": "Manage subscription",
+  "data.eraseBtn": "🗑️ Erase all data",
+  "confirm.eraseLocal":
+    "Permanently erase every payment and setting on this device? This cannot be undone.",
+  "toast.erased": "All data erased",
 
   "auth.tabSignIn": "Sign In",
   "auth.tabSignUp": "Sign Up",
@@ -467,6 +507,8 @@ const en: Record<TranslationKey, string> = {
   "auth.btnSignUp": "Create Account",
   "auth.googleSignIn": "Continue with Google",
   "auth.orDivider": "or",
+  "auth.forgotPassword": "Forgot password?",
+  "auth.resetSent": "A password reset link has been sent to your email.",
   "auth.showPassword": "Show password",
   "auth.hidePassword": "Hide password",
   "auth.syncHint":
@@ -745,6 +787,8 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "auth.btnSignUp": "Cipta Akaun",
   "auth.googleSignIn": "Teruskan dengan Google",
   "auth.orDivider": "atau",
+  "auth.forgotPassword": "Lupa kata laluan?",
+  "auth.resetSent": "Pautan tetapan semula kata laluan telah dihantar ke e-mel anda.",
   "auth.showPassword": "Tunjukkan kata laluan",
   "auth.hidePassword": "Sembunyikan kata laluan",
   "auth.syncHint":
@@ -773,6 +817,25 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "toast.signedOut": "Telah log keluar",
   "toast.syncSuccess": "Disegerakkan dengan awan ✓",
   "toast.cloudPulled": "Data anda dipulihkan dari awan",
+  "account.deleteTitle": "Padam Akaun",
+  "account.deleteWarn":
+    "Akaun dan semua data awan anda akan dipadam secara kekal. Tindakan ini tidak boleh diundur. Rekod tempatan pada peranti ini tidak dipadam.",
+  "account.deleted": "Akaun anda telah dipadam",
+  "account.syncKeyTitle": "Kunci Pemulihan",
+  "account.syncKeyHint":
+    "Data awan anda disulitkan dengan kunci ini — pelayan tidak dapat membacanya. Untuk membuka data pada peranti baharu, masukkan kunci ini di sana. Simpan di tempat selamat.",
+  "account.syncKeyCopy": "Salin kunci",
+  "account.syncKeyCopied": "Kunci pemulihan disalin",
+  "account.syncKeyNeeded":
+    "Data awan anda disulitkan dengan kunci yang tiada pada peranti ini. Masukkan kunci pemulihan dari peranti anda yang lain.",
+  "account.syncKeyPlaceholder": "Tampal kunci pemulihan",
+  "account.syncKeyApply": "Guna kunci",
+  "account.syncKeyInvalid": "Kunci tidak sah.",
+  "account.manageBilling": "Urus langganan",
+  "data.eraseBtn": "🗑️ Padam semua data",
+  "confirm.eraseLocal":
+    "Padam semua pembayaran dan tetapan pada peranti ini secara kekal? Tindakan ini tidak boleh diundur.",
+  "toast.erased": "Semua data dipadam",
 
   "premium.title": "Premium",
   "premium.statusActive": "Premium aktif ⭐",

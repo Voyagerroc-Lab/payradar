@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { decryptVault, encryptVault, isEncryptedEnvelope } from "./syncCrypto";
 
 /**
  * Bulut senkronizasyonu (opsiyonel).
@@ -133,27 +134,86 @@ export async function verifyPhoneOtp(
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
+/** Şifre sıfırlama e-postası gönderir. */
+export async function sendPasswordReset(email: string): Promise<{ ok: boolean; error?: string }> {
+  if (!supabase) return { ok: false, error: "cloud-disabled" };
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
 export async function signOutCloud(): Promise<void> {
   await supabase?.auth.signOut();
 }
 
-/** Kullanıcının kendi satırından şifreli vault'u çeker. */
-export async function pullVaultData(): Promise<{ data: unknown; updatedAt: number } | null> {
+/**
+ * Kullanıcının kendi satırından vault'u çeker ve çözer.
+ * Şifreli zarf gelirse cihazdaki anahtarla açılır; anahtar yoksa
+ * `needsKey: true` döner (veri kaybı olmadan kullanıcıdan anahtar istenir).
+ * Eski (şifresiz) satırlar da okunur ve ilk push'ta şifreliye dönüşür.
+ */
+export async function pullVaultData(): Promise<
+  { data: unknown; updatedAt: number; needsKey?: boolean } | null
+> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("vaults")
     .select("data,updated_at")
-    .single();
+    .maybeSingle();
   if (error || !data) return null;
-  return { data: data.data, updatedAt: new Date(data.updated_at).getTime() };
+
+  const remoteUpdatedAt = new Date(data.updated_at).getTime();
+  const raw = data.data;
+
+  if (isEncryptedEnvelope(raw)) {
+    const decrypted = await decryptVault<Record<string, unknown>>(raw);
+    if (!decrypted) {
+      // Bu cihazda anahtar yok/yanlış — buluttaki veriyi ASLA ezme
+      return { data: null, updatedAt: raw.updatedAt || remoteUpdatedAt, needsKey: true };
+    }
+    return { data: decrypted, updatedAt: raw.updatedAt || remoteUpdatedAt };
+  }
+
+  // Geriye dönük: şifrelemeden önce yazılmış düz metin satır
+  return { data: raw, updatedAt: remoteUpdatedAt };
 }
 
-/** Vault verisini kullanıcının kendi satırına yazar (upsert). */
+/** Vault'u cihazda şifreleyip kullanıcının satırına yazar (uçtan uca şifreli). */
 export async function pushVaultData(data: unknown): Promise<boolean> {
   if (!supabase) return false;
+  const updatedAt =
+    typeof (data as { updatedAt?: unknown })?.updatedAt === "number"
+      ? ((data as { updatedAt: number }).updatedAt as number)
+      : Date.now();
+  let envelope;
+  try {
+    envelope = await encryptVault(data, updatedAt);
+  } catch {
+    return false; // şifreleme mümkün değilse düz metin GÖNDERME
+  }
   const { error } = await supabase.from("vaults").upsert({
-    data,
+    data: envelope,
     updated_at: new Date().toISOString(),
   });
   return !error;
+}
+
+/** Hesabı ve buluttaki tüm verisini kalıcı olarak siler (uygulama içi hesap silme). */
+export async function deleteCloudAccount(): Promise<{ ok: boolean; error?: string }> {
+  if (!supabase) return { ok: false, error: "cloud-disabled" };
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) return { ok: false, error: "not-signed-in" };
+  try {
+    const res = await fetch(`${url}/functions/v1/delete-account`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return { ok: false, error: `delete-failed-${res.status}` };
+    await supabase.auth.signOut();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
 }

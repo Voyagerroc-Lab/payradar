@@ -47,8 +47,10 @@ export async function getSubscription(): Promise<Subscription> {
 /** Deneme dahil, dönem sonu geçmemiş her abonelik premium sayılır. */
 export function isEntitled(sub: Subscription): boolean {
   if (!premiumGateEnabled) return true;
-  if (sub.status === "on_trial" || sub.status === "active" || sub.status === "past_due")
-    return true;
+  const active = sub.status === "on_trial" || sub.status === "active" || sub.status === "past_due";
+  const notExpired = !sub.currentPeriodEnd || sub.currentPeriodEnd > Date.now();
+  // Kaçan/tekrarlanan webhook yüzünden "active" kalmış bayat satır premium vermez
+  if (active && notExpired) return true;
   // İptal edilmiş ama dönemi bitmemişse erişim sürer
   if (sub.status === "cancelled" && sub.currentPeriodEnd && sub.currentPeriodEnd > Date.now())
     return true;

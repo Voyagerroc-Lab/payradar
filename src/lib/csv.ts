@@ -71,7 +71,9 @@ export function parseCsv(text: string): CsvImportResult {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!line || line.startsWith("name,")) continue; // başlık satırı
+    // Yalnızca GERÇEK başlık satırını atla; "name" adlı bir ödeme kaybolmasın
+    if (!line) continue;
+    if (i === 0 && line.trim() === HEADER) continue;
     const fields = parseCsvLine(line);
     if (fields.length < 6) {
       if (fields.some((f) => f.trim())) skipped++;

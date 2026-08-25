@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
-import { mapAuthErrorKey } from "../lib/cloud";
+import { mapAuthErrorKey, sendPasswordReset } from "../lib/cloud";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
 
@@ -123,6 +123,23 @@ export default function AuthModal({
     setBusy(false);
     if (raw) return setError(localizeError(raw));
     onClose();
+  }
+
+  async function handleForgotPassword() {
+    const target = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(target)) {
+      setError(t("auth.error.invalidEmail"));
+      return;
+    }
+    setBusy(true);
+    const result = await sendPasswordReset(target);
+    setBusy(false);
+    if (!result.ok) {
+      setError(localizeError(result.error ?? "error"));
+      return;
+    }
+    setError("");
+    setInfo(t("auth.resetSent"));
   }
 
   async function handleGoogle() {
@@ -311,6 +328,17 @@ export default function AuthModal({
             </button>
           </div>
         </label>
+
+        {tab === "signin" && method === "email" && (
+          <button
+            type="button"
+            className="link-btn forgot-link"
+            onClick={() => void handleForgotPassword()}
+            disabled={busy}
+          >
+            {t("auth.forgotPassword")}
+          </button>
+        )}
 
         {tab === "signup" && (
           <label className="field">
