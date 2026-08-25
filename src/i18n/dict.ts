@@ -302,6 +302,20 @@ const tr = {
   "confirm.title": "Emin misin?",
   "confirm.deletePayment": '"{name}" silinsin mi?',
   "confirm.wipe": "Tüm veriler silinsin mi? Bu işlem geri alınamaz!",
+
+  // Demo verisi — örnek ödemeler kullanıcının dilinde üretilir.
+  // Marka adları (Netflix, Spotify…) çevrilmez; jenerik kalemler çevrilir.
+  "demo.rent": "Ev Kirası",
+  "demo.mortgage": "Konut Kredisi",
+  "demo.supplierCheck": "Tedarikçi Çeki",
+  "demo.carLease": "Araç Kirası",
+  "demo.electricity": "Elektrik Faturası",
+  "demo.internet": "İnternet (Türk Telekom)",
+  "demo.homeInsurance": "DASK Sigortası",
+  "demo.bankName": "Garanti BBVA",
+  "demo.payee": "Delta Malzeme San. Tic.",
+  "demo.checkNumber": "ÇK-99231-TR",
+  "card.checkNo": "No:",
 };
 
 export type TranslationKey = keyof typeof tr;
@@ -591,6 +605,19 @@ const en: Record<TranslationKey, string> = {
   "confirm.title": "Are you sure?",
   "confirm.deletePayment": 'Delete "{name}"?',
   "confirm.wipe": "Erase all data? This cannot be undone!",
+
+  // Demo data
+  "demo.rent": "Rent",
+  "demo.mortgage": "Mortgage",
+  "demo.supplierCheck": "Supplier Cheque",
+  "demo.carLease": "Car Lease",
+  "demo.electricity": "Electricity Bill",
+  "demo.internet": "Internet",
+  "demo.homeInsurance": "Home Insurance",
+  "demo.bankName": "Sample Bank",
+  "demo.payee": "Delta Supplies Ltd.",
+  "demo.checkNumber": "CHK-99231",
+  "card.checkNo": "No.",
 };
 
 /**
@@ -882,6 +909,19 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "notif.line.today": "🔴 Hari ini",
   "notif.line.tomorrow": "🟡 Esok",
   "notif.line.daysLeft": "⏳ {n}h lagi",
+
+  // Data demo
+  "demo.rent": "Sewa Rumah",
+  "demo.mortgage": "Pinjaman Perumahan",
+  "demo.supplierCheck": "Cek Pembekal",
+  "demo.carLease": "Sewa Kereta",
+  "demo.electricity": "Bil Elektrik",
+  "demo.internet": "Internet",
+  "demo.homeInsurance": "Insurans Rumah",
+  "demo.bankName": "Bank Contoh",
+  "demo.payee": "Delta Bekalan Sdn. Bhd.",
+  "demo.checkNumber": "CEK-99231",
+  "card.checkNo": "No.",
 };
 
 export const translations: {

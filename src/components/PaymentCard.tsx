@@ -1,4 +1,4 @@
-import { CATEGORIES, daysUntil, formatDateTR, formatMoney } from "../lib/format";
+import { CATEGORIES, daysUntil, formatDateTR, formatMoney, localeFor } from "../lib/format";
 import { findGuide } from "../data/guides";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
@@ -51,7 +51,7 @@ export default function PaymentCard({
       style={{ borderLeft: `4px solid ${category.color}` }}
     >
       <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">
-        <span>{payment.name.charAt(0).toLocaleUpperCase("tr-TR")}</span>
+        <span>{payment.name.charAt(0).toLocaleUpperCase(localeFor(lang))}</span>
         <small>{category.emoji}</small>
       </div>
 
@@ -96,7 +96,7 @@ export default function PaymentCard({
         {payment.categoryId === "cek_senet" &&
           (payment.checkNumber || payment.payee) && (
             <p className="sub-detail-chip detail-cek">
-              {payment.checkNumber ? `📜 No: ${payment.checkNumber}` : "📜"}
+              {payment.checkNumber ? `📜 ${t("card.checkNo")} ${payment.checkNumber}` : "📜"}
               {payment.checkNumber && payment.payee ? ` • ${payment.payee}` : payment.payee ?? ""}
             </p>
           )}

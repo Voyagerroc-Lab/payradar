@@ -41,7 +41,7 @@ export default function AccountProfileModal({
 
   const identity = user.email ?? user.phone ?? "";
   const displayName = user.displayName ?? (user.email ? user.email.split("@")[0] : identity);
-  const initial = (displayName || identity || "U").charAt(0).toLocaleUpperCase("tr-TR");
+  const initial = (displayName || identity || "U").charAt(0).toLocaleUpperCase(localeFor(lang));
 
   // Modal açıldığı andaki zaman; render sırasında Date.now() çağırmamak için lazy init
   const [openedAt] = useState(() => Date.now());

@@ -1,4 +1,5 @@
 import { useI18n } from "../i18n";
+import { localeFor } from "../lib/format";
 import type { CloudUser } from "../lib/cloud";
 
 interface HeaderProps {
@@ -16,10 +17,10 @@ export default function Header({
   cloudUser,
   onOpenAccount,
 }: HeaderProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const identity = cloudUser?.displayName ?? cloudUser?.email ?? cloudUser?.phone ?? "";
-  const initial = identity ? identity.charAt(0).toLocaleUpperCase("tr-TR") : "";
+  const initial = identity ? identity.charAt(0).toLocaleUpperCase(localeFor(lang)) : "";
 
   return (
     <header className="header">

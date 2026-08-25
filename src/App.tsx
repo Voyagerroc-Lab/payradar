@@ -25,7 +25,7 @@ import {
   clearNotifiedToday,
   requestNotificationPermission,
 } from "./lib/notify";
-import { buildDemoPayments } from "./lib/demo";
+import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
 import { advanceCycle, nextOccurrence, todayISO, toTryPerMonth } from "./lib/format";
 import {
@@ -100,6 +100,16 @@ export default function App() {
 
   // Ödeme ızgarası: işaretçi takipli 3B eğim (tek dinleyici, olay delegasyonu)
   const gridRef = useTilt<HTMLDivElement>(".sub-card");
+
+  // Dil değişince demo kayıtları da yeni dile döner. relocalize yalnızca
+  // dokunulmamış demo alanlarını çevirir; kullanıcının düzenlediği bir ad
+  // asla ezilmez ve değişiklik yoksa kasa "değişti" diye işaretlenmez.
+  useEffect(() => {
+    setVault((v) => {
+      const payments = relocalizeDemoPayments(v.payments, prefs.language);
+      return payments === v.payments ? v : { ...v, payments, updatedAt: Date.now() };
+    });
+  }, [prefs.language]);
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryId | "all">("all");
@@ -673,7 +683,7 @@ export default function App() {
   }
 
   function loadDemoData() {
-    touchVault((v) => ({ ...v, payments: buildDemoPayments() }));
+    touchVault((v) => ({ ...v, payments: buildDemoPayments(prefs.language) }));
     setDemoConfirmOpen(false);
     setToast(t("toast.demoLoaded"));
   }
@@ -860,7 +870,20 @@ export default function App() {
                 setSettingsOpen(false);
                 setToast(t("toast.settingsSaved"));
               }}
-              onSaveVault={(v) => setVault({ ...v, updatedAt: Date.now() })}
+              onSaveVault={(v) =>
+                setVault((cur) => ({
+                  ...cur,
+                  // Ayarlar yalnızca bu dört alanın sahibi. Kasanın tamamını
+                  // modalin açılış kopyasıyla ezmek, modal açıkken gelen her
+                  // değişikliği (bulut senkronu, vade ilerletme, demo
+                  // yeniden çevirisi) sessizce geri alıyordu.
+                  reminderDays: v.reminderDays,
+                  notificationsEnabled: v.notificationsEnabled,
+                  usdTry: v.usdTry,
+                  eurTry: v.eurTry,
+                  updatedAt: Date.now(),
+                }))
+              }
               onEnableLock={handleEnableLock}
               onChangePin={handleChangePin}
               onDisableLock={handleDisableLock}
