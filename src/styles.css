@@ -18,6 +18,14 @@
   --shadow-lift: 0 4px 10px rgb(16 24 40 / 0.08), 0 10px 28px rgb(16 24 40 / 0.1);
   /* 3B derinlik: yuzeyde gezen isik ve kartin zemine dusen golgesi */
   --sheen: rgb(99 102 241 / 0.20);
+  /* Ortam katmanı: tepeden düşen ışık huzmesi + ince teknik ızgara */
+  --beam: rgb(99 102 241 / 0.11);
+  --beam-core: rgb(99 102 241 / 0.05);
+  --grid-line: rgb(16 24 40 / 0.04);
+  --grid-size: 64px;
+  /* Cam yüzey: üst kenardaki ışık çizgisi ve yüzey aydınlanması */
+  --glass-edge: rgb(255 255 255 / 0.95);
+  --surface-lit: rgb(255 255 255 / 0);
   --cast-rgb: 30 27 75;
   --cast-a: 0.07;
   --cast-a-lift: 0.13;
@@ -26,11 +34,11 @@
 }
 
 [data-theme="dark"] {
-  --bg: #101114;
-  --card: #191b1f;
-  --text: #eceef1;
-  --text-soft: #9aa0aa;
-  --border: #2b2e34;
+  --bg: #07080c;
+  --card: #0f111a;
+  --text: #eef0f4;
+  --text-soft: #949cad;
+  --border: #1d212c;
   --accent: #818cf8;
   --accent-strong: #6366f1;
   --accent-soft: #26283d;
@@ -43,6 +51,12 @@
   --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
+  --beam: rgb(129 140 248 / 0.17);
+  --beam-core: rgb(165 180 252 / 0.08);
+  --grid-line: rgb(255 255 255 / 0.03);
+  --grid-size: 64px;
+  --glass-edge: rgb(255 255 255 / 0.10);
+  --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
   --cast-a: 0.34;
   --cast-a-lift: 0.26;
@@ -51,11 +65,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
-    --bg: #101114;
-    --card: #191b1f;
-    --text: #eceef1;
-    --text-soft: #9aa0aa;
-    --border: #2b2e34;
+    --bg: #07080c;
+    --card: #0f111a;
+    --text: #eef0f4;
+    --text-soft: #949cad;
+    --border: #1d212c;
     --accent: #818cf8;
     --accent-strong: #6366f1;
     --accent-soft: #26283d;
@@ -68,6 +82,12 @@
     --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
     --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
+  --beam: rgb(129 140 248 / 0.17);
+  --beam-core: rgb(165 180 252 / 0.08);
+  --grid-line: rgb(255 255 255 / 0.03);
+  --grid-size: 64px;
+  --glass-edge: rgb(255 255 255 / 0.10);
+  --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
   --cast-a: 0.34;
   --cast-a-lift: 0.26;
@@ -85,11 +105,21 @@ body {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
-  /* Üstten yumuşayan indigo ışıma — sayfaya derinlik verir */
+  /* Sahnenin ışığı tek bir kaynaktan gelir: tepeden düşen dar bir huzme,
+     onun yumuşak halesi ve arkada duran ince teknik ızgara. Izgara sabit
+     kalır, içerik onun üzerinde kayar — arka plan bir zemin değil, mekân. */
   background:
-    radial-gradient(1100px 420px at 50% -120px, rgb(99 102 241 / 0.14), transparent 70%),
-    radial-gradient(700px 300px at 90% 10%, rgb(124 58 237 / 0.07), transparent 70%),
+    radial-gradient(46% 32% at 50% -6%, var(--beam), transparent 72%),
+    radial-gradient(92% 55% at 50% -20%, var(--beam-core), transparent 70%),
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
     var(--bg);
+  background-size:
+    100% 100%,
+    100% 100%,
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size),
+    auto;
   background-attachment: fixed;
   color: var(--text);
   line-height: 1.5;
@@ -1689,10 +1719,21 @@ textarea.input {
   transform-style: preserve-3d;
   transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--z));
   /* Gölge doğrudan yükseklikten türetilir: yükseldikçe uzar ve dağılır */
+  /* Cam yüzey: üst kenarda 1px ışık çizgisi, ardından gölge katmanları.
+     Koyu zeminde gölge neredeyse okunmaz; oradaki işi aşağıdaki
+     parlaklık farkı devralır. */
   box-shadow:
+    inset 0 1px 0 var(--glass-edge),
     0 calc(1px + var(--z) * 0.35) calc(4px + var(--z) * 0.6) rgb(16 24 40 / 0.05),
     0 calc(3px + var(--z) * 0.7) calc(10px + var(--z) * 1.7)
       rgb(var(--cast-rgb) / calc(var(--cast-a) + var(--lift) * var(--cast-a-lift)));
+  /* Aciliyet arttıkça yüzey aydınlanır ve kenarı accent'e döner. Referans
+     tasarımın yaptığı da bu: yakın olan net ve parlak, uzak olan karanlığa
+     gömülü. Gölgenin zayıf kaldığı koyu temada derinliği taşıyan budur. */
+  background:
+    linear-gradient(to bottom, var(--surface-lit), transparent 44%),
+    color-mix(in srgb, #ffffff calc(var(--lift) * 4%), var(--card));
+  border-color: color-mix(in srgb, var(--accent) calc(var(--lift) * 20%), var(--border));
   /* Geçiş transform'a değil özelliklerin kendisine bağlanır; transform ve
      box-shadow onlardan her karede yeniden türetilir. @property desteği
      olmayan tarayıcıda geçiş yok sayılır, eğim yine çalışır. */
