@@ -1,4 +1,4 @@
-import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
+import type { BillingCycle, CategoryId, Currency, Language, Payment } from "../types";
 import type { TranslationKey } from "../i18n/dict";
 
 /** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı. */
@@ -64,8 +64,12 @@ export const CURRENCY_SYMBOL: Record<Currency, string> = {
   EUR: "€",
 };
 
-export function formatMoney(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat("tr-TR", {
+export function formatMoney(
+  amount: number,
+  currency: Currency,
+  lang: Language = "tr",
+): string {
+  return new Intl.NumberFormat(localeFor(lang), {
     style: "currency",
     currency,
     minimumFractionDigits: 2,

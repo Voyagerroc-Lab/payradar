@@ -102,7 +102,8 @@ export function checkUpcomingPayments(
 ): void {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-  const t = makeT(options.lang ?? "tr");
+  const lang = options.lang ?? "tr";
+  const t = makeT(lang);
   const notified = loadNotified();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -125,7 +126,7 @@ export function checkUpcomingPayments(
           ? `${payment.name}: ${t("notif.trialToday")}`
           : `${payment.name}: ${t("notif.trialDays", { n: days })}`
         : `${timeText(days, t)} • ${t("notif.amount", {
-            amount: formatMoney(payment.price, payment.currency),
+            amount: formatMoney(payment.price, payment.currency, lang),
           })}`;
     const n = new Notification(titleFor(payment, t), { body, tag: payment.id });
     n.onclick = () => window.focus();
@@ -142,11 +143,11 @@ export function checkUpcomingPayments(
     );
     const lines = shown.map(
       ({ payment, days }) =>
-        `${lineDayText(days, t)}: ${payment.isTrial && days >= 0 ? "🎁 " : ""}${payment.name} - ${formatMoney(payment.price, payment.currency)}`,
+        `${lineDayText(days, t)}: ${payment.isTrial && days >= 0 ? "🎁 " : ""}${payment.name} - ${formatMoney(payment.price, payment.currency, lang)}`,
     );
     const body = [
       ...lines,
-      t("notif.digestTotal", { amount: formatMoney(total, "TRY") }),
+      t("notif.digestTotal", { amount: formatMoney(total, "TRY", lang) }),
     ].join("\n");
     const n = new Notification(t("notif.digestTitle", { n: shown.length }), {
       body,

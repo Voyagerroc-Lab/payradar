@@ -1,5 +1,5 @@
 import type { Payment, VaultData } from "../types";
-import { localeFor, toTryPerMonth } from "../lib/format";
+import { daysUntil, formatMoney, toTryPerMonth } from "../lib/format";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
 import type { TranslationKey } from "../i18n/dict";
@@ -19,7 +19,7 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
   const yearly = monthly * 12;
 
   const upcoming = [...payments]
-    .map((p) => ({ p, days: daysLeft(p.nextPaymentDate) }))
+    .map((p) => ({ p, days: daysUntil(p.nextPaymentDate) }))
     .filter((x) => x.days >= 0)
     .sort((a, b) => a.days - b.days)[0];
 
@@ -30,14 +30,14 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
           💸
         </span>
         <span className="summary-label">{t("summary.monthly")}</span>
-        <span className="summary-value">{formatTRY(monthly, lang)}</span>
+        <span className="summary-value">{formatMoney(monthly, "TRY", lang)}</span>
       </div>
       <div className="card summary-card summary-violet">
         <span className="summary-icon" aria-hidden="true">
           📈
         </span>
         <span className="summary-label">{t("summary.yearly")}</span>
-        <span className="summary-value">{formatTRY(yearly, lang)}</span>
+        <span className="summary-value">{formatMoney(yearly, "TRY", lang)}</span>
       </div>
       <div className="card summary-card summary-teal">
         <span className="summary-icon" aria-hidden="true">
@@ -66,24 +66,8 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
 
 type TFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
-function daysLeft(iso: string): number {
-  const target = new Date(iso + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
-}
-
 function describeDays(days: number, t: TFn): string {
   if (days === 0) return t("time.renewsToday");
   if (days === 1) return t("time.renewsTomorrow");
   return t("time.daysLeft", { n: days });
-}
-
-function formatTRY(amount: number, lang: "tr" | "en" | "ms"): string {
-  return new Intl.NumberFormat(localeFor(lang), {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
 }

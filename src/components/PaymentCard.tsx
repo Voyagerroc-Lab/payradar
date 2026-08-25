@@ -1,4 +1,4 @@
-import { CATEGORIES, CURRENCY_SYMBOL, formatDateTR, localeFor } from "../lib/format";
+import { CATEGORIES, daysUntil, formatDateTR, formatMoney } from "../lib/format";
 import { findGuide } from "../data/guides";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
@@ -25,7 +25,7 @@ export default function PaymentCard({
 }: PaymentCardProps) {
   const { t, lang } = useI18n();
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
-  const days = daysLeft(payment.nextPaymentDate);
+  const days = daysUntil(payment.nextPaymentDate);
   const badge = badgeFor(days, t);
   // Aciliyet, kartın sahnedeki derinliğini belirler (styles.css > 3B DERİNLİK)
   const urgency = days < 0 ? "overdue" : days === 0 ? "today" : days <= 7 ? "soon" : "later";
@@ -35,8 +35,8 @@ export default function PaymentCard({
   async function handleShare() {
     const cycle = t(`suffix.${payment.billingCycle}` as TranslationKey);
     const text = payment.notes
-      ? `${payment.name}: ${formatPrice(payment.price, payment.currency, lang)}${cycle}\n${payment.notes}`
-      : `${payment.name}: ${formatPrice(payment.price, payment.currency, lang)}${cycle}`;
+      ? `${payment.name}: ${formatMoney(payment.price, payment.currency, lang)}${cycle}\n${payment.notes}`
+      : `${payment.name}: ${formatMoney(payment.price, payment.currency, lang)}${cycle}`;
     try {
       await navigator.share({ title: payment.name, text });
     } catch {
@@ -66,7 +66,7 @@ export default function PaymentCard({
           )}
         </div>
         <p className="sub-price">
-          {formatPrice(payment.price, payment.currency, lang)}
+          {formatMoney(payment.price, payment.currency, lang)}
           <span> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</span>
         </p>
         <p className="sub-date">
@@ -159,25 +159,6 @@ export default function PaymentCard({
       </div>
     </article>
   );
-}
-
-function daysLeft(iso: string): number {
-  const target = new Date(iso + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
-}
-
-function formatPrice(
-  price: number,
-  currency: keyof typeof CURRENCY_SYMBOL,
-  lang: "tr" | "en" | "ms",
-): string {
-  return new Intl.NumberFormat(localeFor(lang), {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(price);
 }
 
 function badgeFor(

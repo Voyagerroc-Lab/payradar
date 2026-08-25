@@ -226,11 +226,6 @@ button {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.sub-card:hover,
-.summary-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
-}
-
 .summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -323,7 +318,7 @@ button {
   overflow: hidden;
   /* Kolon daraldıkça tutar da küçülür: dar ekranda "₺545.175,64" 24px'te
      kolona sığmıyor ve ucu kırpılıyordu. Kırpmak yerine ölçekle. */
-  font-size: clamp(16px, 5.2vw, 24px);
+  font-size: clamp(13px, 4.2vw, 24px);
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -1533,10 +1528,49 @@ textarea.input {
 
 /* ---------- Duyarlılık ---------- */
 @media (max-width: 900px) {
+  /* İki kolonda tutara ~123px kalıyor; ikonu ve dolguyu daraltmazsak
+     yedi haneli bir yıllık tahmin kolona sığmayıp kırpılıyor. */
+  .summary-card {
+    padding: 13px 13px 12px;
+  }
+
+  .summary-value {
+    /* Sabit genişlikli rakamlar burada ~%7 yer israfı; dar ekranda
+       orantılı rakamlara geçmek yedi haneli tutarı kırpılmaktan kurtarıyor.
+       Kolon hizası iki kolonlu düzende zaten görsel olarak önemsiz. */
+    font-variant-numeric: proportional-nums;
+  }
+
+  .summary-icon {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .summary-label {
+    padding-right: 38px;
+  }
+
   .summary {
     /* minmax(0, ...) şart: 1fr'nin örtük asgarisi min-content olduğu için
        bölünemeyen uzun bir tutar kolonu şişirip yatay taşma yaratıyor */
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* En dar telefonlarda özet kutusuna son birkaç pikseli de ver: yedi haneli
+   bir yıllık tahmin burada kırpılmadan sığmalı, çünkü eksik gösterilen bir
+   tutar yanlış bilgidir. */
+@media (max-width: 400px) {
+  .summary-card {
+    padding: 11px 11px 10px;
+  }
+
+  .summary-label {
+    padding-right: 34px;
   }
 }
 
@@ -1553,6 +1587,9 @@ textarea.input {
 
   .toolbar-right .select {
     flex: 1;
+    /* min-width:auto flex ogesinin min-content'in altina inmesini engeller;
+       select'in en uzun secenegi "+ Ödeme Ekle" butonunu ekrandan tasiriyordu */
+    min-width: 0;
   }
 
   .sub-actions {
@@ -1684,10 +1721,25 @@ textarea.input {
 .sub-card[data-urgency="today"] { --lift: 0.72; }
 .sub-card[data-urgency="overdue"] { --lift: 1; }
 
-.sub-card:hover { --hover-z: 12px; }
-
 .summary-card { --lift: 0.16; }
-.summary-card:hover { --hover-z: 14px; }
+
+/* Dokunmatikte :hover TAKILI KALIR: karta bir kez dokunan kullanıcı, başka
+   bir yere dokunana dek kartı havada asılı görür. Kaldırmayı yalnızca
+   gerçek işaretçisi olan cihazlara veriyoruz. */
+@media (hover: hover) and (pointer: fine) {
+  .sub-card:hover {
+    --hover-z: 12px;
+  }
+
+  .summary-card:hover {
+    --hover-z: 14px;
+  }
+
+  .sub-card:hover,
+  .summary-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  }
+}
 
 /* Yüzeyde gezen ışık — eğimden çok bunu "gerçek yüzey" hissettiriyor.
    .summary-card::before renk şeridi olduğu için orada ::after kullanılır. */
@@ -1703,9 +1755,18 @@ textarea.input {
     transparent 62%
   );
   opacity: 0;
-  transform: translateZ(1px);
   transition: opacity 0.4s ease;
   pointer-events: none;
+}
+
+/* Parlama konumlandırılmış bir katman; CSS boyama sırasına göre
+   konumlandırılmamış kardeşlerinin ÜSTÜNE düşer. Yükseltilmemiş gövde
+   metni (ad, tutar, tarih) tam da bu yüzden altında kalıp kontrast
+   kaybediyordu. İçeriği de konumlandırınca tree order işini yapıyor ve
+   metin ışığın üstüne çıkıyor — Z'ye tırmandırmaya gerek kalmadan. */
+.sub-card > .sub-info,
+.sub-card > .sub-actions {
+  position: relative;
 }
 
 .sub-card.is-tilting::before,
@@ -1713,7 +1774,7 @@ textarea.input {
   opacity: 1;
 }
 
-/* Renk şeridi yüzeyle aynı düzlemde kalmasın (z-fighting) */
+/* Renk şeridi parlamanın üstünde kalsın; aynı düzlemde buluşup titremesinler */
 .summary-card::before {
   transform: translateZ(1px);
 }
@@ -1779,6 +1840,8 @@ textarea.input {
   transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-.brand:hover .brand-icon {
-  transform: perspective(600px) rotateY(-20deg) rotateX(10deg) translateZ(8px);
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover .brand-icon {
+    transform: perspective(600px) rotateY(-20deg) rotateX(10deg) translateZ(8px);
+  }
 }
