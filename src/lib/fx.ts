@@ -1,4 +1,5 @@
 import type { Currency, Language } from "../types";
+import { FALLBACK_AS_OF, FALLBACK_RATES } from "./fx-fallback";
 
 /**
  * Döviz kuru modülü.
@@ -11,8 +12,10 @@ import type { Currency, Language } from "../types";
  *
  * Kurlar open.er-api.com'dan (160+ para birimi, anahtarsız, CORS açık,
  * günlük güncellenir) USD tabanlı tek tablo olarak çekilir ve localStorage'da
- * saklanır — kişisel veri içermez. Çevrimdışıyken son bilinen tablo, o da
- * yoksa kasadaki eski manuel usdTry/eurTry değerleri kullanılır.
+ * saklanır — kişisel veri içermez. Kur zinciri: canlı tablo → son bilinen
+ * önbellek → build sırasında gömülen anlık görüntü (fx-fallback.ts) →
+ * kasadaki eski manuel usdTry/eurTry. Çeviri hiçbir koşulda sessizce 1:1'e
+ * düşüp yanlış etiketli sayı gösteremez.
  */
 
 /** ISO 4217 — dolaşımdaki dünya para birimleri (er-api kapsamı). */
@@ -61,8 +64,16 @@ export function loadFx(): FxTable | null {
     const raw = localStorage.getItem(FX_KEY);
     if (!raw) return null;
     const fx = JSON.parse(raw) as FxTable;
-    if (!fx || typeof fx !== "object" || !fx.rates) return null;
-    return fx;
+    if (!fx || typeof fx !== "object" || !fx.rates || typeof fx.rates !== "object") return null;
+    // Bozuk önbelleğe karşı: yalnızca sonlu-pozitif sayılar geçerli kurdur.
+    const rates: FxTable["rates"] = {};
+    for (const [code, value] of Object.entries(fx.rates)) {
+      if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+        rates[code] = value;
+      }
+    }
+    if (rates.USD !== 1) return null;
+    return { rates, updatedAt: typeof fx.updatedAt === "number" ? fx.updatedAt : 0 };
   } catch {
     return null;
   }
@@ -113,10 +124,29 @@ export interface LegacyRates {
   eurTry: number;
 }
 
+const FALLBACK_TS = Date.parse(FALLBACK_AS_OF) || 0;
+
+function validRate(value: number | undefined): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+/** Bir kodun USD tabanlı kuru. İki kaynaktan (eldeki tablo, gömülü anlık
+ *  görüntü) hangisi daha yeniyse o kazanır; kod yalnız birindeyse o kullanılır. */
+function rateOf(code: Currency, fx: FxTable | null): number | null {
+  const live = validRate(fx?.rates[code]);
+  const baked = validRate(FALLBACK_RATES[code]);
+  if (live !== null && baked !== null) {
+    return (fx?.updatedAt ?? 0) >= FALLBACK_TS ? live : baked;
+  }
+  return live ?? baked;
+}
+
 /**
- * amount tutarını from→to çevirir. Canlı tablo yoksa ve hedef TRY ise eski
- * manuel kurlara, o da mümkün değilse 1:1'e düşer (eksik kur yüzünden tutarı
- * yok saymak, yanlış göstermekten daha kötü olurdu).
+ * amount tutarını from→to çevirir. Kur zinciri: canlı tablo → gömülü anlık
+ * görüntü → (hedef TRY ise) kasadaki eski manuel kurlar → 1:1. Gömülü tablo
+ * tüm er-api kodlarını kapsadığı için son iki basamak pratikte erişilmezdir;
+ * yine de dururlar, çünkü eksik kur yüzünden tutarı yok saymak yanlış
+ * göstermekten daha kötü olurdu. Sonuç her koşulda sonlu bir sayıdır.
  */
 export function convert(
   amount: number,
@@ -125,13 +155,19 @@ export function convert(
   fx: FxTable | null,
   legacy?: LegacyRates,
 ): number {
+  if (!Number.isFinite(amount)) return 0;
   if (from === to) return amount;
-  const rFrom = fx?.rates[from];
-  const rTo = fx?.rates[to];
-  if (rFrom && rTo) return amount * (rTo / rFrom);
+  const rFrom = rateOf(from, fx);
+  const rTo = rateOf(to, fx);
+  if (rFrom && rTo) {
+    const result = amount * (rTo / rFrom);
+    return Number.isFinite(result) ? result : 0;
+  }
   if (legacy && to === "TRY") {
-    if (from === "USD") return amount * (legacy.usdTry || 1);
-    if (from === "EUR") return amount * (legacy.eurTry || 1);
+    if (from === "USD" && Number.isFinite(legacy.usdTry) && legacy.usdTry > 0)
+      return amount * legacy.usdTry;
+    if (from === "EUR" && Number.isFinite(legacy.eurTry) && legacy.eurTry > 0)
+      return amount * legacy.eurTry;
   }
   return amount;
 }
