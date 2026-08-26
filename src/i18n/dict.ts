@@ -240,7 +240,7 @@ const tr = {
   "auth.profile.webAccess": "Web Erişimi:",
   "auth.profile.webAccessDesc":
     "Tarayıcından web paneline girip {email} adresiyle oturum açtığında tüm aboneliklerini görüntüleyebilir ve yönetebilirsin.",
-  "auth.banner.text": "☁️ Webden erişmek ve verilerini yedeklemek için giriş yap",
+  "auth.banner.text": "Webden erişmek ve verilerini yedeklemek için giriş yap",
   "auth.banner.btn": "Giriş Yap",
   "toast.signedIn": "Giriş yapıldı: {email}",
   "toast.signedUp": "Hesap oluşturuldu ve buluta bağlandı!",
@@ -552,7 +552,7 @@ const en: Record<TranslationKey, string> = {
   "auth.profile.webAccess": "Web Access:",
   "auth.profile.webAccessDesc":
     "Log in to the web panel using {email} to view and manage all your subscriptions on your computer.",
-  "auth.banner.text": "☁️ Sign in to sync your subscriptions and access via web",
+  "auth.banner.text": "Sign in to sync your subscriptions and access via web",
   "auth.banner.btn": "Sign In",
   "toast.signedIn": "Signed in as {email}",
   "toast.signedUp": "Account created and connected to cloud!",
@@ -850,7 +850,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "auth.profile.webAccess": "Akses Web:",
   "auth.profile.webAccessDesc":
     "Log masuk ke panel web menggunakan {email} untuk melihat dan mengurus langganan anda pada komputer.",
-  "auth.banner.text": "☁️ Log masuk untuk menyegerak langganan dan akses melalui web",
+  "auth.banner.text": "Log masuk untuk menyegerak langganan dan akses melalui web",
   "auth.banner.btn": "Log Masuk",
   "toast.signedIn": "Log masuk sebagai {email}",
   "toast.signedUp": "Akaun dicipta dan disambungkan ke awan!",
@@ -1166,7 +1166,7 @@ const es: Record<TranslationKey, string> = {
   "auth.profile.webAccess": "Acceso Web:",
   "auth.profile.webAccessDesc":
     "Inicia sesión en el panel web con {email} para ver y administrar todas tus suscripciones desde tu computadora.",
-  "auth.banner.text": "☁️ Inicia sesión para sincronizar tus suscripciones y acceder vía web",
+  "auth.banner.text": "Inicia sesión para sincronizar tus suscripciones y acceder vía web",
   "auth.banner.btn": "Iniciar Sesión",
   "toast.signedIn": "Sesión iniciada como {email}",
   "toast.signedUp": "¡Cuenta creada y conectada a la nube!",
@@ -1470,7 +1470,7 @@ const ar: Record<TranslationKey, string> = {
   "auth.profile.webAccess": "الوصول عبر الويب:",
   "auth.profile.webAccessDesc":
     "سجّل الدخول إلى لوحة الويب باستخدام {email} لعرض وإدارة كل اشتراكاتك من حاسوبك.",
-  "auth.banner.text": "☁️ سجّل الدخول لمزامنة اشتراكاتك والوصول إليها عبر الويب",
+  "auth.banner.text": "سجّل الدخول لمزامنة اشتراكاتك والوصول إليها عبر الويب",
   "auth.banner.btn": "تسجيل الدخول",
   "toast.signedIn": "تم تسجيل الدخول باسم {email}",
   "toast.signedUp": "أُنشئ الحساب واتصل بالسحابة!",

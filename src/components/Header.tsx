@@ -54,7 +54,7 @@ export default function Header({
                   <span className="account-chip-avatar">{initial}</span> ☁️
                 </>
               ) : (
-                <>👤 {t("auth.tabSignIn")}</>
+                t("auth.tabSignIn")
               )}
             </button>
           )}

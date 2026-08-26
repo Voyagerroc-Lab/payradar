@@ -129,6 +129,24 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  /* Giriş şeridi kapatılınca bir daha çıkmaz (giriş her zaman başlıktan ve
+     Ayarlar'dan erişilebilir kalır); tercih cihazda kalıcıdır. */
+  const [cloudBannerDismissed, setCloudBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("payradar:cloudBannerDismissed:v1") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismissCloudBanner() {
+    setCloudBannerDismissed(true);
+    try {
+      localStorage.setItem("payradar:cloudBannerDismissed:v1", "1");
+    } catch {
+      /* depolama kapalıysa yalnızca bu oturumda gizli kalır */
+    }
+  }
   const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -774,12 +792,32 @@ export default function App() {
           />
 
           <main className="container" id="main" tabIndex={-1}>
-            {cloudEnabled && !cloudUser && (
-              <button className="cloud-banner" onClick={() => setAuthOpen(true)}>
-                <span>{t("auth.banner.text")}</span>
-                <span className="btn btn-primary">{t("auth.banner.btn")}</span>
-              </button>
-            )}
+            {cloudEnabled &&
+              !cloudUser &&
+              !cloudBannerDismissed &&
+              vault.payments.length > 0 && (
+                <div className="cloud-banner">
+                  <span className="cloud-banner-icon" aria-hidden="true">
+                    ☁️
+                  </span>
+                  <span className="cloud-banner-text">{t("auth.banner.text")}</span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary cloud-banner-cta"
+                    onClick={() => setAuthOpen(true)}
+                  >
+                    {t("auth.banner.btn")}
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn cloud-banner-dismiss"
+                    onClick={dismissCloudBanner}
+                    aria-label={t("action.close")}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
             <SummaryCards payments={vault.payments} vault={vault} fx={fx} />
 

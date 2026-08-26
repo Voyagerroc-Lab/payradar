@@ -1609,15 +1609,28 @@ textarea.input {
 .account-chip {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 6px 14px;
   font-size: 13px;
   font-weight: 600;
+  /* Metin asla sarmamalı: sarınca hap daireye dönüp bozuluyordu */
+  white-space: nowrap;
   color: var(--accent-strong);
   background: var(--accent-soft);
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: 999px;
-  transition: background-color 0.15s, box-shadow 0.15s;
+  transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+[data-theme="dark"] .account-chip {
+  color: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .account-chip {
+    color: var(--accent);
+  }
 }
 
 .account-chip:hover {
@@ -1637,35 +1650,63 @@ textarea.input {
   border-radius: 50%;
 }
 
+/* Giriş şeridi: sessiz bir hatırlatma — ince, kapatılabilir, tek satır.
+   Uygulama hesapsız da tam çalıştığı için bu bir duvar değil davetiyedir. */
 .cloud-banner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   margin-bottom: 14px;
-  padding: 12px 16px;
-  font-size: 13.5px;
+  padding: 7px 8px 7px 13px;
+  font-size: 13px;
   text-align: left;
   color: var(--text);
   background:
-    linear-gradient(to right, rgb(124 58 237 / 0.08), rgb(124 58 237 / 0.05)),
-    radial-gradient(rgb(124 58 237 / 0.10) 1px, transparent 1.4px) 0 0 / 10px 10px;
+    linear-gradient(to right, rgb(124 58 237 / 0.07), rgb(124 58 237 / 0.03)),
+    radial-gradient(rgb(124 58 237 / 0.09) 1px, transparent 1.4px) 0 0 / 10px 10px;
   border: 1px solid var(--accent-soft);
   border-radius: var(--radius);
-  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
-.cloud-banner:hover {
-  background:
-    linear-gradient(to right, rgb(124 58 237 / 0.13), rgb(124 58 237 / 0.09)),
-    radial-gradient(rgb(124 58 237 / 0.10) 1px, transparent 1.4px) 0 0 / 10px 10px;
-  border-color: var(--accent);
-}
-
-.cloud-banner .btn {
+.cloud-banner-icon {
   flex-shrink: 0;
-  pointer-events: none;
+  font-size: 15px;
+}
+
+.cloud-banner-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-soft);
+}
+
+.cloud-banner-cta {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.cloud-banner-dismiss {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  /* Dar ekranda metin iki satıra sarabilir; düğmeler sıkışmasın */
+  .cloud-banner {
+    flex-wrap: wrap;
+    padding: 8px 10px 8px 13px;
+  }
+
+  .cloud-banner-text {
+    flex-basis: calc(100% - 60px);
+  }
+
+  .cloud-banner-cta {
+    margin-left: auto;
+  }
 }
 
 /* ---------- Ayarlar hesap kartı & tam genişlik butonlar ---------- */
