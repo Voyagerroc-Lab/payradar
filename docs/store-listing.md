@@ -45,10 +45,10 @@ Reklam yok, izleyici yok, veri satışı yok. Ödeme takibinin tamamı süresiz 
 • Abonelikler: dizi-film, müzik, bulut depolama, yazılım
 • Sigorta, Eğitim, Sağlık & Spor, Oyun ve Diğer
 
-💱 CANLI DÖVİZ KURLARI — 4 PARA BİRİMİ
-• Ödemeleri TRY, USD, EUR veya MYR cinsinden girin; her ödeme kendi para biriminde görünür
+💱 CANLI DÖVİZ KURLARI — 6 PARA BİRİMİ
+• Ödemeleri TRY, USD, EUR, MYR, MXN veya AED cinsinden girin; her ödeme kendi para biriminde görünür
 • Kurlar Avrupa Merkez Bankası verisinden her gün otomatik güncellenir
-• Toplamlar dilinize göre ₺, $ veya RM olarak hesaplanır; çevrimdışıyken son bilinen kur kullanılır
+• Toplamlar dilinize göre ₺, $, RM, MX$ veya د.إ olarak hesaplanır; çevrimdışıyken son bilinen kur kullanılır
 
 🔔 AKILLI HATIRLATMALAR
 • Vadeden 1-7 gün önce bildirim; 2 güne kadar gecikme uyarısı
@@ -77,8 +77,8 @@ Reklam yok, izleyici yok, veri satışı yok. Ödeme takibinin tamamı süresiz 
 • CSV içe aktarma: kopya kayıtlar akıllıca atlanır
 • Tek dokunuşla tüm verileri silme — iz bırakmadan
 
-🌍 ÜÇ DİL, TAM ÇEVRİMDIŞI
-• Türkçe, İngilizce ve Malayca — cihaz dilinizi otomatik algılar
+🌍 BEŞ DİL, TAM ÇEVRİMDIŞI
+• Türkçe, İngilizce, Malayca, İspanyolca ve Arapça — cihaz dilinizi otomatik algılar
 • Koyu ve açık tema; sisteme uyum ya da elle seçim
 • İnternet olmadan da eksiksiz çalışır
 
@@ -126,10 +126,10 @@ No ads, no trackers, no data selling. Core payment tracking is free forever.
 • Subscriptions: streaming, music, cloud storage, software
 • Insurance, Education, Health & Fitness, Gaming and Other
 
-💱 LIVE EXCHANGE RATES — 4 CURRENCIES
-• Enter payments in TRY, USD, EUR or MYR; every payment keeps its own currency
+💱 LIVE EXCHANGE RATES — 6 CURRENCIES
+• Enter payments in USD, EUR, TRY, MYR, MXN or AED; every payment keeps its own currency
 • Rates refresh daily from European Central Bank data
-• Totals are calculated in ₺, $ or RM based on your language; the last known rates work offline
+• Totals are calculated in $, ₺, RM, MX$ or د.إ based on your language; the last known rates work offline
 
 🔔 SMART REMINDERS
 • Notifications 1–7 days before a due date, plus overdue alerts for up to 2 days
@@ -158,8 +158,8 @@ No ads, no trackers, no data selling. Core payment tracking is free forever.
 • CSV import with smart duplicate skipping
 • Erase everything with one tap — no trace left behind
 
-🌍 THREE LANGUAGES, FULLY OFFLINE
-• Turkish, English and Malay — detected automatically from your device
+🌍 FIVE LANGUAGES, FULLY OFFLINE
+• English, Turkish, Malay, Spanish and Arabic — detected automatically from your device
 • Dark and light themes; follow the system or pick manually
 • Works completely offline
 
@@ -207,10 +207,10 @@ Tiada iklan, tiada penjejak, tiada penjualan data. Penjejakan pembayaran asas pe
 • Langganan: penstriman, muzik, storan awan, perisian
 • Insurans, Pendidikan, Kesihatan & Kecergasan, Permainan dan Lain-lain
 
-💱 KADAR PERTUKARAN LANGSUNG — 4 MATA WANG
-• Masukkan pembayaran dalam MYR, USD, EUR atau TRY; setiap bayaran kekal dalam mata wangnya sendiri
+💱 KADAR PERTUKARAN LANGSUNG — 6 MATA WANG
+• Masukkan pembayaran dalam MYR, USD, EUR, TRY, MXN atau AED; setiap bayaran kekal dalam mata wangnya sendiri
 • Kadar dikemas kini setiap hari daripada data Bank Pusat Eropah
-• Jumlah dikira dalam RM, $ atau ₺ mengikut bahasa anda; kadar terakhir digunakan semasa luar talian
+• Jumlah dikira dalam RM, $, ₺, MX$ atau د.إ mengikut bahasa anda; kadar terakhir digunakan semasa luar talian
 
 🔔 PERINGATAN PINTAR
 • Pemberitahuan 1–7 hari sebelum tarikh bayaran, serta amaran tertunggak sehingga 2 hari
@@ -239,8 +239,8 @@ Tiada iklan, tiada penjejak, tiada penjualan data. Penjejakan pembayaran asas pe
 • Import CSV dengan langkauan pendua yang pintar
 • Padam segala-galanya dengan satu ketukan — tiada kesan ditinggalkan
 
-🌍 TIGA BAHASA, LUAR TALIAN SEPENUHNYA
-• Bahasa Turki, Inggeris dan Melayu — dikesan secara automatik daripada peranti anda
+🌍 LIMA BAHASA, LUAR TALIAN SEPENUHNYA
+• Bahasa Melayu, Inggeris, Turki, Sepanyol dan Arab — dikesan secara automatik daripada peranti anda
 • Tema gelap dan cerah; ikut sistem atau pilih sendiri
 • Berfungsi sepenuhnya tanpa internet
 
