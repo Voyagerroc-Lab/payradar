@@ -98,11 +98,52 @@ function dueIn(
 }
 
 /**
+ * Bildirimi platforma uygun kanaldan gösterir. Android Chrome'da sayfa
+ * bağlamındaki `new Notification()` DESTEKLENMEZ ve TypeError fırlatır —
+ * doğru yol ServiceWorkerRegistration.showNotification()'dır. Masaüstünde
+ * SW kaydı yoksa kurucuya düşülür. Her iki yol da yutulmuş hatalarla
+ * korunur: bildirim gösterememek kabul edilebilir, uygulamayı çökertmek
+ * değildir (bu hata kurulu TWA'da kalıcı boş ekrana yol açıyordu).
+ */
+function showNotification(title: string, body: string, tag: string): void {
+  void (async () => {
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      if (reg?.showNotification) {
+        await reg.showNotification(title, { body, tag });
+        return;
+      }
+    } catch {
+      /* SW yolu başarısızsa kurucu denenir */
+    }
+    try {
+      const n = new Notification(title, { body, tag });
+      n.onclick = () => window.focus();
+    } catch {
+      /* platform bildirim göstermiyor; sessizce vazgeç */
+    }
+  })();
+}
+
+/**
  * Yaklaşan ve 2 güne kadar gecikmiş ödemeleri kontrol edip bildirim gönderir.
  * Birden fazla acil ödeme varsa tek bir özet bildirimi atar.
  * Aynı gün aynı ödeme için tekrar bildirim atmaz.
+ * SÖZLEŞME: Bu fonksiyon React effect'lerinden çağrılır ve ASLA fırlatmaz.
  */
 export function checkUpcomingPayments(
+  payments: Payment[],
+  reminderDays: number,
+  options: NotifyOptions = {},
+): void {
+  try {
+    checkUpcomingPaymentsUnsafe(payments, reminderDays, options);
+  } catch {
+    /* bildirim akışındaki hiçbir hata uygulamayı düşürmemeli */
+  }
+}
+
+function checkUpcomingPaymentsUnsafe(
   payments: Payment[],
   reminderDays: number,
   options: NotifyOptions = {},
@@ -135,8 +176,7 @@ export function checkUpcomingPayments(
         : `${timeText(days, t)} • ${t("notif.amount", {
             amount: formatMoney(payment.price, payment.currency, lang),
           })}`;
-    const n = new Notification(titleFor(payment, t), { body, tag: payment.id });
-    n.onclick = () => window.focus();
+    showNotification(titleFor(payment, t), body, payment.id);
     notified[payment.id] = today;
   } else {
     const usdTry = options.usdTry ?? 42;
@@ -158,11 +198,7 @@ export function checkUpcomingPayments(
       ...lines,
       t("notif.digestTotal", { amount: formatMoney(total, home, lang) }),
     ].join("\n");
-    const n = new Notification(t("notif.digestTitle", { n: shown.length }), {
-      body,
-      tag: "payradar-digest",
-    });
-    n.onclick = () => window.focus();
+    showNotification(t("notif.digestTitle", { n: shown.length }), body, "payradar-digest");
     for (const { payment } of shown) notified[payment.id] = today;
   }
 

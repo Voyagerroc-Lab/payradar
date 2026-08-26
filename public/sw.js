@@ -30,6 +30,21 @@ function cacheIfOk(request, response) {
   return response;
 }
 
+/* SW üzerinden gösterilen bildirime tıklanınca uygulamayı odakla ya da aç */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((list) => {
+        for (const client of list) {
+          if ("focus" in client) return client.focus();
+        }
+        return self.clients.openWindow("./");
+      }),
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
