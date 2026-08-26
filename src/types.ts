@@ -11,11 +11,11 @@ export type CategoryId =
   | "oyun"
   | "diger";
 
-export type Currency = "TRY" | "USD" | "EUR" | "MYR";
+export type Currency = "TRY" | "USD" | "EUR" | "MYR" | "MXN" | "AED";
 
 export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
-export type Language = "tr" | "en" | "ms";
+export type Language = "tr" | "en" | "ms" | "es" | "ar";
 
 /** Fiyat geçmişindeki tek nokta */
 export interface PricePoint {

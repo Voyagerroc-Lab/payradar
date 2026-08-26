@@ -2,10 +2,13 @@ import type { BillingCycle, CategoryId, Currency, Language, Payment } from "../t
 import type { TranslationKey } from "../i18n/dict";
 import { convert, type FxTable, type LegacyRates } from "./fx";
 
-/** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı. */
-export function localeFor(lang: "tr" | "en" | "ms"): string {
+/** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı.
+ *  ar-AE'de Latin rakamları zorlanır (nu-latn): tutarlar tabular hizada kalır. */
+export function localeFor(lang: Language): string {
   if (lang === "tr") return "tr-TR";
   if (lang === "ms") return "ms-MY";
+  if (lang === "es") return "es-MX";
+  if (lang === "ar") return "ar-AE-u-nu-latn";
   return "en-GB";
 }
 
@@ -72,6 +75,8 @@ export const CURRENCY_SYMBOL: Record<Currency, string> = {
   USD: "$",
   EUR: "€",
   MYR: "RM",
+  MXN: "MX$",
+  AED: "د.إ",
 };
 
 export function formatMoney(
@@ -138,7 +143,7 @@ export function daysUntil(iso: string): number {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
-export function formatDateTR(iso: string, lang: "tr" | "en" | "ms" = "tr"): string {
+export function formatDateTR(iso: string, lang: Language = "tr"): string {
   return new Intl.DateTimeFormat(localeFor(lang), {
     day: "numeric",
     month: "long",

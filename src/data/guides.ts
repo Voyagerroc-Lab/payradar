@@ -357,9 +357,10 @@ export function findGuide(name: string): CancelGuide | null {
   return null;
 }
 
-/** İngilizce arayüzde varsa İngilizce alanları kullanır, yoksa Türkçesine düşer. */
+/** Türkçe arayüz Türkçe adımları görür; diğer tüm diller (en/ms/es/ar) varsa
+ *  İngilizce alanları kullanır, yoksa Türkçesine düşer. */
 function resolveGuideLanguage(guide: CancelGuide, lang: Language): CancelGuide {
-  if (lang !== "en") return guide;
+  if (lang === "tr") return guide;
   return {
     ...guide,
     displayName: guide.displayNameEn ?? guide.displayName,

@@ -12,14 +12,22 @@ import type { Currency, Language } from "../types";
  * usdTry/eurTry değerleri kullanılır.
  */
 
-export const CURRENCIES: Currency[] = ["TRY", "USD", "EUR", "MYR"];
+export const CURRENCIES: Currency[] = ["TRY", "USD", "EUR", "MYR", "MXN", "AED"];
 
-/** Dilin ana para birimi: özet toplamları ve bildirim özetleri bu birimde. */
+/** Dilin ana para birimi: özet toplamları ve bildirim özetleri bu birimde.
+ *  tr→TRY, ms→MYR, es→MXN (Latin Amerika), ar→AED (BAE dirhemi), en→USD. */
 export function homeCurrency(lang: Language): Currency {
   if (lang === "tr") return "TRY";
   if (lang === "ms") return "MYR";
+  if (lang === "es") return "MXN";
+  if (lang === "ar") return "AED";
   return "USD";
 }
+
+/** AED, 1997'den beri USD'ye merkez bankası kararıyla sabitlenmiştir
+ *  (1 USD = 3,6725 AED). ECB verisi AED yayınlamadığı için kur bu resmî
+ *  pegden türetilir — peg değişirse burası güncellenmeli. */
+const AED_PER_USD = 3.6725;
 
 export interface FxTable {
   /** 1 USD karşılıkları (USD tabanlı tablo; USD=1) */
@@ -55,7 +63,7 @@ function saveFx(fx: FxTable): void {
 async function fetchFx(): Promise<FxTable | null> {
   try {
     const res = await fetch(
-      "https://api.frankfurter.dev/v1/latest?base=USD&symbols=TRY,EUR,MYR",
+      "https://api.frankfurter.dev/v1/latest?base=USD&symbols=TRY,EUR,MYR,MXN",
     );
     if (!res.ok) return null;
     const data = (await res.json()) as { rates?: Record<string, number> };
@@ -65,8 +73,10 @@ async function fetchFx(): Promise<FxTable | null> {
       TRY: r.TRY,
       EUR: r.EUR,
       MYR: r.MYR,
+      MXN: r.MXN,
+      AED: AED_PER_USD,
     };
-    const valid = [rates.TRY, rates.EUR, rates.MYR].every(
+    const valid = [rates.TRY, rates.EUR, rates.MYR, rates.MXN].every(
       (n) => typeof n === "number" && Number.isFinite(n) && n > 0,
     );
     if (!valid) return null;

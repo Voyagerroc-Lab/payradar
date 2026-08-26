@@ -143,6 +143,8 @@ export default function SettingsModal({
             <option value="tr">Türkçe</option>
             <option value="en">English</option>
             <option value="ms">Bahasa Melayu</option>
+            <option value="es">Español</option>
+            <option value="ar">العربية</option>
           </select>
         </label>
 

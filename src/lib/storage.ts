@@ -82,10 +82,12 @@ interface VaultFile {
   data?: VaultData;
 }
 
-function detectLanguage(): "tr" | "en" | "ms" {
+function detectLanguage(): "tr" | "en" | "ms" | "es" | "ar" {
   const lang = navigator.language?.toLowerCase() ?? "";
   if (lang.startsWith("tr")) return "tr";
   if (lang.startsWith("ms")) return "ms";
+  if (lang.startsWith("es")) return "es";
+  if (lang.startsWith("ar")) return "ar";
   return "en";
 }
 

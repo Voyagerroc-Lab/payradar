@@ -4,7 +4,7 @@ import { parseAmount, parseInstallment, sanitizeCategoryFields, todayISO } from 
 const HEADER =
   "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial";
 
-const CURRENCIES: Currency[] = ["TRY", "USD", "EUR", "MYR"];
+const CURRENCIES: Currency[] = ["TRY", "USD", "EUR", "MYR", "MXN", "AED"];
 const CYCLES: BillingCycle[] = ["weekly", "monthly", "quarterly", "yearly"];
 const CATEGORY_IDS: CategoryId[] = [
   "konut",

@@ -319,6 +319,8 @@ export default function App() {
     document.documentElement.dataset.theme =
       prefs.theme === "auto" ? "" : prefs.theme;
     document.documentElement.lang = prefs.language;
+    // Arapça sağdan sola akar; flex/grid düzeni dir ile kendiliğinden aynalanır
+    document.documentElement.dir = prefs.language === "ar" ? "rtl" : "ltr";
   }, [prefs]);
 
   /* ---------- Canlı kurlar ---------- */
@@ -1092,7 +1094,10 @@ function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null 
     appTheme:
       theme === "auto" || theme === "light" || theme === "dark" ? theme : undefined,
     appLanguage:
-      language === "tr" || language === "en" || language === "ms" ? language : undefined,
+      language === "tr" || language === "en" || language === "ms" ||
+      language === "es" || language === "ar"
+        ? language
+        : undefined,
   });
 }
 
