@@ -1,7 +1,7 @@
 # PayRadar — Mağaza Yayın Kiti
 
 Play Console (ve ileride App Store Connect) formlarına kopyala-yapıştır için hazırlanmıştır.
-Yalnızca ``` bloklarının İÇİNİ yapıştır; işaretleri ve başlıkları alma. Play, karakteri
+Yalnızca kod bloklarının İÇİNİ yapıştır; işaretleri ve başlıkları alma. Play, karakteri
 UTF-16 birimiyle sayar (her emoji 2 sayılır) — buradaki metinler bu hesapla sınırın altındadır.
 
 ---
