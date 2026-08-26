@@ -72,8 +72,6 @@ npm run preview    # test the build locally
 
 **https://payradar-bkp.pages.dev** — install it straight from there.
 
-> ℹ️ Former mirror `payradar-pink.vercel.app` is temporarily frozen on an old build (hosting account under review); the Cloudflare Pages URL above is canonical.
-
 ### ☁️ Deploy
 
 Works on any static host:
