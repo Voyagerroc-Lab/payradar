@@ -1,6 +1,6 @@
-import type { Payment, VaultData } from "../types";
+import type { Currency, Payment, VaultData } from "../types";
 import { daysUntil, formatMoney, toMonthlyIn } from "../lib/format";
-import { homeCurrency, type FxTable } from "../lib/fx";
+import { type FxTable } from "../lib/fx";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
 import type { TranslationKey } from "../i18n/dict";
@@ -9,13 +9,19 @@ interface SummaryCardsProps {
   payments: Payment[];
   vault: VaultData;
   fx: FxTable | null;
+  /** Ayarlar'daki gösterim birimi: toplamlar bu birimde hesaplanır */
+  displayCurrency: Currency;
 }
 
-export default function SummaryCards({ payments, vault, fx }: SummaryCardsProps) {
+export default function SummaryCards({
+  payments,
+  vault,
+  fx,
+  displayCurrency,
+}: SummaryCardsProps) {
   const { t, lang } = useI18n();
   const sceneRef = useTilt<HTMLElement>(".summary-card");
-  // Toplamlar dilin ana para biriminde: tr→₺, ms→RM, en→$
-  const home = homeCurrency(lang);
+  const home = displayCurrency;
   const legacy = { usdTry: vault.usdTry, eurTry: vault.eurTry };
   const monthly = payments.reduce(
     (sum, p) => sum + toMonthlyIn(p, home, fx, legacy),

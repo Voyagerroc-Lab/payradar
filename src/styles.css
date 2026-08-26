@@ -908,6 +908,18 @@ textarea.input {
   resize: vertical;
 }
 
+/* Formda salt-okunur para birimi rozeti: birim Ayarlar'dan seçilir */
+.currency-static {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  background: var(--bg);
+  cursor: default;
+}
+
 .form-error {
   padding: 10px 12px;
   font-size: 13.5px;

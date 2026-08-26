@@ -124,7 +124,7 @@ const tr = {
   "settings.ratesNever":
     "Henüz kur alınamadı — internet bağlantısı olduğunda otomatik denenir.",
   "settings.ratesHint":
-    "Toplamlar seçili dilin para biriminde hesaplanır (Türkçe → ₺, English → $, Melayu → RM, Español → MX$, العربية → د.إ). Kurlar Avrupa Merkez Bankası verisinden günde bir çekilir; çevrimdışıyken son bilinen kur kullanılır.",
+    "Tüm tutarlar yukarıda seçtiğin para biriminde gösterilir; her ödeme girildiği birimde saklanır ve güncel kurla çevrilir. Kurlar günde bir otomatik güncellenir; çevrimdışıyken son bilinen kur kullanılır.",
   "settings.theme": "Tema",
   "theme.auto": "Sistem ile aynı",
   "theme.light": "Açık",
@@ -441,7 +441,7 @@ const en: Record<TranslationKey, string> = {
   "settings.ratesNever":
     "No rates fetched yet — we'll retry automatically when you're online.",
   "settings.ratesHint":
-    "Totals are calculated in your language's currency (Türkçe → ₺, English → $, Melayu → RM, Español → MX$, العربية → د.إ). Rates come from European Central Bank data once a day; the last known rates are used offline.",
+    "All amounts are shown in the currency you pick above; each payment is stored in the currency it was entered in and converted at live rates. Rates refresh automatically once a day; the last known rates are used offline.",
   "settings.theme": "Theme",
   "theme.auto": "Follow system",
   "theme.light": "Light",
@@ -749,7 +749,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "settings.ratesNever":
     "Kadar belum diperoleh — akan dicuba secara automatik apabila dalam talian.",
   "settings.ratesHint":
-    "Jumlah dikira dalam mata wang bahasa pilihan anda (Türkçe → ₺, English → $, Melayu → RM, Español → MX$, العربية → د.إ). Kadar diambil daripada data Bank Pusat Eropah sekali sehari; kadar terakhir digunakan semasa luar talian.",
+    "Semua jumlah dipaparkan dalam mata wang yang anda pilih di atas; setiap bayaran disimpan dalam mata wang asalnya dan ditukar pada kadar semasa. Kadar dikemas kini secara automatik sekali sehari; kadar terakhir digunakan luar talian.",
   "settings.theme": "Tema",
   "theme.auto": "Ikut Sistem",
   "theme.light": "Cerah",
@@ -1055,7 +1055,7 @@ const es: Record<TranslationKey, string> = {
   "settings.ratesNever":
     "Aún no se obtuvieron los tipos — se reintentará automáticamente al estar en línea.",
   "settings.ratesHint":
-    "Los totales se calculan en la moneda de tu idioma (Türkçe → ₺, English → $, Melayu → RM, Español → MX$, العربية → د.إ). Los tipos provienen del Banco Central Europeo una vez al día; sin conexión se usan los últimos conocidos.",
+    "Todos los montos se muestran en la moneda que elijas arriba; cada pago se guarda en la moneda en que se ingresó y se convierte al tipo de cambio actual. Los tipos se actualizan automáticamente una vez al día; sin conexión se usan los últimos conocidos.",
   "settings.theme": "Tema",
   "theme.auto": "Seguir al sistema",
   "theme.light": "Claro",
@@ -1359,7 +1359,7 @@ const ar: Record<TranslationKey, string> = {
   "settings.ratesNever":
     "لم يتم جلب الأسعار بعد — ستُجرَّب المحاولة تلقائيًا عند الاتصال بالإنترنت.",
   "settings.ratesHint":
-    "تُحسب الإجماليات بعملة لغتك (Türkçe → ₺، English → $، Melayu → RM، Español → MX$، العربية → د.إ). تُجلب الأسعار من بيانات البنك المركزي الأوروبي مرة يوميًا؛ وعند عدم الاتصال تُستخدم آخر أسعار معروفة.",
+    "تُعرض كل المبالغ بالعملة التي تختارها أعلاه؛ تُحفظ كل دفعة بعملة إدخالها وتُحوَّل بأسعار الصرف الحالية. تُحدَّث الأسعار تلقائيًا مرة يوميًا؛ وعند انقطاع الاتصال تُستخدم آخر أسعار معروفة.",
   "settings.theme": "المظهر",
   "theme.auto": "حسب النظام",
   "theme.light": "فاتح",

@@ -12,7 +12,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.frankfurter.dev https://ejpokjesrvlgdqhmorfq.supabase.co wss://ejpokjesrvlgdqhmorfq.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://open.er-api.com https://ejpokjesrvlgdqhmorfq.supabase.co wss://ejpokjesrvlgdqhmorfq.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
         }
       ]
     }

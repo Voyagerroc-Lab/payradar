@@ -6,19 +6,24 @@ import { useI18n } from "../i18n";
 
 interface PaymentFormModalProps {
   initial: Payment | null;
+  /** Ayarlar'daki gösterim para birimi: yeni ödemeler bu birimde girilir */
+  displayCurrency: Currency;
   onClose: () => void;
   onSave: (payment: Payment) => void;
 }
 
 export default function PaymentFormModal({
   initial,
+  displayCurrency,
   onClose,
   onSave,
 }: PaymentFormModalProps) {
   const { t } = useI18n();
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState(initial ? String(initial.price) : "");
-  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? "TRY");
+  // Birim ödeme başına seçilmez: yeni ödeme Ayarlar'daki gösterim biriminde
+  // girilir; düzenlemede tutar, ödemenin GİRİLDİĞİ birimde kalır (veri bozulmaz)
+  const currency: Currency = initial?.currency ?? displayCurrency;
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     initial?.billingCycle ?? "monthly",
   );
@@ -118,21 +123,12 @@ export default function PaymentFormModal({
             />
           </label>
 
-          <label className="field">
+          <div className="field">
             <span>{t("form.currency")}</span>
-            <select
-              className="input"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as Currency)}
-            >
-              <option value="TRY">₺ TRY</option>
-              <option value="USD">$ USD</option>
-              <option value="EUR">€ EUR</option>
-              <option value="MYR">RM MYR</option>
-              <option value="MXN">MX$ MXN</option>
-              <option value="AED">د.إ AED</option>
-            </select>
-          </label>
+            <span className="input currency-static" aria-label={t("form.currency")}>
+              {currency}
+            </span>
+          </div>
         </div>
 
         <div className="form-row">

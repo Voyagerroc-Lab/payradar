@@ -45,10 +45,10 @@ Reklam yok, izleyici yok, veri satışı yok. Ödeme takibinin tamamı süresiz 
 • Abonelikler: dizi-film, müzik, bulut depolama, yazılım
 • Sigorta, Eğitim, Sağlık & Spor, Oyun ve Diğer
 
-💱 CANLI DÖVİZ KURLARI — 6 PARA BİRİMİ
-• Ödemeleri TRY, USD, EUR, MYR, MXN veya AED cinsinden girin; her ödeme kendi para biriminde görünür
-• Kurlar Avrupa Merkez Bankası verisinden her gün otomatik güncellenir
-• Toplamlar dilinize göre ₺, $, RM, MX$ veya د.إ olarak hesaplanır; çevrimdışıyken son bilinen kur kullanılır
+💱 CANLI KURLAR — 160+ PARA BİRİMİ
+• Para birimini Ayarlar'dan seçin: dolardan ringgite dünyadaki tüm birimler
+• Tüm tutarlar seçtiğiniz birimde gösterilir; birim değiştirince her şey güncel kurla anında çevrilir
+• Kurlar günde bir otomatik güncellenir; çevrimdışıyken son bilinen kur kullanılır
 
 🔔 AKILLI HATIRLATMALAR
 • Vadeden 1-7 gün önce bildirim; 2 güne kadar gecikme uyarısı
@@ -126,10 +126,10 @@ No ads, no trackers, no data selling. Core payment tracking is free forever.
 • Subscriptions: streaming, music, cloud storage, software
 • Insurance, Education, Health & Fitness, Gaming and Other
 
-💱 LIVE EXCHANGE RATES — 6 CURRENCIES
-• Enter payments in USD, EUR, TRY, MYR, MXN or AED; every payment keeps its own currency
-• Rates refresh daily from European Central Bank data
-• Totals are calculated in $, ₺, RM, MX$ or د.إ based on your language; the last known rates work offline
+💱 LIVE RATES — 160+ CURRENCIES
+• Pick your currency in Settings: every world currency from dollars to ringgit
+• All amounts are shown in your chosen currency; switch it and everything converts instantly at live rates
+• Rates refresh automatically once a day; the last known rates work offline
 
 🔔 SMART REMINDERS
 • Notifications 1–7 days before a due date, plus overdue alerts for up to 2 days
@@ -207,10 +207,10 @@ Tiada iklan, tiada penjejak, tiada penjualan data. Penjejakan pembayaran asas pe
 • Langganan: penstriman, muzik, storan awan, perisian
 • Insurans, Pendidikan, Kesihatan & Kecergasan, Permainan dan Lain-lain
 
-💱 KADAR PERTUKARAN LANGSUNG — 6 MATA WANG
-• Masukkan pembayaran dalam MYR, USD, EUR, TRY, MXN atau AED; setiap bayaran kekal dalam mata wangnya sendiri
-• Kadar dikemas kini setiap hari daripada data Bank Pusat Eropah
-• Jumlah dikira dalam RM, $, ₺, MX$ atau د.إ mengikut bahasa anda; kadar terakhir digunakan semasa luar talian
+💱 KADAR LANGSUNG — 160+ MATA WANG
+• Pilih mata wang anda dalam Tetapan: semua mata wang dunia daripada dolar hingga ringgit
+• Semua jumlah dipaparkan dalam mata wang pilihan anda; tukar dan semuanya ditukar serta-merta pada kadar semasa
+• Kadar dikemas kini secara automatik sekali sehari; kadar terakhir digunakan luar talian
 
 🔔 PERINGATAN PINTAR
 • Pemberitahuan 1–7 hari sebelum tarikh bayaran, serta amaran tertunggak sehingga 2 hari
@@ -288,10 +288,10 @@ Sin anuncios, sin rastreadores, sin venta de datos. El seguimiento de pagos es g
 • Suscripciones: streaming, música, nube, software
 • Seguros, Educación, Salud & Fitness, Videojuegos y Otros
 
-💱 TIPOS DE CAMBIO EN VIVO — 6 MONEDAS
-• Registra pagos en MXN, USD, EUR, TRY, MYR o AED; cada pago conserva su propia moneda
-• Los tipos se actualizan a diario con datos del Banco Central Europeo
-• Los totales se calculan en MX$, $, ₺, RM o د.إ según tu idioma; sin conexión se usan los últimos conocidos
+💱 TIPOS EN VIVO — 160+ MONEDAS
+• Elige tu moneda en Ajustes: todas las monedas del mundo, del dólar al ringgit
+• Todos los montos se muestran en tu moneda; cámbiala y todo se convierte al instante con tipos actuales
+• Los tipos se actualizan automáticamente una vez al día; sin conexión se usan los últimos conocidos
 
 🔔 RECORDATORIOS INTELIGENTES
 • Notificaciones de 1 a 7 días antes del vencimiento, más alertas de retraso hasta por 2 días
@@ -369,10 +369,10 @@ PayRadar: تتبع المدفوعات
 • الاشتراكات: البث والموسيقى والتخزين السحابي والبرمجيات
 • التأمين والتعليم والصحة واللياقة والألعاب وغيرها
 
-💱 أسعار صرف مباشرة — 6 عملات
-• سجّل المدفوعات بالدرهم الإماراتي أو الدولار أو اليورو أو الليرة التركية أو الرينغيت أو البيزو؛ تحتفظ كل دفعة بعملتها
-• تُحدَّث الأسعار يوميًا من بيانات البنك المركزي الأوروبي
-• تُحسب الإجماليات بعملة لغتك (د.إ للعربية)؛ وعند انقطاع الاتصال تُستخدم آخر أسعار معروفة
+💱 أسعار مباشرة — أكثر من 160 عملة
+• اختر عملتك من الإعدادات: كل عملات العالم من الدولار إلى الرينغيت
+• تُعرض كل المبالغ بعملتك المختارة؛ بدّلها فيتحول كل شيء فورًا بالأسعار الحالية
+• تُحدَّث الأسعار تلقائيًا مرة يوميًا؛ وعند انقطاع الاتصال تُستخدم آخر أسعار معروفة
 
 🔔 تذكيرات ذكية
 • إشعارات قبل الاستحقاق بـ 1-7 أيام، وتنبيهات تأخير حتى يومين

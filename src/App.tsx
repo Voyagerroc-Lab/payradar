@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CategoryId, Language, Payment, Prefs, VaultData } from "./types";
+import type { CategoryId, Currency, Language, Payment, Prefs, VaultData } from "./types";
 import {
   DEFAULT_PREFS,
   DEFAULT_VAULT,
@@ -28,7 +28,7 @@ import {
 import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
 import { advanceCycle, nextOccurrence, todayISO, toMonthlyIn } from "./lib/format";
-import { ensureFx, homeCurrency, loadFx, type FxTable } from "./lib/fx";
+import { ensureFx, loadFx, type FxTable } from "./lib/fx";
 import {
   cloudEnabled,
   deleteCloudAccount,
@@ -367,6 +367,7 @@ export default function App() {
       usdTry: vault.usdTry,
       eurTry: vault.eurTry,
       fx,
+      home: prefs.displayCurrency,
     };
     checkUpcomingPayments(vault.payments, vault.reminderDays, opts);
     // Uygulama uzun süre açık kalırsa (kurulu PWA/TWA) bir ödeme hatırlatma
@@ -383,6 +384,7 @@ export default function App() {
     vault.usdTry,
     vault.eurTry,
     prefs.language,
+    prefs.displayCurrency,
     fx,
     mode,
   ]);
@@ -719,6 +721,7 @@ export default function App() {
       usdTry: vault.usdTry,
       eurTry: vault.eurTry,
       fx,
+      home: prefs.displayCurrency,
     });
   }
 
@@ -746,6 +749,7 @@ export default function App() {
           usdTry: vault.usdTry,
           eurTry: vault.eurTry,
           fx,
+          home: prefs.displayCurrency,
         });
         setToast(t("toast.notifEnabled"));
       } else {
@@ -761,9 +765,9 @@ export default function App() {
   const visiblePayments = useMemo(
     () =>
       mode === "ready"
-        ? filterAndSort(vault.payments, query, category, sort, vault, prefs.language, fx)
+        ? filterAndSort(vault.payments, query, category, sort, vault, prefs.displayCurrency, fx)
         : [],
-    [vault, mode, query, category, sort, prefs.language, fx],
+    [vault, mode, query, category, sort, prefs.displayCurrency, fx],
   );
 
   if (mode === "loading") return <div className="app" />;
@@ -819,7 +823,12 @@ export default function App() {
                 </div>
               )}
 
-            <SummaryCards payments={vault.payments} vault={vault} fx={fx} />
+            <SummaryCards
+              payments={vault.payments}
+              vault={vault}
+              fx={fx}
+              displayCurrency={prefs.displayCurrency}
+            />
 
             {vault.payments.length === 0 ? (
               <EmptyState onAdd={() => setEditor("new")} onDemo={handleDemo} />
@@ -843,6 +852,9 @@ export default function App() {
                       <PaymentCard
                         key={payment.id}
                         payment={payment}
+                        displayCurrency={prefs.displayCurrency}
+                        fx={fx}
+                        legacyRates={{ usdTry: vault.usdTry, eurTry: vault.eurTry }}
                       onEdit={() => setEditor(payment)}
                       onDelete={() => handleDelete(payment.id)}
                       onShowGuide={() => setGuideFor(payment)}
@@ -864,6 +876,7 @@ export default function App() {
             <PaymentFormModal
               key={editor === "new" ? "new" : editor.id}
               initial={editor === "new" ? null : editor}
+              displayCurrency={prefs.displayCurrency}
               onClose={() => setEditor(null)}
               onSave={handleSave}
             />
@@ -1145,10 +1158,10 @@ function filterAndSort(
   category: CategoryId | "all",
   sort: SortKey,
   vault: VaultData,
-  lang: Language,
+  displayCurrency: Currency,
   fx: FxTable | null,
 ): Payment[] {
-  const home = homeCurrency(lang);
+  const home = displayCurrency;
   const legacyRates = { usdTry: vault.usdTry, eurTry: vault.eurTry };
   // normalizeName ı→i katlar; "IPTV" araması Türkçe küçük harf tuzağına düşmez
   const q = normalizeName(query);

@@ -11,7 +11,8 @@ export type CategoryId =
   | "oyun"
   | "diger";
 
-export type Currency = "TRY" | "USD" | "EUR" | "MYR" | "MXN" | "AED";
+/** ISO 4217 para birimi kodu (geçerli liste: lib/fx.ts CURRENCIES). */
+export type Currency = string;
 
 export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
@@ -56,6 +57,8 @@ export interface Payment {
 export interface Prefs {
   language: Language;
   theme: "auto" | "light" | "dark";
+  /** Gösterim para birimi: tüm tutarlar bu birimde gösterilir (dilden bağımsız) */
+  displayCurrency: Currency;
   lockEnabled: boolean;
   autoLockMinutes: number; // 0 = kapalı
 }

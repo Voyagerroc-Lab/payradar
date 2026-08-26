@@ -1,5 +1,6 @@
 import type { Payment, Prefs, VaultData } from "../types";
 import { sanitizeCategoryFields } from "./format";
+import { homeCurrency } from "./fx";
 import {
   LEGACY_PBKDF2_ITERATIONS,
   PBKDF2_ITERATIONS,
@@ -56,6 +57,8 @@ export function saveLastSync(ts: number): void {
 export const DEFAULT_PREFS: Prefs = {
   language: detectLanguage(),
   theme: "auto",
+  // İlk kurulumda dile göre makul varsayılan; sonrası tamamen kullanıcının
+  displayCurrency: homeCurrency(detectLanguage()),
   lockEnabled: false,
   autoLockMinutes: 5,
 };

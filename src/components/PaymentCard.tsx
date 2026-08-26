@@ -1,11 +1,16 @@
 import { CATEGORIES, daysUntil, formatDateTR, formatMoney, localeFor } from "../lib/format";
+import { convert, type FxTable, type LegacyRates } from "../lib/fx";
 import { findGuide } from "../data/guides";
-import type { Payment } from "../types";
+import type { Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
 
 interface PaymentCardProps {
   payment: Payment;
+  /** Ayarlar'daki gösterim birimi: tutar bu birime çevrilerek gösterilir */
+  displayCurrency: Currency;
+  fx: FxTable | null;
+  legacyRates: LegacyRates;
   onEdit: () => void;
   onDelete: () => void;
   onShowGuide: () => void;
@@ -17,6 +22,9 @@ const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
 export default function PaymentCard({
   payment,
+  displayCurrency,
+  fx,
+  legacyRates,
   onEdit,
   onDelete,
   onShowGuide,
@@ -24,6 +32,11 @@ export default function PaymentCard({
   onAdvance,
 }: PaymentCardProps) {
   const { t, lang } = useI18n();
+  const shownPrice = formatMoney(
+    convert(payment.price, payment.currency, displayCurrency, fx, legacyRates),
+    displayCurrency,
+    lang,
+  );
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
   const days = daysUntil(payment.nextPaymentDate);
   const badge = badgeFor(days, t);
@@ -35,8 +48,8 @@ export default function PaymentCard({
   async function handleShare() {
     const cycle = t(`suffix.${payment.billingCycle}` as TranslationKey);
     const text = payment.notes
-      ? `${payment.name}: ${formatMoney(payment.price, payment.currency, lang)}${cycle}\n${payment.notes}`
-      : `${payment.name}: ${formatMoney(payment.price, payment.currency, lang)}${cycle}`;
+      ? `${payment.name}: ${shownPrice}${cycle}\n${payment.notes}`
+      : `${payment.name}: ${shownPrice}${cycle}`;
     try {
       await navigator.share({ title: payment.name, text });
     } catch {
@@ -66,7 +79,7 @@ export default function PaymentCard({
           )}
         </div>
         <p className="sub-price">
-          {formatMoney(payment.price, payment.currency, lang)}
+          {shownPrice}
           <span> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</span>
         </p>
         <p className="sub-date">

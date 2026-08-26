@@ -70,15 +70,6 @@ export const CATEGORIES: Record<
   diger: { emoji: "📦", color: "#8d8d8d", labelKey: "cat.diger" },
 };
 
-export const CURRENCY_SYMBOL: Record<Currency, string> = {
-  TRY: "₺",
-  USD: "$",
-  EUR: "€",
-  MYR: "RM",
-  MXN: "MX$",
-  AED: "د.إ",
-};
-
 export function formatMoney(
   amount: number,
   currency: Currency,

@@ -1,10 +1,11 @@
 import type { BillingCycle, CategoryId, Currency, Payment, PricePoint } from "../types";
+import { CURRENCIES } from "./fx";
 import { parseAmount, parseInstallment, sanitizeCategoryFields, todayISO } from "./format";
 
 const HEADER =
   "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial";
 
-const CURRENCIES: Currency[] = ["TRY", "USD", "EUR", "MYR", "MXN", "AED"];
+
 const CYCLES: BillingCycle[] = ["weekly", "monthly", "quarterly", "yearly"];
 const CATEGORY_IDS: CategoryId[] = [
   "konut",

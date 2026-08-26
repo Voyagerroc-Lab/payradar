@@ -43,8 +43,10 @@ export interface NotifyOptions {
   lang?: Language;
   usdTry?: number;
   eurTry?: number;
-  /** Canlı kur tablosu; özet toplamı dilin ana para biriminde hesaplanır */
+  /** Canlı kur tablosu; tutarlar gösterim birimine çevrilir */
   fx?: FxTable | null;
+  /** Ayarlar'daki gösterim para birimi; verilmezse dile göre varsayılan */
+  home?: Currency;
 }
 
 /** Kategoriye göre bildirim başlığı ön eki + ayrıntı (banka/taksit, çek no). */
@@ -165,6 +167,11 @@ function checkUpcomingPaymentsUnsafe(
 
   if (urgent.length === 0) return;
 
+  const usdTry = options.usdTry ?? 42;
+  const eurTry = options.eurTry ?? 48;
+  const home = options.home ?? homeCurrency(lang);
+  const fx = options.fx ?? null;
+
   if (urgent.length === 1) {
     const { payment, days } = urgent[0];
     // Deneme metni yalnızca gelecek/bugün için anlamlı; gecikmişse standart gecikme metni
@@ -174,15 +181,11 @@ function checkUpcomingPaymentsUnsafe(
           ? `${payment.name}: ${t("notif.trialToday")}`
           : `${payment.name}: ${t("notif.trialDays", { n: days })}`
         : `${timeText(days, t)} • ${t("notif.amount", {
-            amount: formatMoney(payment.price, payment.currency, lang),
+            amount: formatMoney(dueIn(payment, home, fx, usdTry, eurTry), home, lang),
           })}`;
     showNotification(titleFor(payment, t), body, payment.id);
     notified[payment.id] = today;
   } else {
-    const usdTry = options.usdTry ?? 42;
-    const eurTry = options.eurTry ?? 48;
-    const home = homeCurrency(lang);
-    const fx = options.fx ?? null;
     // Özet en fazla 5 satır gösterir; yalnızca GÖSTERİLENLER bildirildi sayılır,
     // kalanlar bir sonraki kontrolde kendi özetlerini alır.
     const shown = urgent.slice(0, 5);
@@ -192,7 +195,7 @@ function checkUpcomingPaymentsUnsafe(
     );
     const lines = shown.map(
       ({ payment, days }) =>
-        `${lineDayText(days, t)}: ${payment.isTrial && days >= 0 ? "🎁 " : ""}${payment.name} - ${formatMoney(payment.price, payment.currency, lang)}`,
+        `${lineDayText(days, t)}: ${payment.isTrial && days >= 0 ? "🎁 " : ""}${payment.name} - ${formatMoney(dueIn(payment, home, fx, usdTry, eurTry), home, lang)}`,
     );
     const body = [
       ...lines,

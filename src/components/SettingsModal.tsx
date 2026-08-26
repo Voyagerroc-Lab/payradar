@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import Modal from "./Modal";
 import { requestNotificationPermission } from "../lib/notify";
 import { formatMoney, localeFor } from "../lib/format";
-import { CURRENCIES, convert, homeCurrency, type FxTable } from "../lib/fx";
+import { CURRENCIES, convert, currencyLabel, type FxTable } from "../lib/fx";
 import type { Language, Prefs, VaultData } from "../types";
 import type { CloudUser } from "../lib/cloud";
 import { useI18n } from "../i18n";
@@ -57,9 +57,11 @@ export default function SettingsModal({
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
   const [fxRefreshing, setFxRefreshing] = useState(false);
-  // Taslak dile göre önizleme: dil değiştirilirken kur kutusu da o dilin
-  // ana para birimini gösterir — kaydetmeden ne olacağı görülür.
-  const fxHome = homeCurrency(draftPrefs.language);
+  // Kur kutusu seçili GÖSTERİM birimine göre önizlenir (dilden bağımsız)
+  const fxHome = draftPrefs.displayCurrency;
+  /* Kutuda tüm dünya listelenmez; başlıca birimlerin seçili birime karşılığı
+     yeterli fikir verir. */
+  const FX_PREVIEW: string[] = ["USD", "EUR", "TRY", "GBP", "MYR", "AED"];
 
   // PIN form durumları
   const [newPin, setNewPin] = useState("");
@@ -149,6 +151,23 @@ export default function SettingsModal({
         </label>
 
         <label className="field">
+          <span>{t("form.currency")}</span>
+          <select
+            className="input"
+            value={draftPrefs.displayCurrency}
+            onChange={(e) =>
+              setDraftPrefs({ ...draftPrefs, displayCurrency: e.target.value })
+            }
+          >
+            {CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {currencyLabel(code, localeFor(draftPrefs.language))}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
           <span>{t("settings.reminderQuestion")}</span>
           <select
             className="input"
@@ -202,7 +221,7 @@ export default function SettingsModal({
           {fx ? (
             <>
               <ul className="fx-rates">
-                {CURRENCIES.filter((c) => c !== fxHome).map((c) => (
+                {FX_PREVIEW.filter((c) => c !== fxHome).map((c) => (
                   <li key={c}>
                     <span>1 {c}</span>
                     <strong>
