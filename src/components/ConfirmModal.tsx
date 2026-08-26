@@ -17,7 +17,7 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const { t } = useI18n();
   return (
-    <Modal title={t("confirm.title")} onClose={onCancel}>
+    <Modal title={t("confirm.title")} onClose={onCancel} top>
       <p className="field-hint">{message}</p>
       <div className="form-actions security-actions">
         <button className="btn btn-secondary" onClick={onCancel}>

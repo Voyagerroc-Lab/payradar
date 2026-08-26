@@ -811,6 +811,13 @@ button {
   animation: fade-in 0.15s ease-out;
 }
 
+/* Başka bir modalın üzerine açılan onay/anahtar diyalogları: DOM sırası ne
+   olursa olsun her zaman üstte boyanır. Aynı z-index'te sonra gelen kardeşin
+   kazanması yüzünden onay penceresi Ayarlar'ın ARKASINDA kalıyordu. */
+.modal-backdrop-top {
+  z-index: 60;
+}
+
 .modal {
   width: 100%;
   max-width: 480px;

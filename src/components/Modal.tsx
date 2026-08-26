@@ -6,19 +6,42 @@ interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
+  /** Üst katman: başka bir modalın üzerine açılan onay/anahtar diyalogları.
+   *  Görsel olarak her zaman üstte boyanır (z-index). */
+  top?: boolean;
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export default function Modal({ title, onClose, children, wide }: ModalProps) {
+/**
+ * Açık modalların yığını. Escape ve Tab tuzağı YALNIZCA en üstteki modalda
+ * çalışır — aksi halde Ayarlar'ın üzerine açılan bir onay penceresinde
+ * Escape ikisini birden kapatıyor, iki odak tuzağı birbirine giriyordu.
+ */
+const modalStack: symbol[] = [];
+
+export default function Modal({ title, onClose, children, wide, top }: ModalProps) {
   const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const idRef = useRef(Symbol("modal"));
 
-  // Escape ile kapatma
+  // Yığına kaydol; sökülünce çık
+  useEffect(() => {
+    const id = idRef.current;
+    modalStack.push(id);
+    return () => {
+      const i = modalStack.indexOf(id);
+      if (i >= 0) modalStack.splice(i, 1);
+    };
+  }, []);
+
+  // Escape ile kapatma — yalnızca en üstteki modal tepki verir
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (modalStack[modalStack.length - 1] !== idRef.current) return;
+      onClose();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -35,6 +58,8 @@ export default function Modal({ title, onClose, children, wide }: ModalProps) {
 
     const trap = (e: KeyboardEvent) => {
       if (e.key !== "Tab" || !dialogRef.current) return;
+      // Alt kattaki modalın tuzağı devreye girmesin
+      if (modalStack[modalStack.length - 1] !== idRef.current) return;
       const items = Array.from(
         dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
       ).filter((el) => el.offsetParent !== null);
@@ -82,7 +107,11 @@ export default function Modal({ title, onClose, children, wide }: ModalProps) {
   }, []);
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className={`modal-backdrop ${top ? "modal-backdrop-top" : ""}`}
+      onClick={onClose}
+      role="presentation"
+    >
       <div
         ref={dialogRef}
         className={`modal ${wide ? "modal-wide" : ""}`}

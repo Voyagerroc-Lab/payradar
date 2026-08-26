@@ -27,7 +27,7 @@ export default function SyncKeyModal({ onClose, onApply }: SyncKeyModalProps) {
   }
 
   return (
-    <Modal title={t("account.syncKeyTitle")} onClose={onClose}>
+    <Modal title={t("account.syncKeyTitle")} onClose={onClose} top>
       <div className="form">
         <p className="field-hint">{t("account.syncKeyNeeded")}</p>
         <label className="field">
