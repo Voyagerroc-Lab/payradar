@@ -43,3 +43,4 @@ local.properties
 
 # Local Netlify folder
 .netlify
+android-dist/
