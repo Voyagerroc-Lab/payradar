@@ -5,9 +5,11 @@
   --text: #1a1c1e;
   --text-soft: #5c6066;
   --border: #e3e5e8;
-  --accent: #6366f1;
-  --accent-strong: #4f46e5;
-  --accent-soft: #eef0fe;
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --accent-soft: #f1ebfe;
+  /* Elektrik vurgusu: markanın "canlı sinyal" rengi (radar vuruşu) */
+  --pulse: #d946ef;
   --danger: #dc2626;
   --danger-soft: #fee2e2;
   --warn: #b45309;
@@ -17,19 +19,23 @@
   --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 2px 6px rgb(16 24 40 / 0.05);
   --shadow-lift: 0 4px 10px rgb(16 24 40 / 0.08), 0 10px 28px rgb(16 24 40 / 0.1);
   /* 3B derinlik: yuzeyde gezen isik ve kartin zemine dusen golgesi */
-  --sheen: rgb(99 102 241 / 0.20);
-  /* Ortam katmanı: tepeden düşen ışık huzmesi + ince teknik ızgara */
-  --beam: rgb(99 102 241 / 0.11);
-  --beam-core: rgb(99 102 241 / 0.05);
-  --grid-line: rgb(16 24 40 / 0.04);
-  --grid-size: 64px;
+  --sheen: rgb(124 58 237 / 0.18);
+  /* Ortam katmanı: tepeden düşen ışık huzmesi + nokta-matris zemin
+     (radar ekranı metaforu: çizgi ızgara değil, tarama noktaları) */
+  --beam: rgb(124 58 237 / 0.10);
+  --beam-core: rgb(124 58 237 / 0.045);
+  --grid-line: rgb(16 24 40 / 0.07);
+  --grid-size: 24px;
   /* Cam yüzey: üst kenardaki ışık çizgisi ve yüzey aydınlanması */
   --glass-edge: rgb(255 255 255 / 0.95);
   --surface-lit: rgb(255 255 255 / 0);
   --cast-rgb: 30 27 75;
   --cast-a: 0.07;
   --cast-a-lift: 0.13;
-  --radius: 14px;
+  --radius: 12px;
+  /* Mikro etiketlerin teknik sesi: sistem mono yığını, ağ isteği sıfır */
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
   color-scheme: light;
 }
 
@@ -39,9 +45,10 @@
   --text: #eef0f4;
   --text-soft: #949cad;
   --border: #1d212c;
-  --accent: #818cf8;
-  --accent-strong: #6366f1;
-  --accent-soft: #26283d;
+  --accent: #a78bfa;
+  --accent-strong: #8b5cf6;
+  --accent-soft: #2a2342;
+  --pulse: #e879f9;
   --danger: #f87171;
   --danger-soft: #3d1f22;
   --warn: #fbbf24;
@@ -51,10 +58,10 @@
   --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
-  --beam: rgb(129 140 248 / 0.17);
-  --beam-core: rgb(165 180 252 / 0.08);
-  --grid-line: rgb(255 255 255 / 0.03);
-  --grid-size: 64px;
+  --beam: rgb(139 92 246 / 0.16);
+  --beam-core: rgb(167 139 250 / 0.07);
+  --grid-line: rgb(255 255 255 / 0.05);
+  --grid-size: 24px;
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -70,9 +77,10 @@
     --text: #eef0f4;
     --text-soft: #949cad;
     --border: #1d212c;
-    --accent: #818cf8;
-    --accent-strong: #6366f1;
-    --accent-soft: #26283d;
+    --accent: #a78bfa;
+    --accent-strong: #8b5cf6;
+    --accent-soft: #2a2342;
+    --pulse: #e879f9;
     --danger: #f87171;
     --danger-soft: #3d1f22;
     --warn: #fbbf24;
@@ -82,10 +90,10 @@
     --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
     --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
-  --beam: rgb(129 140 248 / 0.17);
-  --beam-core: rgb(165 180 252 / 0.08);
-  --grid-line: rgb(255 255 255 / 0.03);
-  --grid-size: 64px;
+  --beam: rgb(139 92 246 / 0.16);
+  --beam-core: rgb(167 139 250 / 0.07);
+  --grid-line: rgb(255 255 255 / 0.05);
+  --grid-size: 24px;
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -106,18 +114,17 @@ body {
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
   /* Sahnenin ışığı tek bir kaynaktan gelir: tepeden düşen dar bir huzme,
-     onun yumuşak halesi ve arkada duran ince teknik ızgara. Izgara sabit
-     kalır, içerik onun üzerinde kayar — arka plan bir zemin değil, mekân. */
+     onun yumuşak halesi ve arkada duran nokta-matris. Noktalar radar
+     ekranının tarama dokusudur; sabit kalır, içerik üzerinde kayar —
+     arka plan bir zemin değil, mekân. */
   background:
     radial-gradient(46% 32% at 50% -6%, var(--beam), transparent 72%),
     radial-gradient(92% 55% at 50% -20%, var(--beam-core), transparent 70%),
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+    radial-gradient(var(--grid-line) 1px, transparent 1.4px),
     var(--bg);
   background-size:
     100% 100%,
     100% 100%,
-    var(--grid-size) var(--grid-size),
     var(--grid-size) var(--grid-size),
     auto;
   background-attachment: fixed;
@@ -237,7 +244,7 @@ button {
   font-size: 22px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  box-shadow: 0 4px 12px rgb(99 102 241 / 0.35);
+  box-shadow: 0 4px 12px rgb(124 58 237 / 0.35);
 }
 
 .brand h1 {
@@ -245,7 +252,7 @@ button {
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  background: linear-gradient(120deg, var(--accent-strong), var(--accent) 60%, #8b5cf6);
+  background: linear-gradient(120deg, var(--accent-strong), var(--accent) 55%, var(--pulse));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -253,7 +260,9 @@ button {
 }
 
 .brand p {
-  font-size: 12.5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
   color: var(--text-soft);
 }
 
@@ -293,16 +302,17 @@ button {
   opacity: 0.9;
 }
 
+/* Sınıf adları TSX'te sabit; paleti marka menekşe→fuşya eksenine çekildi */
 .summary-indigo {
-  --sum-color: #6366f1;
-  --sum-label: #4338ca;
-  --sum-soft: rgb(99 102 241 / 0.14);
+  --sum-color: #7c3aed;
+  --sum-label: #6d28d9;
+  --sum-soft: rgb(124 58 237 / 0.14);
 }
 
 .summary-violet {
-  --sum-color: #8b5cf6;
-  --sum-label: #6d28d9;
-  --sum-soft: rgb(139 92 246 / 0.14);
+  --sum-color: #c026d3;
+  --sum-label: #a21caf;
+  --sum-soft: rgb(192 38 211 / 0.13);
 }
 
 .summary-teal {
@@ -318,14 +328,14 @@ button {
 }
 
 /* Koyu temada etiketler açık tonlara döner (WCAG AA kontrastı) */
-[data-theme="dark"] .summary-indigo { --sum-label: #a5b4fc; }
-[data-theme="dark"] .summary-violet { --sum-label: #c4b5fd; }
+[data-theme="dark"] .summary-indigo { --sum-label: #c4b5fd; }
+[data-theme="dark"] .summary-violet { --sum-label: #f0abfc; }
 [data-theme="dark"] .summary-teal { --sum-label: #5eead4; }
 [data-theme="dark"] .summary-amber { --sum-label: #fcd34d; }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-indigo { --sum-label: #a5b4fc; }
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-violet { --sum-label: #c4b5fd; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-indigo { --sum-label: #c4b5fd; }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-violet { --sum-label: #f0abfc; }
   :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-teal { --sum-label: #5eead4; }
   :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-amber { --sum-label: #fcd34d; }
 }
@@ -346,9 +356,10 @@ button {
 .summary-label {
   /* İkon kutusunun altına girmesin */
   padding-right: 46px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--sum-label, var(--sum-color));
 }
@@ -430,7 +441,10 @@ button {
 
 .chip-btn {
   padding: 6px 12px;
-  font-size: 13.5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-soft);
   background: transparent;
   border: 1px solid var(--border);
@@ -448,6 +462,17 @@ button {
   border-color: var(--accent);
   color: var(--accent-strong);
   font-weight: 600;
+}
+
+/* Koyu zeminde soft yüzey üstünde okunaklı olan açık ton --accent'tir */
+[data-theme="dark"] .chip-btn.active {
+  color: var(--accent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) .chip-btn.active {
+    color: var(--accent);
+  }
 }
 
 .toolbar-right {
@@ -475,12 +500,17 @@ button {
 .btn-primary {
   color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  box-shadow: 0 2px 8px rgb(79 70 229 / 0.35);
+  /* Üst kenardaki 1px iç ışık düğmeyi cam yüzey diline bağlar */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 2px 8px rgb(109 40 217 / 0.35);
 }
 
 .btn-primary:hover {
   filter: brightness(1.08);
-  box-shadow: 0 4px 14px rgb(79 70 229 / 0.45);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 4px 14px rgb(109 40 217 / 0.45);
 }
 
 .btn-secondary {
@@ -540,7 +570,7 @@ button {
   flex-shrink: 0;
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #fff;
 }
 
@@ -584,9 +614,12 @@ button {
 
 .chip {
   flex-shrink: 0;
-  padding: 1px 8px;
-  font-size: 11.5px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-soft);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -614,6 +647,7 @@ button {
 .sub-date {
   margin-top: 1px;
   font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-soft);
 }
 
@@ -630,7 +664,8 @@ button {
   display: inline-block;
   min-width: 46px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -673,25 +708,48 @@ button {
   margin-bottom: 18px;
 }
 
+/* Tarama açısı tiplenmeli, yoksa conic-gradient animasyonu çalışmaz */
+@property --sweep {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* İkon bir radar ekranıdır: koyu cam, nokta matris ve dönen tarama huzmesi.
+   Her iki temada da koyu kalır — radar ekranı gündüz de karanlıktır. */
 .empty-hero-icon {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   place-items: center;
   width: 84px;
   height: 84px;
   font-size: 40px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  border-radius: 26px;
-  box-shadow: 0 12px 30px rgb(99 102 241 / 0.35);
-  animation: hero-float 3.5s ease-in-out infinite;
+  background: none;
+  border: 1px solid rgb(139 92 246 / 0.45);
+  border-radius: 24px;
+  box-shadow:
+    0 12px 30px rgb(124 58 237 / 0.32),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 
-@keyframes hero-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
+.empty-hero-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    conic-gradient(from var(--sweep), rgb(167 139 250 / 0.5), transparent 28%),
+    radial-gradient(rgb(167 139 250 / 0.30) 1px, transparent 1.5px),
+    radial-gradient(120% 120% at 30% 20%, #171130, #0b0d16 70%);
+  background-size: auto, 9px 9px, auto;
+  animation: radar-sweep 3.6s linear infinite;
+}
+
+@keyframes radar-sweep {
+  to {
+    --sweep: 360deg;
   }
 }
 
@@ -725,7 +783,7 @@ button {
   font-size: 19px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: 11px;
 }
 
 .empty-actions {
@@ -760,7 +818,7 @@ button {
   overscroll-behavior: contain;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
   animation: pop-in 0.18s ease-out;
 }
@@ -827,8 +885,11 @@ button {
 }
 
 .field > span {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   color: var(--text-soft);
 }
 
@@ -1179,7 +1240,12 @@ textarea.input {
 .section-title {
   margin-top: 10px;
   padding-top: 16px;
-  font-size: 15px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-soft);
   border-top: 1px solid var(--border);
 }
 
@@ -1220,9 +1286,11 @@ textarea.input {
   overflow-wrap: anywhere;
   margin-top: 4px;
   padding: 2px 8px;
-  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
-  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+  border-radius: 7px;
 }
 
 .detail-kredi {
@@ -1369,7 +1437,7 @@ textarea.input {
   font-size: 22px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #6366f1, #4338ca);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border-radius: 50%;
 }
 
@@ -1422,8 +1490,11 @@ textarea.input {
   margin: 10px 0;
   padding: 13px 15px;
   font-size: 13.5px;
-  background: linear-gradient(135deg, rgb(99 102 241 / 0.1), rgb(139 92 246 / 0.12));
-  border: 1px solid rgb(99 102 241 / 0.25);
+  /* Menekşe→fuşya eğim + LED nokta dokusu: premium yüzey "ekran" gibi durur */
+  background:
+    linear-gradient(135deg, rgb(124 58 237 / 0.10), rgb(217 70 239 / 0.10)),
+    radial-gradient(rgb(124 58 237 / 0.14) 1px, transparent 1.4px) 0 0 / 10px 10px;
+  border: 1px solid rgb(124 58 237 / 0.28);
   border-radius: 12px;
 }
 
@@ -1486,7 +1557,7 @@ textarea.input {
 
 .account-chip:hover {
   background: color-mix(in srgb, var(--accent-soft) 75%, var(--accent));
-  box-shadow: 0 1px 6px rgb(99 102 241 / 0.25);
+  box-shadow: 0 1px 6px rgb(124 58 237 / 0.25);
 }
 
 .account-chip-avatar {
@@ -1497,7 +1568,7 @@ textarea.input {
   font-size: 11px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #6366f1, #4338ca);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border-radius: 50%;
 }
 
@@ -1512,14 +1583,18 @@ textarea.input {
   font-size: 13.5px;
   text-align: left;
   color: var(--text);
-  background: rgb(99 102 241 / 0.08);
+  background:
+    linear-gradient(to right, rgb(124 58 237 / 0.08), rgb(124 58 237 / 0.05)),
+    radial-gradient(rgb(124 58 237 / 0.10) 1px, transparent 1.4px) 0 0 / 10px 10px;
   border: 1px solid var(--accent-soft);
   border-radius: var(--radius);
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .cloud-banner:hover {
-  background: rgb(99 102 241 / 0.14);
+  background:
+    linear-gradient(to right, rgb(124 58 237 / 0.13), rgb(124 58 237 / 0.09)),
+    radial-gradient(rgb(124 58 237 / 0.10) 1px, transparent 1.4px) 0 0 / 10px 10px;
   border-color: var(--accent);
 }
 
@@ -1775,6 +1850,40 @@ textarea.input {
 .sub-card[data-urgency="soon"] { --lift: 0.38; }
 .sub-card[data-urgency="today"] { --lift: 0.72; }
 .sub-card[data-urgency="overdue"] { --lift: 1; }
+
+/* Radar kilidi: yaklaşan ödemenin kartı köşe braketleriyle "hedefe alınır".
+   Görünürlük aciliyetten türetilir — braket dekor değil, aynı hiyerarşinin
+   ikinci sesi. ::before parlama katmanı, ::after braketler. */
+.sub-card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  --bk: var(--accent);
+  background:
+    linear-gradient(var(--bk), var(--bk)) left top / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) left top / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) right top / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) right top / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) left bottom / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) left bottom / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) right bottom / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) right bottom / 1.5px 13px;
+  background-repeat: no-repeat;
+  opacity: calc(var(--lift) * 0.9);
+  transform: translateZ(2px);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sub-card[data-urgency="overdue"]::after {
+  --bk: var(--danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sub-card:hover::after {
+    opacity: 1;
+  }
+}
 
 .summary-card { --lift: 0.16; }
 

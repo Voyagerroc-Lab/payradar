@@ -93,7 +93,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
     steps: [
       "tvplus.com.tr adresine gir veya TV+ uygulamasını aç.",
       "'Hesabım' > 'Abonelik İşlemleri' sayfasına git.",
-      "Aboneliği İptal seçeneğiyle üyeliğini sonlandır.",
+      "'Aboneliği İptal Et' seçeneğiyle üyeliğini sonlandır.",
     ],
     tip: "Faturalı hat üzerinden alınan paketler için Turkcell Müşteri Hizmetleri (532) üzerinden iptal talep edilir.",
   },
@@ -126,8 +126,8 @@ export const CANCEL_GUIDES: CancelGuide[] = [
     cancelUrl: "https://www.youtube.com/paid_memberships",
     steps: [
       "YouTube'da sağ üstteki profil fotoğrafına tıkla.",
-      "'Satın Alınmış Abonelikler' (Paid Memberships) sayfasını aç.",
-      "YouTube Premium'un yanındaki 'Üyeliği Yönet' > 'Devam Etme'yı seç.",
+      "'Ücretli Üyelikler' (Paid Memberships) sayfasını aç.",
+      "YouTube Premium'un yanındaki 'Üyeliği Yönet' > 'Devam Etme'yi seç.",
       "İptal sebebini belirtip onayla.",
     ],
     tip: "Google Play üzerinden ödeme yapıyorsan play.google.com/store/account/subscriptions adresinden de yönetebilirsin.",
@@ -207,7 +207,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
     cancelUrl: "https://www.disneyplus.com/account/subscription",
     steps: [
       "disneyplus.com'a gir, profilinden 'Hesap' sayfasını aç.",
-      "'Aboneliğin' bölümünde 'İptal Abonelik' bağlantısına tıkla.",
+      "'Aboneliğin' bölümünde 'Aboneliği İptal Et' bağlantısına tıkla.",
       "Adımları onaylayarak iptali tamamla.",
     ],
     tip: "Dönem sonuna kadar erişim devam eder; hesabını tamamen silmek istemiyorsan sadece yenilemeyi durdurman yeterli.",
@@ -226,7 +226,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
     steps: [
       "account.microsoft.com/services adresine gir.",
       "Game Pass aboneliğinin altında 'Aboneliği Yönet' seçeneğine tıkla.",
-      "'İptal Et'i seç; kalan sürenin iade veya süre uzatma seçeneklerini değerlendir.",
+      "'İptal Et'i seç; iade veya süre uzatma seçeneklerini önce gözden geçir.",
     ],
     stepsEn: [
       "Go to account.microsoft.com/services.",
@@ -259,7 +259,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "canva.com'a gir ve sağ üstten 'Ayarlar'a tıkla.",
       "'Faturalandırma ve Planlar' bölümünü aç.",
       "Canva Pro'nun yanındaki 'Planı İptal Et'i seç.",
-      "İptal nedeni anketini geçirerek onayla.",
+      "İptal nedeni anketini geçip onayla.",
     ],
     tip: "Dönem başında yıllık ödeme yaptıysan iade politikasını kontrol et.",
     stepsEn: [
@@ -315,7 +315,7 @@ export const CANCEL_GUIDES: CancelGuide[] = [
       "Servisin web sitesinde 'Hesabım', 'Ayarlar' veya 'Abonelik' sayfasını ara.",
       "'Otomatik Yenileme' seçeneğini kapatmayı dene; çoğu serviste iptal bu kadar basittir.",
       "Bulamazsan sitenin yardım/SSS bölümünde 'iptal' kelimesiyle arama yap.",
-      "Uygulama içi satın almadıysan ama ücret kesintisi sürüyorsa bankanıza git; kartın için 'otomatik ödeme talimatı' veya 'abonelik iptali' talebi oluşturun.",
+      "Uygulama içinden satın almadıysan ama ücret kesintisi sürüyorsa bankana başvur; karttaki tekrarlayan ödemenin engellenmesini (otomatik ödeme talimatı iptali) iste.",
       "Son çare olarak kartı değiştirip eski kartı iptal ettirebilirsin; yeni otomatik ödemeler kesilir.",
     ],
     tip: "Banka ekstrende tanımadığın periyodik ödemeleri aylık kontrol etmek, unutulmuş abonelikleri yakalamanın en etkili yoludur.",
