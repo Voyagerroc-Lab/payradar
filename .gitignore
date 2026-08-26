@@ -40,3 +40,6 @@ ios/DerivedData
 app/build/
 build/
 local.properties
+
+# Local Netlify folder
+.netlify

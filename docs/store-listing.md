@@ -128,8 +128,8 @@ Open source: github.com/Voyagerroc/payradar
 
 - **Kategori:** Finance (Finans)
 - **E-posta:** tascierol24@gmail.com
-- **Gizlilik politikası URL'si:** https://payradar-pink.vercel.app/privacy.html
-- **Web sitesi:** https://payradar-pink.vercel.app
+- **Gizlilik politikası URL'si:** https://payradar-bkp.pages.dev/privacy
+- **Web sitesi:** https://payradar-bkp.pages.dev
 - **İçerik derecelendirmesi anketi:** şiddet/kumar/vb. hiçbiri yok → "Herkes / Everyone" çıkar
 - **Hedef kitle:** 18+ önerilir (finans uygulaması; çocuklara yönelik değil)
 - **Reklam içerir mi?:** Hayır
