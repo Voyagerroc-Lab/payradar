@@ -11,7 +11,7 @@ export type CategoryId =
   | "oyun"
   | "diger";
 
-export type Currency = "TRY" | "USD" | "EUR";
+export type Currency = "TRY" | "USD" | "EUR" | "MYR";
 
 export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 

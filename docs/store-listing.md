@@ -1,6 +1,6 @@
 # PayRadar — Mağaza Yayın Kiti
 
-Play Console (ve ileride App Store Connect) formlarına kopyala-yapıştır için hazırlanmıştır.
+Play Console (ve App Store Connect) formlarına kopyala-yapıştır için hazırlanmıştır.
 
 ---
 
@@ -16,50 +16,61 @@ PayRadar: Ödeme Takibi
 Kira, kredi, fatura ve abonelikleri tek yerde takip et. Reklamsız, izlemesiz.
 ```
 
-**Tam açıklama** (maks. 4000 karakter):
+**Tam açıklama** (3.850 karakter / maks. 4000):
 ```
-Netflix'ten ev kirasına, banka kredisi taksitinden çek vadesine kadar tüm düzenli ödemelerinizi tek ekranda görün. Reklam yok, izleme yok — ve uygulama açık kaynak.
+Netflix'ten ev kirasına, banka kredisi taksitinden çek-senet vadesine kadar tüm düzenli ödemelerinizi tek ekranda kontrol altına alın. PayRadar; bütçenizi yönetmenizi, yaklaşan vadeleri asla unutmamanızı ve gereksiz abonelik masraflarından tasarruf etmenizi sağlayan yeni nesil, açık kaynaklı ve gizlilik odaklı finans asistanınızdır.
 
-Ödeme takibinin tamamı süresiz ücretsizdir. Yalnızca isteğe bağlı bulut yedekleme ve çok cihaz senkronu, ilk 6 aydan sonra aylık 1 $ abonelik gerektirir.
+Reklam yok, analitik izleyici yok, veri satışı yok. Temel ödeme takibinin tamamı süresiz ücretsizdir!
 
-📊 ANINDA GENEL BAKIŞ
-• Aylık toplam, yıllık tahmin, aktif ödeme sayısı ve en yakın ödeme tek bakışta
-• Her kartta renkli geri sayım rozeti: bugün mü, 3 gün sonra mı, gecikti mi?
+📊 MERKEZİ GÖSTERGE PANELİ VE GENEL BAKIŞ
+• Aylık Toplam Yükümlülük: Bulunduğunuz ay içinde ödenecek toplam tutarı tek ekranda görün.
+• Yıllık Projeksiyon: Önünüzdeki 12 ayın toplam maliyetini ve nakit akışını planlayın.
+• Yaklaşan Vadeler: Günü yaklaşan ödemeleri ana panonun en üstünde kronolojik takip edin.
+• Akıllı Durum Rozetleri: Her kartta net renk kodları — Bugün Ödenecek (Kırmızı), 3 Gün Kaldı (Turuncu), Vadesi Geçti (Flaş Uyarı).
+• Dinamik Filtreleme: Ödemelerinizi kategoriye veya ödeme yöntemine göre anında süzün.
 
-🏦 HER TÜR DÜZENLİ ÖDEME — 11 KATEGORİ
-• Kira & konut, araç & ulaşım, faturalar, abonelikler
-• Banka kredisi taksitleri (banka adı + 14/60 taksit sayacı ile)
-• Çek & senet vadeleri (seri no ve alacaklı firma bilgisiyle)
-• Eğitim, sağlık & spor, sigorta, oyun ve diğerleri
+🏦 11 KAPSAMLI KATEGORİ — HER TÜR DÜZENLİ ÖDEME
+PayRadar yalnızca basit abonelikleri değil, kişisel ve ticari tüm finansal döngüleri destekler:
+1. Kira & Konut: Ev kirası, aidat, site giderleri, otopark abonelikleri.
+2. Faturalar: Elektrik, su, doğalgaz, internet, TV ve cep telefonu faturaları.
+3. Kredi & Taksitler: İhtiyaç, konut, taşıt kredileri (Banka adı + 14/60 taksit sayacı ile kalan borç takibi).
+4. Çek & Senet Vadeleri: Ticari çek ve şahsi senetler (Seri no, alacaklı firma ve banka detayı).
+5. Dijital Abonelikler: Dizi-film, müzik, bulut depolama ve yazılım lisansları.
+6. Sigorta & Kasko: Trafik sigortası, kasko, tamamlayıcı sağlık ve DASK poliçeleri.
+7. Eğitim & Kurs: Okul taksitleri, özel dersler, dil kursları ve sertifika programları.
+8. Sağlık & Spor: Spor salonu üyelikleri, antrenör ödemeleri, düzenli sağlık masrafları.
+9. Araç & Ulaşım: OGS/HGS dolumları, araç kiralama ve periyodik bakım giderleri.
+10. Oyun & Eğlence: Oyun servisleri, sezon biletleri ve üyelikler.
+11. Özel & Diğer: Dernek aidatları, bağışlar ve tüm özel periyodik ödemeler.
 
-🔔 AKILLI HATIRLATMALAR
-• Vadeden 1-7 gün önce bildirim; 2 güne kadar gecikme uyarısı
-• Birden fazla ödeme yaklaşırken tek özet bildirimi ve toplam tutar
-• "Ödendi" tuşuyla vadeyi bir sonraki döneme tek dokunuşla atla
+🔔 AKILLI HATIRLATMALAR VE VADE ASİSTANI
+• Esnek Bildirimler: Vadeden 1, 3, 5 veya 7 gün önce bildirim alın; son ödeme saatini belirleyin.
+• Gecikme Uyarıları: Ödenmeyen vadeler için 2 güne kadar akıllı gecikme hatırlatmaları.
+• Toplu Günlük Özet: Birden fazla ödemenin denk geldiği günlerde bildirim kirliliği yaratmaz; tek bir özet bildirimle toplam tutarı bildirir.
+• Tek Dokunuşla Döngü İlerleme: "Ödendi" butonuna bastığınızda vade otomatik olarak sonraki aya/yıla aktarılır ve geçmişe kaydedilir.
 
-🎁 DENEME SÜRESİ TAKİBİ
-• Ücretsiz denemeleri işaretleyin, kartınızdan ücret çekilmeden önce uyarı alın
+🎁 ÜCRETSİZ DENEME SÜRESİ TAKİPÇİSİ
+• Ücretsiz deneme başlattığınız servisleri anında işaretleyin.
+• Kartınızdan sürpriz çekim yapılmadan önce zamanında uyarı alın, unutulan üyeliklere para ödemeyin.
 
-🚫 İPTAL REHBERLERİ
-• Netflix, Spotify, YouTube Premium, Disney+, Game Pass ve 15+ servis için adım adım iptal rehberi ve doğrudan iptal bağlantıları
+🚫 DOĞRUDAN İPTAL REHBERLERİ
+• Netflix, Spotify, YouTube Premium, Disney+, Xbox Game Pass, Prime ve 15+ servis için doğrudan iptal adımları ve tek tıkla sonlandırma bağlantıları.
 
-📈 FİYAT GEÇMİŞİ
-• Zam geldiğinde eski fiyat otomatik kaydedilir; artışı grafikte görün
+📈 FİYAT ARTIŞ GEÇMİŞİ VE GRAFİKLER
+• Servis zamlandığında eski fiyat otomatik arşivlenir.
+• Enflasyon ve fiyat artışlarını net grafiklerle izleyin, bütçe kaçaklarını erkenden tespit edin.
 
-🔒 GİZLİLİK ÖNCE GELİR
-• Verileriniz varsayılan olarak yalnızca cihazınızda durur
-• İsteğe bağlı PIN kilidi: AES-256 ile cihazda şifreleme, otomatik kilitlenme
-• İsteğe bağlı bulut senkronu: e-posta veya Google ile giriş yapın, verileriniz tüm cihazlarınızda buluşsun (ilk 6 ay ücretsiz, sonrasında 1 $/ay)
-• Bulut yedeğiniz cihazınızda şifrelenir — sunucu ödeme içeriğinizi okuyamaz
-• Reklam SDK'sı yok, analitik yok, veri satışı yok — kod tamamen açık kaynak
+🔒 GİZLİLİK VE ASKERİ SINIF GÜVENLİK (AES-256)
+• Sıfır Bilgi Mimarisi: Varsayılan olarak tüm veriler sadece kendi cihazınızda saklanır.
+• Yerel PIN & Biyometrik Kilit: AES-256 şifrelemeyle uygulamayı meraklı gözlerden koruyun.
+• Uçtan Uca Şifreli Bulut Senkronu (İsteğe Bağlı): E-posta veya Google ile giriş yapın. Veriler cihazdan çıkmadan önce AES-256-GCM ile şifrelenir; sunucu ödeme içeriğinizi göremez (İlk 6 ay ücretsiz, sonrasında yalnızca 1 $/ay).
+• Açık Kaynak: Şeffaf kod yapısı — github.com/Voyagerroc/payradar
 
-🌍 DİĞER
-• Türkçe, İngilizce ve Malayca arayüz
-• TRY / USD / EUR desteği, düzenlenebilir kurlar
-• CSV içe/dışa aktarma (Excel uyumlu)
-• Karanlık mod, çevrimdışı çalışma
-
-Açık kaynak: github.com/Voyagerroc/payradar
+🌍 ÇOKLU DİL, PARA BİRİMİ VE TAM ÇEVRİMDIŞI
+• Türkçe, İngilizce ve Malayca tam dil desteği.
+• TRY, USD, EUR ve düzenlenebilir döviz kurları.
+• Excel uyumlu CSV içe/dışa aktarma.
+• Tamamen çevrimdışı çalışabilme desteği.
 ```
 
 ---
@@ -76,66 +87,77 @@ PayRadar: Payment Tracker
 Track rent, loans, bills & subscriptions in one place. No ads, no tracking.
 ```
 
-**Full description** (max 4000):
+**Full description** (3.884 characters / max 4000):
 ```
-See every recurring payment on one screen — from Netflix to rent, from bank loan installments to check due dates. No ads, no tracking, and fully open source.
+Take full control of all your recurring expenses on one screen — from streaming subscriptions and rent to bank loan installments and promissory notes. PayRadar is your open-source, privacy-first personal finance and bill tracker designed to help you manage cash flow, avoid late fees, and cut unwanted subscription costs.
 
-Payment tracking is free forever. Only the optional cloud backup and multi-device sync require a subscription of $1/month after the first 6 months.
+No ads, no analytics trackers, no data sales. Core payment tracking is completely free forever!
 
-📊 INSTANT OVERVIEW
-• Monthly total, yearly estimate, active payment count and next due date at a glance
-• Color-coded countdown badge on every card: due today, in 3 days, or overdue
+📊 CENTRAL DASHBOARD & INSTANT OVERVIEW
+• Monthly Total Obligations: View the exact sum due in the current billing cycle on one screen.
+• Annual Projections: Calculate your upcoming 12-month expenses and plan long-term cash flow.
+• Upcoming Deadlines: Track closest upcoming bills at the top in chronological order.
+• Smart Status Badges: Clear visual indicators on every card — Due Today (Red), Due in 3 Days (Orange), Overdue (Alert).
+• Dynamic Filtering: Filter recurring commitments by category, payment method, or amount instantly.
 
-🏦 EVERY KIND OF RECURRING PAYMENT — 11 CATEGORIES
-• Rent & housing, car & transport, utilities, subscriptions
-• Bank loan installments (with bank name and a 14/60 installment counter)
-• Check & promissory note due dates (with serial number and payee)
-• Education, health & fitness, insurance, gaming and more
+🏦 11 COMPREHENSIVE CATEGORIES — EVERY RECURRING PAYMENT
+PayRadar goes beyond simple subscriptions to support your entire cash flow:
+1. Rent & Housing: Home rent, building dues, condo fees, parking subscriptions.
+2. Utilities: Electricity, water, gas, broadband internet, TV packs, mobile bills.
+3. Loans & Installments: Personal, auto, mortgage loans (Bank name + 14/60 installment counter).
+4. Checks & Promissory Notes: Commercial checks and notes (Serial number, payee, and bank details).
+5. Digital Subscriptions: Video streaming, music services, cloud storage, software licenses.
+6. Insurance Policies: Auto insurance, collision, supplementary health, property insurance.
+7. Education & Courses: Tuition fees, private tutoring, language schools, certification programs.
+8. Health & Fitness: Gym memberships, trainer fees, recurring healthcare expenses.
+9. Vehicle & Transport: Toll passes, vehicle leasing, transit passes, scheduled maintenance.
+10. Gaming & Entertainment: Game passes, seasonal battle passes, and memberships.
+11. Custom & Other: Professional association dues, donations, custom recurring items.
 
-🔔 SMART REMINDERS
-• Notifications 1–7 days before a due date, plus overdue alerts up to 2 days
-• A single digest notification with the total when several payments are coming up
-• One-tap "Paid" advances the due date to the next cycle
+🔔 SMART REMINDERS & DUE DATE ASSISTANT
+• Flexible Notification Timing: Get notified 1, 3, 5, or 7 days before due date; customize alert times.
+• Overdue Alerts: Smart reminders for up to 2 days after missed deadlines.
+• Consolidated Daily Digest: Avoid clutter when multiple bills fall on the same day; receive a single digest with the grand total.
+• One-Tap Cycle Advancement: Tap "Paid" to roll the due date to the next monthly/yearly cycle and archive records.
 
-🎁 FREE-TRIAL TRACKING
-• Mark free trials and get warned before your card is charged
+🎁 FREE TRIAL TRACKER
+• Flag services with free trials.
+• Receive timely warnings before automatic card renewal so you never pay for forgotten subscriptions.
 
-🚫 CANCELLATION GUIDES
-• Step-by-step cancel guides with direct links for Netflix, Spotify, YouTube Premium, Disney+, Game Pass and 15+ more services
+🚫 STEP-BY-STEP CANCELLATION GUIDES
+• Direct cancellation guides and one-tap unsubscribe links for Netflix, Spotify, YouTube Premium, Disney+, Xbox Game Pass, Prime, and 15+ popular services.
 
-📈 PRICE HISTORY
-• Old prices are recorded automatically when a hike lands; see the increase on a chart
+📈 PRICE INCREASE HISTORY & CHARTS
+• Previous prices are archived automatically when a service hikes its fee.
+• Track inflation and rate hikes on clear charts to catch budget leaks early.
 
-🔒 PRIVACY FIRST
-• Your data stays on your device by default
-• Optional PIN lock: on-device AES-256 encryption with auto-lock
-• Optional cloud sync: sign in with email or Google and keep every device in sync (first 6 months free, then $1/month)
-• Your cloud backup is encrypted on your device — the server cannot read your payment contents
-• No ad SDKs, no analytics, no data sales — fully open source
+🔒 PRIVACY & MILITARY-GRADE SECURITY (AES-256)
+• Zero-Knowledge Architecture: By default, all financial data stays strictly on your local device.
+• Local PIN & Biometric Lock: Protect your dashboard with AES-256 local encryption.
+• End-to-End Encrypted Cloud Sync (Optional): Sign in via Email or Google. Data is encrypted with AES-256-GCM before leaving your device; our servers cannot read your payment details (Free for the first 6 months, then $1/month).
+• Open Source: Fully transparent codebase — github.com/Voyagerroc/payradar
 
-🌍 MORE
-• Turkish, English and Malay interface
-• TRY / USD / EUR with editable exchange rates
-• CSV import/export (Excel-friendly)
-• Dark mode, works offline
-
-Open source: github.com/Voyagerroc/payradar
+🌍 MULTI-LANGUAGE, CURRENCY & OFFLINE-READY
+• Full language support: Turkish, English, and Malay.
+• Multi-currency: TRY, USD, EUR with editable conversion rates.
+• Excel-compatible CSV import & export.
+• Works 100% offline without requiring an active internet connection.
 ```
 
 ---
 
-## Ortak alanlar
+## Ortak Alanlar
 
 - **Kategori:** Finance (Finans)
 - **E-posta:** tascierol24@gmail.com
-- **Gizlilik politikası URL'si:** https://payradar-bkp.pages.dev/privacy
-- **Web sitesi:** https://payradar-bkp.pages.dev
-- **İçerik derecelendirmesi anketi:** şiddet/kumar/vb. hiçbiri yok → "Herkes / Everyone" çıkar
-- **Hedef kitle:** 18+ önerilir (finans uygulaması; çocuklara yönelik değil)
-- **Reklam içerir mi?:** Hayır
-- **Uygulama içi satın alma:** Yok (Premium aboneliği yalnızca web sitesinden alınır; uygulama içinde ödeme akışı veya harici ödeme bağlantısı gösterilmez)
+- **Gizlilik Politikası URL:** https://payradar-bkp.pages.dev/privacy
+- **Web Sitesi:** https://payradar-bkp.pages.dev
+- **İçerik Derecelendirmesi:** Herkes (Everyone)
+- **Hedef Kitle:** 18+
+- **Reklam:** Hayır
+- **Uygulama İçi Satın Alma:** Yok
 
-## Play Console → Data Safety formu cevapları
+## Play Console → Data Safety Formu Cevapları
 
 | Soru | Cevap |
 |---|---|

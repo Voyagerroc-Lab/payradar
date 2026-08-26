@@ -936,6 +936,67 @@ textarea.input {
   color: var(--text-soft);
 }
 
+/* ---------- Canlı döviz kurları ---------- */
+.fx-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px 15px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.fx-box .field-hint {
+  margin-top: 0;
+}
+
+.fx-box-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* .section-title dosyada daha sonra geldiği için özgüllük artırılır */
+.fx-box .fx-title {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.fx-refresh {
+  padding: 5px 12px;
+  font-size: 12.5px;
+}
+
+.fx-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fx-rates li {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-rates li span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+}
+
+.fx-rates li strong {
+  font-size: 14.5px;
+}
+
 /* ---------- İptal rehberi ---------- */
 .guide-intro {
   margin-bottom: 14px;

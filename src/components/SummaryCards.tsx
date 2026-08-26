@@ -1,5 +1,6 @@
 import type { Payment, VaultData } from "../types";
-import { daysUntil, formatMoney, toTryPerMonth } from "../lib/format";
+import { daysUntil, formatMoney, toMonthlyIn } from "../lib/format";
+import { homeCurrency, type FxTable } from "../lib/fx";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
 import type { TranslationKey } from "../i18n/dict";
@@ -7,13 +8,17 @@ import type { TranslationKey } from "../i18n/dict";
 interface SummaryCardsProps {
   payments: Payment[];
   vault: VaultData;
+  fx: FxTable | null;
 }
 
-export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
+export default function SummaryCards({ payments, vault, fx }: SummaryCardsProps) {
   const { t, lang } = useI18n();
   const sceneRef = useTilt<HTMLElement>(".summary-card");
+  // Toplamlar dilin ana para biriminde: tr→₺, ms→RM, en→$
+  const home = homeCurrency(lang);
+  const legacy = { usdTry: vault.usdTry, eurTry: vault.eurTry };
   const monthly = payments.reduce(
-    (sum, p) => sum + toTryPerMonth(p, vault.usdTry, vault.eurTry),
+    (sum, p) => sum + toMonthlyIn(p, home, fx, legacy),
     0,
   );
   const yearly = monthly * 12;
@@ -30,14 +35,14 @@ export default function SummaryCards({ payments, vault }: SummaryCardsProps) {
           💸
         </span>
         <span className="summary-label">{t("summary.monthly")}</span>
-        <span className="summary-value">{formatMoney(monthly, "TRY", lang)}</span>
+        <span className="summary-value">{formatMoney(monthly, home, lang)}</span>
       </div>
       <div className="card summary-card summary-violet">
         <span className="summary-icon" aria-hidden="true">
           📈
         </span>
         <span className="summary-label">{t("summary.yearly")}</span>
-        <span className="summary-value">{formatMoney(yearly, "TRY", lang)}</span>
+        <span className="summary-value">{formatMoney(yearly, home, lang)}</span>
       </div>
       <div className="card summary-card summary-teal">
         <span className="summary-icon" aria-hidden="true">

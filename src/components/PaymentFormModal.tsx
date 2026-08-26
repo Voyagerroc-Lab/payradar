@@ -128,6 +128,7 @@ export default function PaymentFormModal({
               <option value="TRY">₺ TRY</option>
               <option value="USD">$ USD</option>
               <option value="EUR">€ EUR</option>
+              <option value="MYR">RM MYR</option>
             </select>
           </label>
         </div>

@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import Modal from "./Modal";
 import { requestNotificationPermission } from "../lib/notify";
-import { parseAmount } from "../lib/format";
+import { formatMoney, localeFor } from "../lib/format";
+import { CURRENCIES, convert, homeCurrency, type FxTable } from "../lib/fx";
 import type { Language, Prefs, VaultData } from "../types";
 import type { CloudUser } from "../lib/cloud";
 import { useI18n } from "../i18n";
@@ -9,6 +10,8 @@ import { useI18n } from "../i18n";
 interface SettingsModalProps {
   prefs: Prefs;
   vault: VaultData;
+  fx: FxTable | null;
+  onRefreshFx: () => Promise<boolean>;
   onClose: () => void;
   onSavePrefs: (p: Prefs) => void;
   onSaveVault: (v: VaultData) => void;
@@ -31,6 +34,8 @@ const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
 export default function SettingsModal({
   prefs,
   vault,
+  fx,
+  onRefreshFx,
   onClose,
   onSavePrefs,
   onSaveVault,
@@ -51,10 +56,10 @@ export default function SettingsModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
-  // Kur alanları yazım sırasında ham metin tutar; kayıt anında ayrıştırılır —
-  // aksi halde "3," yazarken virgül anında silinir, alan hiç boşaltılamaz.
-  const [usdText, setUsdText] = useState(String(vault.usdTry));
-  const [eurText, setEurText] = useState(String(vault.eurTry));
+  const [fxRefreshing, setFxRefreshing] = useState(false);
+  // Taslak dile göre önizleme: dil değiştirilirken kur kutusu da o dilin
+  // ana para birimini gösterir — kaydetmeden ne olacağı görülür.
+  const fxHome = homeCurrency(draftPrefs.language);
 
   // PIN form durumları
   const [newPin, setNewPin] = useState("");
@@ -177,31 +182,47 @@ export default function SettingsModal({
           </button>
         )}
 
-        <div className="form-row">
-          <label className="field">
-            <span>{t("settings.usdRate")}</span>
-            <input
-              className="input"
-              name="usd-rate"
-              autoComplete="off"
-              inputMode="decimal"
-              value={usdText}
-              onChange={(e) => setUsdText(e.target.value)}
-            />
-          </label>
-          <label className="field">
-            <span>{t("settings.eurRate")}</span>
-            <input
-              className="input"
-              name="eur-rate"
-              autoComplete="off"
-              inputMode="decimal"
-              value={eurText}
-              onChange={(e) => setEurText(e.target.value)}
-            />
-          </label>
+        <div className="fx-box">
+          <div className="fx-box-head">
+            <span className="section-title fx-title">{t("settings.ratesTitle")}</span>
+            <button
+              type="button"
+              className="btn btn-secondary fx-refresh"
+              disabled={fxRefreshing}
+              onClick={() => {
+                setFxRefreshing(true);
+                void onRefreshFx().finally(() => setFxRefreshing(false));
+              }}
+            >
+              {fxRefreshing ? t("settings.ratesRefreshing") : t("settings.ratesRefresh")}
+            </button>
+          </div>
+          {fx ? (
+            <>
+              <ul className="fx-rates">
+                {CURRENCIES.filter((c) => c !== fxHome).map((c) => (
+                  <li key={c}>
+                    <span>1 {c}</span>
+                    <strong>
+                      {formatMoney(convert(1, c, fxHome, fx), fxHome, draftPrefs.language)}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="field-hint">
+                {t("settings.ratesUpdated", {
+                  time: new Date(fx.updatedAt).toLocaleString(
+                    localeFor(draftPrefs.language),
+                    { dateStyle: "medium", timeStyle: "short" },
+                  ),
+                })}
+              </p>
+            </>
+          ) : (
+            <p className="field-hint">{t("settings.ratesNever")}</p>
+          )}
+          <p className="field-hint">{t("settings.ratesHint")}</p>
         </div>
-        <p className="field-hint">{t("settings.ratesHint")}</p>
 
         <label className="field">
           <span>{t("settings.theme")}</span>
@@ -418,15 +439,8 @@ export default function SettingsModal({
   );
 
   function onSaveBoth(p: Prefs, v: VaultData) {
-    // Kur metinlerini kayıt anında ayrıştır; geçersiz/boş girişte mevcut değer korunur
-    const usd = parseAmount(usdText);
-    const eur = parseAmount(eurText);
     onSavePrefs(p);
-    onSaveVault({
-      ...v,
-      usdTry: Number.isFinite(usd) && usd > 0 ? usd : v.usdTry,
-      eurTry: Number.isFinite(eur) && eur > 0 ? eur : v.eurTry,
-    });
+    onSaveVault(v);
   }
 }
 

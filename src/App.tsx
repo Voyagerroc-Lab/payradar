@@ -27,7 +27,8 @@ import {
 } from "./lib/notify";
 import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
-import { advanceCycle, nextOccurrence, todayISO, toTryPerMonth } from "./lib/format";
+import { advanceCycle, nextOccurrence, todayISO, toMonthlyIn } from "./lib/format";
+import { ensureFx, homeCurrency, loadFx, type FxTable } from "./lib/fx";
 import {
   cloudEnabled,
   deleteCloudAccount,
@@ -96,6 +97,9 @@ export default function App() {
   const [mode, setMode] = useState<Mode>(boot.mode);
   const [prefs, setPrefs] = useState<Prefs>(boot.prefs);
   const [vault, setVault] = useState<VaultData>(boot.vault);
+  /* Canlı kurlar: açılışta son bilinen tablo, arkada güncel veri denenir.
+     Tablo USD tabanlı ve dilden bağımsızdır; ana para birimi dilden türetilir. */
+  const [fx, setFx] = useState<FxTable | null>(() => loadFx());
   const sessionKeyRef = useRef<CryptoKey | null>(null);
 
   // Ödeme ızgarası: işaretçi takipli 3B eğim (tek dinleyici, olay delegasyonu)
@@ -317,10 +321,33 @@ export default function App() {
     document.documentElement.lang = prefs.language;
   }, [prefs]);
 
+  /* ---------- Canlı kurlar ---------- */
+  useEffect(() => {
+    if (mode !== "ready") return;
+    let cancelled = false;
+    void ensureFx().then((table) => {
+      if (!cancelled && table) setFx(table);
+    });
+    // Uygulama günlerce açık kalabilir (kurulu PWA/TWA); tabloyu tazele.
+    const interval = setInterval(
+      () => void ensureFx().then((table) => !cancelled && table && setFx(table)),
+      6 * 60 * 60_000,
+    );
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [mode]);
+
   /* ---------- Bildirimler ---------- */
   useEffect(() => {
     if (mode !== "ready" || !vault.notificationsEnabled) return;
-    const opts = { lang: prefs.language, usdTry: vault.usdTry, eurTry: vault.eurTry };
+    const opts = {
+      lang: prefs.language,
+      usdTry: vault.usdTry,
+      eurTry: vault.eurTry,
+      fx,
+    };
     checkUpcomingPayments(vault.payments, vault.reminderDays, opts);
     // Uygulama uzun süre açık kalırsa (kurulu PWA/TWA) bir ödeme hatırlatma
     // aralığına saatler sonra girebilir; periyodik olarak yeniden kontrol et.
@@ -336,6 +363,7 @@ export default function App() {
     vault.usdTry,
     vault.eurTry,
     prefs.language,
+    fx,
     mode,
   ]);
 
@@ -670,6 +698,7 @@ export default function App() {
       lang: prefs.language,
       usdTry: vault.usdTry,
       eurTry: vault.eurTry,
+      fx,
     });
   }
 
@@ -696,6 +725,7 @@ export default function App() {
           lang: prefs.language,
           usdTry: vault.usdTry,
           eurTry: vault.eurTry,
+          fx,
         });
         setToast(t("toast.notifEnabled"));
       } else {
@@ -711,9 +741,9 @@ export default function App() {
   const visiblePayments = useMemo(
     () =>
       mode === "ready"
-        ? filterAndSort(vault.payments, query, category, sort, vault)
+        ? filterAndSort(vault.payments, query, category, sort, vault, prefs.language, fx)
         : [],
-    [vault, mode, query, category, sort],
+    [vault, mode, query, category, sort, prefs.language, fx],
   );
 
   if (mode === "loading") return <div className="app" />;
@@ -749,7 +779,7 @@ export default function App() {
               </button>
             )}
 
-            <SummaryCards payments={vault.payments} vault={vault} />
+            <SummaryCards payments={vault.payments} vault={vault} fx={fx} />
 
             {vault.payments.length === 0 ? (
               <EmptyState onAdd={() => setEditor("new")} onDemo={handleDemo} />
@@ -864,6 +894,12 @@ export default function App() {
             <SettingsModal
               prefs={prefs}
               vault={vault}
+              fx={fx}
+              onRefreshFx={async () => {
+                const table = await ensureFx(true);
+                if (table) setFx(table);
+                return Boolean(table);
+              }}
               onClose={() => setSettingsOpen(false)}
               onSavePrefs={(p) => {
                 setPrefs(p);
@@ -1066,7 +1102,11 @@ function filterAndSort(
   category: CategoryId | "all",
   sort: SortKey,
   vault: VaultData,
+  lang: Language,
+  fx: FxTable | null,
 ): Payment[] {
+  const home = homeCurrency(lang);
+  const legacyRates = { usdTry: vault.usdTry, eurTry: vault.eurTry };
   // normalizeName ı→i katlar; "IPTV" araması Türkçe küçük harf tuzağına düşmez
   const q = normalizeName(query);
   let result = payments;
@@ -1091,8 +1131,7 @@ function filterAndSort(
     case "price-desc":
       sorted.sort(
         (a, b) =>
-          toTryPerMonth(b, vault.usdTry, vault.eurTry) -
-          toTryPerMonth(a, vault.usdTry, vault.eurTry),
+          toMonthlyIn(b, home, fx, legacyRates) - toMonthlyIn(a, home, fx, legacyRates),
       );
       break;
     case "name":

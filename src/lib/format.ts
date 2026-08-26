@@ -1,5 +1,6 @@
 import type { BillingCycle, CategoryId, Currency, Language, Payment } from "../types";
 import type { TranslationKey } from "../i18n/dict";
+import { convert, type FxTable, type LegacyRates } from "./fx";
 
 /** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı. */
 export function localeFor(lang: "tr" | "en" | "ms"): string {
@@ -15,12 +16,20 @@ export function parseInstallment(raw: string | undefined): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
-/** Aylık TL eşdeğeri: USD/EUR kurla çevrilir. Özet kartları ve sıralama ortak kullanır. */
-export function toTryPerMonth(payment: Payment, usdTry: number, eurTry: number): number {
-  let amount = monthlyAmount(payment.price, payment.billingCycle);
-  if (payment.currency === "USD") amount *= usdTry || 1;
-  if (payment.currency === "EUR") amount *= eurTry || 1;
-  return amount;
+/** Aylık eşdeğerin ana para birimindeki karşılığı. Özet kartları ve sıralama ortak kullanır. */
+export function toMonthlyIn(
+  payment: Payment,
+  home: Currency,
+  fx: FxTable | null,
+  legacy?: LegacyRates,
+): number {
+  return convert(
+    monthlyAmount(payment.price, payment.billingCycle),
+    payment.currency,
+    home,
+    fx,
+    legacy,
+  );
 }
 
 /**
@@ -62,6 +71,7 @@ export const CURRENCY_SYMBOL: Record<Currency, string> = {
   TRY: "₺",
   USD: "$",
   EUR: "€",
+  MYR: "RM",
 };
 
 export function formatMoney(

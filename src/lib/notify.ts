@@ -1,5 +1,6 @@
-import type { Language, Payment } from "../types";
+import type { Currency, Language, Payment } from "../types";
 import { daysUntil, formatMoney } from "./format";
+import { convert, homeCurrency, type FxTable } from "./fx";
 import { makeT } from "../i18n/t";
 
 const NOTIFIED_KEY = "payradar:notified";
@@ -42,6 +43,8 @@ export interface NotifyOptions {
   lang?: Language;
   usdTry?: number;
   eurTry?: number;
+  /** Canlı kur tablosu; özet toplamı dilin ana para biriminde hesaplanır */
+  fx?: FxTable | null;
 }
 
 /** Kategoriye göre bildirim başlığı ön eki + ayrıntı (banka/taksit, çek no). */
@@ -82,12 +85,16 @@ function lineDayText(days: number, t: ReturnType<typeof makeT>): string {
   return t("notif.line.daysLeft", { n: days });
 }
 
-/** Vadesi gelen GERÇEK tutarın TL karşılığı — özet satırlarıyla tutarlı olsun diye
- *  aylık eşdeğere çevrilmez, ödemenin kendi fiyatı kullanılır. */
-function dueTry(payment: Payment, usdTry: number, eurTry: number): number {
-  if (payment.currency === "USD") return payment.price * (usdTry || 1);
-  if (payment.currency === "EUR") return payment.price * (eurTry || 1);
-  return payment.price;
+/** Vadesi gelen GERÇEK tutarın ana para birimindeki karşılığı — özet satırlarıyla
+ *  tutarlı olsun diye aylık eşdeğere çevrilmez, ödemenin kendi fiyatı kullanılır. */
+function dueIn(
+  payment: Payment,
+  home: Currency,
+  fx: FxTable | null,
+  usdTry: number,
+  eurTry: number,
+): number {
+  return convert(payment.price, payment.currency, home, fx, { usdTry, eurTry });
 }
 
 /**
@@ -134,11 +141,13 @@ export function checkUpcomingPayments(
   } else {
     const usdTry = options.usdTry ?? 42;
     const eurTry = options.eurTry ?? 48;
+    const home = homeCurrency(lang);
+    const fx = options.fx ?? null;
     // Özet en fazla 5 satır gösterir; yalnızca GÖSTERİLENLER bildirildi sayılır,
     // kalanlar bir sonraki kontrolde kendi özetlerini alır.
     const shown = urgent.slice(0, 5);
     const total = shown.reduce(
-      (sum, { payment }) => sum + dueTry(payment, usdTry, eurTry),
+      (sum, { payment }) => sum + dueIn(payment, home, fx, usdTry, eurTry),
       0,
     );
     const lines = shown.map(
@@ -147,7 +156,7 @@ export function checkUpcomingPayments(
     );
     const body = [
       ...lines,
-      t("notif.digestTotal", { amount: formatMoney(total, "TRY", lang) }),
+      t("notif.digestTotal", { amount: formatMoney(total, home, lang) }),
     ].join("\n");
     const n = new Notification(t("notif.digestTitle", { n: shown.length }), {
       body,
