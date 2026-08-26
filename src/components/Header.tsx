@@ -27,7 +27,14 @@ export default function Header({
       <div className="container header-inner">
         <div className="brand">
           <span className="brand-icon" aria-hidden="true">
-            📡
+            {/* Radar glifi: uygulama ikonuyla aynı motif, platform emojisine bağımlı değil */}
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none">
+              <circle cx="12" cy="12" r="4.4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="8.6" stroke="rgba(255,255,255,0.42)" strokeWidth="1.5" />
+              <path d="M12 12 L18.6 5.4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="1.7" fill="#fff" />
+              <circle cx="17" cy="8.1" r="2" fill="#f0abfc" />
+            </svg>
           </span>
           <div>
             <h1 translate="no">PayRadar</h1>

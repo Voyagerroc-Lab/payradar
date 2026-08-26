@@ -247,6 +247,10 @@ button {
   box-shadow: 0 4px 12px rgb(124 58 237 / 0.35);
 }
 
+.brand-icon svg {
+  display: block;
+}
+
 .brand h1 {
   font-size: 19px;
   font-weight: 800;

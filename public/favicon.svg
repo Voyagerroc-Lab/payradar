@@ -1,12 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- PayRadar logosu: koyu cam üstünde menekşe radar taraması, fuşya "ödeme" vuruşu -->
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6366f1"/>
-      <stop offset="1" stop-color="#4338ca"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1332"/>
+      <stop offset="0.55" stop-color="#0d0b1a"/>
+      <stop offset="1" stop-color="#07080c"/>
     </linearGradient>
+    <linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="404" y1="108" x2="167" y2="66">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.75"/>
+      <stop offset="0.45" stop-color="#8b5cf6" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="blipGlow">
+      <stop offset="0" stop-color="#e879f9" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#e879f9" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="100" height="100" rx="22" fill="url(#g)"/>
-  <rect x="20" y="31" width="60" height="38" rx="8" fill="#ffffff"/>
-  <rect x="20" y="41" width="60" height="9" fill="#1e1b4b"/>
-  <circle cx="68" cy="60" r="5.5" fill="#4f46e5"/>
+
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+  <rect x="6" y="6" width="500" height="500" rx="110" fill="none"
+        stroke="#a78bfa" stroke-opacity="0.35" stroke-width="4"/>
+
+  <!-- Kadran çizgileri -->
+  <line x1="256" y1="60" x2="256" y2="452" stroke="#a78bfa" stroke-opacity="0.14" stroke-width="4"/>
+  <line x1="60" y1="256" x2="452" y2="256" stroke="#a78bfa" stroke-opacity="0.14" stroke-width="4"/>
+
+  <!-- Halkalar -->
+  <circle cx="256" cy="256" r="70"  fill="none" stroke="#a78bfa" stroke-opacity="0.5"  stroke-width="7"/>
+  <circle cx="256" cy="256" r="130" fill="none" stroke="#a78bfa" stroke-opacity="0.34" stroke-width="7"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#a78bfa" stroke-opacity="0.2"  stroke-width="7"/>
+
+  <!-- Tarama huzmesi: parlak ön kenardan geriye doğru sönümlenir -->
+  <path d="M 256 256 L 404.5 107.5 A 210 210 0 0 0 167.3 65.7 Z" fill="url(#sweep)"/>
+  <line x1="256" y1="256" x2="404.5" y2="107.5"
+        stroke="#c4b5fd" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Merkez -->
+  <circle cx="256" cy="256" r="13" fill="#c4b5fd"/>
+
+  <!-- Vuruş: radarın yakaladığı ödeme -->
+  <circle cx="337" cy="152" r="52" fill="url(#blipGlow)"/>
+  <circle cx="337" cy="152" r="19" fill="#e879f9"/>
+  <circle cx="337" cy="152" r="7"  fill="#fdf4ff"/>
 </svg>
