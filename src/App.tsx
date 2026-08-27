@@ -803,7 +803,7 @@ export default function App() {
               vault.payments.length > 0 && (
                 <div className="cloud-banner">
                   <span className="cloud-banner-icon" aria-hidden="true">
-                    ☁️
+                    <Icon name="cloud" size={15} />
                   </span>
                   <span className="cloud-banner-text">{t("auth.banner.text")}</span>
                   <button

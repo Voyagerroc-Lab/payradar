@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import ConfirmModal from "./ConfirmModal";
+import { Icon } from "./icons";
 
 interface LockScreenProps {
   onUnlock: (pin: string) => Promise<boolean>;
@@ -30,7 +31,7 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
     <div className="lock-screen">
       <form className="lock-box card" onSubmit={handleSubmit}>
         <span className="brand-icon lock-icon" aria-hidden="true">
-          📡
+          <Icon name="radar" size={26} />
         </span>
         <h1 translate="no">PayRadar</h1>
         <p className="lock-subtitle">{t("lock.enterPin")}</p>
@@ -56,7 +57,7 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
             t("lock.verifying")
           ) : (
             <>
-              <span aria-hidden="true">🔓</span> {t("lock.unlock")}
+              <Icon name="unlock" size={14} /> {t("lock.unlock")}
             </>
           )}
         </button>

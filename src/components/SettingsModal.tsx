@@ -6,6 +6,7 @@ import { CURRENCIES, convert, currencyLabel, type FxTable } from "../lib/fx";
 import type { Language, Prefs, VaultData } from "../types";
 import type { CloudUser } from "../lib/cloud";
 import { useI18n } from "../i18n";
+import { Icon } from "./icons";
 
 interface SettingsModalProps {
   prefs: Prefs;
@@ -263,14 +264,14 @@ export default function SettingsModal({
         {/* ---------- Hesap ---------- */}
         <h3 className="section-title">{t("auth.profile.title")}</h3>
         {cloudEnabled && draftPrefs.lockEnabled && (
-          <p className="field-hint strong-hint"><span aria-hidden="true">⚠️</span> {t("account.cloudNotEncryptedHint")}</p>
+          <p className="field-hint strong-hint"><Icon name="warn" size={13} /> {t("account.cloudNotEncryptedHint")}</p>
         )}
         {!cloudEnabled ? (
           <p className="field-hint">{t("account.disabledHint")}</p>
         ) : cloudUser ? (
           <div className="settings-account-card">
             <span>
-              <span aria-hidden="true">☁️</span>{" "}
+              <Icon name="cloud" size={14} />{" "}
               {t("account.signedInAs", {
                 identity: (cloudUser.email ?? cloudUser.phone ?? "") as string,
               })}
@@ -293,13 +294,13 @@ export default function SettingsModal({
         <p className="field-hint">{t("data.importHint")}</p>
         <div className="form-row">
           <button className="btn btn-secondary" onClick={onExportCsv}>
-            <span aria-hidden="true">⬇️</span> {t("data.exportBtn")}
+            <Icon name="download" size={14} /> {t("data.exportBtn")}
           </button>
           <button
             className="btn btn-secondary"
             onClick={() => fileInputRef.current?.click()}
           >
-            <span aria-hidden="true">⬆️</span> {t("data.importBtn")}
+            <Icon name="upload" size={14} /> {t("data.importBtn")}
           </button>
         </div>
         <input
@@ -318,7 +319,7 @@ export default function SettingsModal({
           className="btn btn-secondary full-width-btn"
           onClick={onLoadDemo}
         >
-          <span aria-hidden="true">✨</span> {t("empty.tryDemo")}
+          <Icon name="sparkle" size={13} /> {t("empty.tryDemo")}
         </button>
         <button
           type="button"
@@ -334,7 +335,7 @@ export default function SettingsModal({
         {!draftPrefs.lockEnabled ? (
           <>
             <p className="field-hint">{t("security.offHint")}</p>
-            <p className="field-hint strong-hint"><span aria-hidden="true">🔓</span> {t("security.enableTitle")}</p>
+            <p className="field-hint strong-hint"><Icon name="unlock" size={13} /> {t("security.enableTitle")}</p>
             <div className="form-row">
               <label className="field">
                 <span>{t("security.newPin")}</span>
@@ -368,7 +369,7 @@ export default function SettingsModal({
             )}
             <div className="form-actions">
               <button className="btn btn-primary" disabled={busy} onClick={() => void handleEnable()}>
-                <span aria-hidden="true">🔒</span> {t("security.enableTitle")}
+                <Icon name="lock" size={13} /> {t("security.enableTitle")}
               </button>
             </div>
           </>

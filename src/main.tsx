@@ -33,7 +33,25 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
         }}
       >
         <div>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📡</div>
+          {/* Kurtarma ekranı bilinçli olarak bağımsız: uygulama modüllerinden
+              hiçbir şey import etmez, ikon satır içi SVG'dir */}
+          <div style={{ marginBottom: 12, color: "#45f0ae" }}>
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="8.2" />
+              <circle cx="12" cy="12" r="4.4" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+              <path d="M12 12l5.4-5.8" />
+            </svg>
+          </div>
           <h1 style={{ fontSize: 20, margin: "0 0 8px" }}>
             Bir şeyler ters gitti / Something went wrong
           </h1>

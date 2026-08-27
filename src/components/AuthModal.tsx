@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import { mapAuthErrorKey, sendPasswordReset } from "../lib/cloud";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
+import { Icon } from "./icons";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -324,7 +325,7 @@ export default function AuthModal({
               aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
               title={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
             >
-              {showPassword ? "🙈" : "👁️"}
+              <Icon name={showPassword ? "eye-off" : "eye"} />
             </button>
           </div>
         </label>
@@ -361,17 +362,17 @@ export default function AuthModal({
                 aria-label={showConfirm ? t("auth.hidePassword") : t("auth.showPassword")}
                 title={showConfirm ? t("auth.hidePassword") : t("auth.showPassword")}
               >
-                {showConfirm ? "🙈" : "👁️"}
+                <Icon name={showConfirm ? "eye-off" : "eye"} />
               </button>
             </div>
           </label>
         )}
 
-        <p className="field-hint auth-sync-hint">💡 {t("auth.syncHint")}</p>
+        <p className="field-hint auth-sync-hint"><Icon name="bulb" size={13} /> {t("auth.syncHint")}</p>
 
         {info && (
           <p className="field-hint strong-hint" aria-live="polite">
-            <span aria-hidden="true">✉️</span> {info}
+            <Icon name="mail" size={13} /> {info}
           </p>
         )}
         {error && (

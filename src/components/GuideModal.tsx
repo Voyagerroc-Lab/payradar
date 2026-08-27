@@ -1,6 +1,7 @@
 import Modal from "./Modal";
 import type { CancelGuide } from "../types";
 import { useI18n } from "../i18n";
+import { Icon } from "./icons";
 
 interface GuideModalProps {
   guide: CancelGuide;
@@ -25,7 +26,7 @@ export default function GuideModal({ guide, serviceName, onClose }: GuideModalPr
       </ol>
       {guide.tip && (
         <div className="guide-tip">
-          💡 <strong>{t("guide.tipLabel")}</strong> {guide.tip}
+          <Icon name="bulb" size={14} /> <strong>{t("guide.tipLabel")}</strong> {guide.tip}
         </div>
       )}
       {guide.cancelUrl && (

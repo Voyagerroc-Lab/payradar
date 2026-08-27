@@ -1,6 +1,7 @@
 import { useI18n } from "../i18n";
 import { localeFor } from "../lib/format";
 import type { CloudUser } from "../lib/cloud";
+import { Icon } from "./icons";
 
 interface HeaderProps {
   onOpenSettings: () => void;
@@ -51,7 +52,7 @@ export default function Header({
             >
               {cloudUser ? (
                 <>
-                  <span className="account-chip-avatar">{initial}</span> ☁️
+                  <span className="account-chip-avatar">{initial}</span> <Icon name="cloud" size={14} />
                 </>
               ) : (
                 t("auth.tabSignIn")
@@ -65,11 +66,11 @@ export default function Header({
               aria-label={t("action.lock")}
               title={t("action.lock")}
             >
-              🔒
+              <Icon name="lock" />
             </button>
           )}
           <button className="icon-btn" onClick={onOpenSettings} aria-label={t("settings.title")}>
-            ⚙️
+            <Icon name="gear" size={17} />
           </button>
         </div>
       </div>

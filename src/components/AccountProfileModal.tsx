@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import type { CloudUser } from "../lib/cloud";
 import type { SyncState } from "../App";
 import { localeFor } from "../lib/format";
+import { Icon } from "./icons";
 import {
   canShowCheckout,
   checkoutUrl,
@@ -92,7 +93,7 @@ export default function AccountProfileModal({
             </>
           ) : (
             <>
-              <strong>⭐ {t("premium.title")}</strong>
+              <strong><Icon name="star" size={13} /> {t("premium.title")}</strong>
               <p>{t("premium.locked")}</p>
               {canShowCheckout() && checkoutUrl(user) ? (
                 <a
@@ -112,7 +113,7 @@ export default function AccountProfileModal({
       )}
 
       {(!premiumGateEnabled || isEntitled(subscription)) && (
-        <p className="profile-synced">✅ {t("auth.profile.synced")}</p>
+        <p className="profile-synced"><Icon name="check" size={13} /> {t("auth.profile.synced")}</p>
       )}
       <p className="field-hint">{t("auth.profile.lastSync", { time: lastSyncText })}</p>
 
@@ -121,17 +122,17 @@ export default function AccountProfileModal({
         disabled={syncState === "syncing"}
         onClick={onSyncNow}
       >
-        <span className={`sync-icon ${syncState === "syncing" ? "spinning" : ""}`}>🔄</span>{" "}
+        <span className={`sync-icon ${syncState === "syncing" ? "spinning" : ""}`}><Icon name="refresh" size={13} /></span>{" "}
         {syncState === "syncing" ? t("auth.profile.syncing") : t("auth.profile.syncNow")}
       </button>
 
       <div className="profile-webaccess">
-        <strong>🌐 {t("auth.profile.webAccess")}</strong>
+        <strong><Icon name="globe" size={13} /> {t("auth.profile.webAccess")}</strong>
         <p>{t("auth.profile.webAccessDesc", { email: identity })}</p>
       </div>
 
       <div className="recovery-box">
-        <strong>🔑 {t("account.syncKeyTitle")}</strong>
+        <strong><Icon name="key" size={13} /> {t("account.syncKeyTitle")}</strong>
         <p>{t("account.syncKeyHint")}</p>
         <button className="btn btn-secondary" onClick={onCopyRecoveryKey}>
           {t("account.syncKeyCopy")}

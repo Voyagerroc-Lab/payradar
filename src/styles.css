@@ -283,6 +283,13 @@ button {
   z-index: 10;
 }
 
+/* Buzlu cam yoksa yarı saydamlık kalamaz: altından içerik okunur */
+@supports not (backdrop-filter: blur(1px)) {
+  .header {
+    background: var(--card);
+  }
+}
+
 .header-inner {
   display: flex;
   align-items: center;
@@ -499,14 +506,20 @@ button {
   width: auto;
 }
 
-/* Kategori rayı: telefonda 4 satır kaplayan sarma yerine tek satırlık
-   yatay kaydırma. Kenarlardaki simetrik solma "devamı var" der; simetri
-   sayesinde RTL'de de aynı çalışır. */
 .chips {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   flex: 1;
+}
+
+/* Kategori rayı — YALNIZCA araç çubuğunda: telefonda 4 satır kaplayan
+   sarma yerine tek satırlık yatay kaydırma. Kenarlardaki simetrik solma
+   "devamı var" der; simetri sayesinde RTL'de de aynı çalışır.
+   (AuthModal'daki iki sekmeli .chips seçicisi bilinçli olarak dışarıda:
+   orada kaydırma da solma da istenmez.) */
+.toolbar .chips {
+  flex-wrap: nowrap;
   min-width: 0;
   overflow-x: auto;
   padding: 2px;
@@ -515,7 +528,7 @@ button {
   mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
 
-.chips::-webkit-scrollbar {
+.toolbar .chips::-webkit-scrollbar {
   display: none;
 }
 
