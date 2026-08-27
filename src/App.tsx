@@ -29,6 +29,7 @@ import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
 import { advanceCycle, nextOccurrence, todayISO, toMonthlyIn } from "./lib/format";
 import { ensureFx, loadFx, type FxTable } from "./lib/fx";
+import { Icon } from "./components/icons";
 import {
   cloudEnabled,
   deleteCloudAccount,
@@ -1067,7 +1068,9 @@ function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }
   return (
     <section className="card empty-state">
       <div className="empty-hero" aria-hidden="true">
-        <span className="empty-hero-icon">📡</span>
+        <span className="empty-hero-icon">
+          <Icon name="radar" size={42} />
+        </span>
       </div>
       <h2>{t("empty.title")}</h2>
       <p>{t("empty.body")}</p>
@@ -1076,18 +1079,18 @@ function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }
           {t("empty.addFirst")}
         </button>
         <button className="btn btn-secondary" onClick={onDemo}>
-          <span aria-hidden="true">✨</span> {t("empty.tryDemo")}
+          <Icon name="sparkle" size={14} /> {t("empty.tryDemo")}
         </button>
       </div>
       <div className="empty-badges" aria-hidden="true">
-        <span>🏠</span>
-        <span>🚗</span>
-        <span>🧾</span>
-        <span>📺</span>
-        <span>🏦</span>
-        <span>📜</span>
-        <span>🎮</span>
-        <span>🛡️</span>
+        <span><Icon name="home" size={17} /></span>
+        <span><Icon name="car" size={17} /></span>
+        <span><Icon name="receipt" size={17} /></span>
+        <span><Icon name="screen" size={17} /></span>
+        <span><Icon name="bank" size={17} /></span>
+        <span><Icon name="scroll" size={17} /></span>
+        <span><Icon name="gamepad" size={17} /></span>
+        <span><Icon name="shield" size={17} /></span>
       </div>
     </section>
   );
@@ -1108,7 +1111,9 @@ function NotificationBanner({
   const { t } = useI18n();
   return (
     <div className="notif-banner">
-      <span>{t("banner.notif")}</span>
+      <span>
+        <Icon name="bell" size={15} /> {t("banner.notif")}
+      </span>
       <div className="notif-banner-actions">
         <button className="btn btn-primary" onClick={onEnable}>
           {t("banner.open")}

@@ -155,7 +155,7 @@ export default function PaymentFormModal({
             >
               {(Object.keys(CATEGORIES) as CategoryId[]).map((id) => (
                 <option key={id} value={id}>
-                  {CATEGORIES[id].emoji} {t(CATEGORIES[id].labelKey)}
+                  {t(CATEGORIES[id].labelKey)}
                 </option>
               ))}
             </select>

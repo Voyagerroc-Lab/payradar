@@ -58,7 +58,7 @@ const tr = {
   "aria.share": "{name} paylaş",
 
   // Boş durum
-  "empty.title": "Hoş geldin! 👋",
+  "empty.title": "Hoş geldin!",
   "empty.body":
     "Kirandan aboneliğine, araba kirasından faturalarına kadar tüm düzenli ödemelerini tek yerden takip et. Yenileme tarihlerini kaçırma, istemediklerini adım adım iptal et.",
   "empty.addFirst": "İlk ödemeni ekle",
@@ -116,7 +116,7 @@ const tr = {
   "settings.reminderQuestion": "Ödemeden kaç gün önce hatırlatılsın?",
   "settings.daysBefore": "{n} gün önce",
   "settings.notifications": "Tarayıcı bildirimlerini aç",
-  "settings.testNotifications": "🔔 Bildirimleri Şimdi Test Et",
+  "settings.testNotifications": "Bildirimleri Şimdi Test Et",
   "settings.ratesTitle": "Döviz Kurları",
   "settings.ratesRefresh": "Yenile",
   "settings.ratesRefreshing": "Yenileniyor…",
@@ -131,7 +131,7 @@ const tr = {
   "theme.dark": "Koyu",
 
   // Ayarlar > Güvenlik
-  "security.title": "Güvenlik 🔒",
+  "security.title": "Güvenlik",
   "security.offHint":
     "PIN kilidi kapalı. Verilerin cihazda şifresiz saklanıyor. Kilidi etkinleştirirsen veriler AES-GCM ile şifrelenir ve PIN olmadan okunamaz.",
   "security.enableTitle": "PIN kilidini etkinleştir",
@@ -155,7 +155,7 @@ const tr = {
   "aria.history": "{name} fiyat geçmişi",
 
   // Veri yedekleme
-  "data.title": "Veri Yedekleme 💾",
+  "data.title": "Veri Yedekleme",
   "data.exportBtn": "CSV Dışa Aktar",
   "data.importBtn": "CSV İçe Aktar",
   "data.importHint":
@@ -195,7 +195,7 @@ const tr = {
   "account.syncKeyApply": "Anahtarı kullan",
   "account.syncKeyInvalid": "Anahtar geçersiz.",
   "account.manageBilling": "Aboneliği yönet",
-  "data.eraseBtn": "🗑️ Tüm verileri sil",
+  "data.eraseBtn": "Tüm verileri sil",
   "confirm.eraseLocal":
     "Bu cihazdaki tüm ödemelerin ve ayarların kalıcı olarak silinsin mi? Bu işlem geri alınamaz.",
   "toast.erased": "Tüm veriler silindi",
@@ -230,7 +230,7 @@ const tr = {
   "auth.error.invalidCredentials": "Hatalı e-posta veya şifre.",
   "auth.error.userExists": "Bu e-posta adresiyle zaten bir hesap var.",
   "auth.profile.title": "Hesap & Bulut Eşitleme",
-  "auth.profile.synced": "Bulut Eşitleme Aktif ☁️",
+  "auth.profile.synced": "Bulut Eşitleme Aktif",
   "auth.profile.lastSync": "Son Eşitleme: {time}",
   "auth.profile.justNow": "Az önce",
   "auth.profile.syncNow": "Şimdi Eşitle",
@@ -250,7 +250,7 @@ const tr = {
   // Premium
   "premium.title": "Premium",
   "premium.statusActive": "Premium aktif ⭐",
-  "premium.statusTrial": "Ücretsiz kullanım dönemindesin 🎁",
+  "premium.statusTrial": "Ücretsiz kullanım dönemindesin",
   "premium.periodEnd": "Geçerlilik: {date}",
   "premium.locked":
     "Bulut senkron ve çok cihaz erişimi Premium özelliğidir. Verilerin bu cihazda güvende; Premium'a geçince tüm cihazlarına yayılır.",
@@ -291,7 +291,7 @@ const tr = {
     "Bu işlem TÜM verilerini kalıcı olarak siler ve geri alınamaz. Devam etmek istediğine emin misin?",
 
   // Bildirim bandı & toastlar
-  "banner.notif": "🔔 Yenileme hatırlatmaları için bildirimleri aç",
+  "banner.notif": "Yenileme hatırlatmaları için bildirimleri aç",
   "banner.open": "Aç",
   "toast.saved": "Kaydedildi ✓",
   "toast.deleted": "Ödeme silindi",
@@ -378,7 +378,7 @@ const en: Record<TranslationKey, string> = {
   "aria.delete": "Delete {name}",
   "aria.share": "Share {name}",
 
-  "empty.title": "Welcome! 👋",
+  "empty.title": "Welcome!",
   "empty.body":
     "Track every recurring payment — from rent and car leases to bills and subscriptions — in one place. Never miss a renewal, cancel what you don't need step by step.",
   "empty.addFirst": "Add your first payment",
@@ -433,7 +433,7 @@ const en: Record<TranslationKey, string> = {
   "settings.reminderQuestion": "Remind me how many days before payment?",
   "settings.daysBefore": "{n} days before",
   "settings.notifications": "Enable browser notifications",
-  "settings.testNotifications": "🔔 Test Notifications Now",
+  "settings.testNotifications": "Test Notifications Now",
   "settings.ratesTitle": "Exchange Rates",
   "settings.ratesRefresh": "Refresh",
   "settings.ratesRefreshing": "Refreshing…",
@@ -447,7 +447,7 @@ const en: Record<TranslationKey, string> = {
   "theme.light": "Light",
   "theme.dark": "Dark",
 
-  "security.title": "Security 🔒",
+  "security.title": "Security",
   "security.offHint":
     "PIN lock is off. Your data is stored unencrypted on this device. When enabled, data is encrypted with AES-GCM and unreadable without your PIN.",
   "security.enableTitle": "Enable PIN lock",
@@ -469,7 +469,7 @@ const en: Record<TranslationKey, string> = {
   "chart.change": "Change since first price",
   "aria.history": "Price history for {name}",
 
-  "data.title": "Data Backup 💾",
+  "data.title": "Data Backup",
   "data.exportBtn": "Export CSV",
   "data.importBtn": "Import CSV",
   "data.importHint":
@@ -508,7 +508,7 @@ const en: Record<TranslationKey, string> = {
   "account.syncKeyApply": "Use key",
   "account.syncKeyInvalid": "That key is not valid.",
   "account.manageBilling": "Manage subscription",
-  "data.eraseBtn": "🗑️ Erase all data",
+  "data.eraseBtn": "Erase all data",
   "confirm.eraseLocal":
     "Permanently erase every payment and setting on this device? This cannot be undone.",
   "toast.erased": "All data erased",
@@ -542,7 +542,7 @@ const en: Record<TranslationKey, string> = {
   "auth.error.invalidCredentials": "Invalid email or password.",
   "auth.error.userExists": "An account with this email already exists.",
   "auth.profile.title": "Account & Cloud Sync",
-  "auth.profile.synced": "Cloud Sync Active ☁️",
+  "auth.profile.synced": "Cloud Sync Active",
   "auth.profile.lastSync": "Last Synced: {time}",
   "auth.profile.justNow": "Just now",
   "auth.profile.syncNow": "Sync Now",
@@ -561,7 +561,7 @@ const en: Record<TranslationKey, string> = {
 
   "premium.title": "Premium",
   "premium.statusActive": "Premium is active ⭐",
-  "premium.statusTrial": "You're in your free period 🎁",
+  "premium.statusTrial": "You're in your free period",
   "premium.periodEnd": "Valid until: {date}",
   "premium.locked":
     "Cloud sync and multi-device access are Premium features. Your data is safe on this device; go Premium to sync it everywhere.",
@@ -598,7 +598,7 @@ const en: Record<TranslationKey, string> = {
   "lock.wipeConfirmText":
     "This will permanently erase ALL your data. This cannot be undone. Are you sure?",
 
-  "banner.notif": "🔔 Enable notifications for renewal reminders",
+  "banner.notif": "Enable notifications for renewal reminders",
   "banner.open": "Open",
   "toast.saved": "Saved ✓",
   "toast.deleted": "Payment deleted",
@@ -686,7 +686,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "aria.delete": "Padam {name}",
   "aria.share": "Kongsi {name}",
 
-  "empty.title": "Selamat Datang! 👋",
+  "empty.title": "Selamat Datang!",
   "empty.body":
     "Jejak semua pembayaran berulang anda dari sewa, langganan, sewa kereta hingga bil utiliti di satu tempat. Jangan terlepas tarikh pembaharuan dan batalkan perkhidmatan yang tidak diperlukan.",
   "empty.addFirst": "Tambah bayaran pertama anda",
@@ -741,7 +741,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "settings.reminderQuestion": "Berapa hari sebelum untuk diingatkan?",
   "settings.daysBefore": "{n} hari sebelum",
   "settings.notifications": "Aktifkan pemberitahuan pelayar",
-  "settings.testNotifications": "🔔 Uji Pemberitahuan Sekarang",
+  "settings.testNotifications": "Uji Pemberitahuan Sekarang",
   "settings.ratesTitle": "Kadar Pertukaran",
   "settings.ratesRefresh": "Segarkan",
   "settings.ratesRefreshing": "Menyegarkan…",
@@ -755,7 +755,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "theme.light": "Cerah",
   "theme.dark": "Gelap",
 
-  "security.title": "Keselamatan 🔒",
+  "security.title": "Keselamatan",
   "security.offHint":
     "Kunci PIN dinyahaktifkan. Mengaktifkan kunci akan melindungi data anda daripada akses tanpa izin.",
   "security.enableTitle": "Aktifkan Kunci PIN",
@@ -776,7 +776,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "chart.change": "Perubahan dari harga awal",
   "aria.history": "Sejarah harga {name}",
 
-  "data.title": "Sandaran Data 💾",
+  "data.title": "Sandaran Data",
   "data.exportBtn": "Eksport CSV",
   "data.importBtn": "Import CSV",
   "data.importHint":
@@ -795,7 +795,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "lock.wipeConfirmText":
     "Tindakan ini akan memadam SEMUA data secara kekal dan tidak boleh dipulihkan. Adakah anda pasti mahu meneruskan?",
 
-  "banner.notif": "🔔 Aktifkan pemberitahuan untuk peringatan pembaharuan",
+  "banner.notif": "Aktifkan pemberitahuan untuk peringatan pembaharuan",
   "banner.open": "Buka",
   "toast.saved": "Disimpan ✓",
   "toast.deleted": "Bayaran dipadam",
@@ -840,7 +840,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "auth.error.invalidCredentials": "E-mel atau kata laluan tidak sah.",
   "auth.error.userExists": "Akaun dengan e-mel ini sudah wujud.",
   "auth.profile.title": "Akaun & Penyegerakan Awan",
-  "auth.profile.synced": "Penyegerakan Awan Aktif ☁️",
+  "auth.profile.synced": "Penyegerakan Awan Aktif",
   "auth.profile.lastSync": "Penyegerakan Terakhir: {time}",
   "auth.profile.justNow": "Sebentar tadi",
   "auth.profile.syncNow": "Segerak Sekarang",
@@ -872,14 +872,14 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "account.syncKeyApply": "Guna kunci",
   "account.syncKeyInvalid": "Kunci tidak sah.",
   "account.manageBilling": "Urus langganan",
-  "data.eraseBtn": "🗑️ Padam semua data",
+  "data.eraseBtn": "Padam semua data",
   "confirm.eraseLocal":
     "Padam semua pembayaran dan tetapan pada peranti ini secara kekal? Tindakan ini tidak boleh diundur.",
   "toast.erased": "Semua data dipadam",
 
   "premium.title": "Premium",
   "premium.statusActive": "Premium aktif ⭐",
-  "premium.statusTrial": "Anda dalam tempoh percuma 🎁",
+  "premium.statusTrial": "Anda dalam tempoh percuma",
   "premium.periodEnd": "Sah sehingga: {date}",
   "premium.locked":
     "Penyegerakan awan dan akses berbilang peranti ialah ciri Premium. Data anda selamat pada peranti ini; langgan Premium untuk menyegerak ke semua peranti.",
@@ -992,7 +992,7 @@ const es: Record<TranslationKey, string> = {
   "aria.delete": "Eliminar {name}",
   "aria.share": "Compartir {name}",
 
-  "empty.title": "¡Bienvenido! 👋",
+  "empty.title": "¡Bienvenido!",
   "empty.body":
     "Controla todos tus pagos recurrentes — desde la renta y el auto hasta servicios y suscripciones — en un solo lugar. No te pierdas ninguna renovación y cancela lo que no necesitas paso a paso.",
   "empty.addFirst": "Agrega tu primer pago",
@@ -1047,7 +1047,7 @@ const es: Record<TranslationKey, string> = {
   "settings.reminderQuestion": "¿Cuántos días antes quieres el recordatorio?",
   "settings.daysBefore": "{n} días antes",
   "settings.notifications": "Activar notificaciones del navegador",
-  "settings.testNotifications": "🔔 Probar Notificaciones Ahora",
+  "settings.testNotifications": "Probar Notificaciones Ahora",
   "settings.ratesTitle": "Tipos de Cambio",
   "settings.ratesRefresh": "Actualizar",
   "settings.ratesRefreshing": "Actualizando…",
@@ -1061,7 +1061,7 @@ const es: Record<TranslationKey, string> = {
   "theme.light": "Claro",
   "theme.dark": "Oscuro",
 
-  "security.title": "Seguridad 🔒",
+  "security.title": "Seguridad",
   "security.offHint":
     "El bloqueo con PIN está desactivado. Tus datos se guardan sin cifrar en este dispositivo. Al activarlo, los datos se cifran con AES-GCM y no pueden leerse sin tu PIN.",
   "security.enableTitle": "Activar bloqueo con PIN",
@@ -1083,7 +1083,7 @@ const es: Record<TranslationKey, string> = {
   "chart.change": "Cambio desde el primer precio",
   "aria.history": "Historial de precios de {name}",
 
-  "data.title": "Respaldo de Datos 💾",
+  "data.title": "Respaldo de Datos",
   "data.exportBtn": "Exportar CSV",
   "data.importBtn": "Importar CSV",
   "data.importHint":
@@ -1122,7 +1122,7 @@ const es: Record<TranslationKey, string> = {
   "account.syncKeyApply": "Usar clave",
   "account.syncKeyInvalid": "Esa clave no es válida.",
   "account.manageBilling": "Administrar suscripción",
-  "data.eraseBtn": "🗑️ Borrar todos los datos",
+  "data.eraseBtn": "Borrar todos los datos",
   "confirm.eraseLocal":
     "¿Borrar permanentemente todos los pagos y ajustes de este dispositivo? Esto no se puede deshacer.",
   "toast.erased": "Todos los datos fueron borrados",
@@ -1156,7 +1156,7 @@ const es: Record<TranslationKey, string> = {
   "auth.error.invalidCredentials": "Correo o contraseña incorrectos.",
   "auth.error.userExists": "Ya existe una cuenta con este correo.",
   "auth.profile.title": "Cuenta & Sincronización",
-  "auth.profile.synced": "Sincronización Activa ☁️",
+  "auth.profile.synced": "Sincronización Activa",
   "auth.profile.lastSync": "Última Sincronización: {time}",
   "auth.profile.justNow": "Justo ahora",
   "auth.profile.syncNow": "Sincronizar Ahora",
@@ -1175,7 +1175,7 @@ const es: Record<TranslationKey, string> = {
 
   "premium.title": "Premium",
   "premium.statusActive": "Premium activo ⭐",
-  "premium.statusTrial": "Estás en tu periodo gratuito 🎁",
+  "premium.statusTrial": "Estás en tu periodo gratuito",
   "premium.periodEnd": "Válido hasta: {date}",
   "premium.locked":
     "La sincronización en la nube y el acceso multidispositivo son funciones Premium. Tus datos están seguros en este dispositivo; con Premium se sincronizan en todos.",
@@ -1212,7 +1212,7 @@ const es: Record<TranslationKey, string> = {
   "lock.wipeConfirmText":
     "Esto borrará permanentemente TODOS tus datos y no se puede deshacer. ¿Seguro que quieres continuar?",
 
-  "banner.notif": "🔔 Activa las notificaciones para recordatorios de renovación",
+  "banner.notif": "Activa las notificaciones para recordatorios de renovación",
   "banner.open": "Activar",
   "toast.saved": "Guardado ✓",
   "toast.deleted": "Pago eliminado",
@@ -1296,7 +1296,7 @@ const ar: Record<TranslationKey, string> = {
   "aria.delete": "حذف {name}",
   "aria.share": "مشاركة {name}",
 
-  "empty.title": "أهلًا بك! 👋",
+  "empty.title": "أهلًا بك!",
   "empty.body":
     "تتبّع كل مدفوعاتك المتكررة — من الإيجار وإيجار السيارة إلى الفواتير والاشتراكات — في مكان واحد. لا تفوّت أي تجديد، وألغِ ما لا تحتاجه خطوة بخطوة.",
   "empty.addFirst": "أضف دفعتك الأولى",
@@ -1351,7 +1351,7 @@ const ar: Record<TranslationKey, string> = {
   "settings.reminderQuestion": "قبل كم يوم تريد التذكير بالدفع؟",
   "settings.daysBefore": "قبل {n} أيام",
   "settings.notifications": "تفعيل إشعارات المتصفح",
-  "settings.testNotifications": "🔔 اختبر الإشعارات الآن",
+  "settings.testNotifications": "اختبر الإشعارات الآن",
   "settings.ratesTitle": "أسعار الصرف",
   "settings.ratesRefresh": "تحديث",
   "settings.ratesRefreshing": "جارٍ التحديث…",
@@ -1365,7 +1365,7 @@ const ar: Record<TranslationKey, string> = {
   "theme.light": "فاتح",
   "theme.dark": "داكن",
 
-  "security.title": "الأمان 🔒",
+  "security.title": "الأمان",
   "security.offHint":
     "قفل PIN معطّل. بياناتك محفوظة على هذا الجهاز دون تشفير. عند تفعيله تُشفَّر البيانات بخوارزمية AES-GCM ولا يمكن قراءتها دون رمز PIN.",
   "security.enableTitle": "تفعيل قفل PIN",
@@ -1387,7 +1387,7 @@ const ar: Record<TranslationKey, string> = {
   "chart.change": "التغيّر منذ أول سعر",
   "aria.history": "سجل أسعار {name}",
 
-  "data.title": "النسخ الاحتياطي 💾",
+  "data.title": "النسخ الاحتياطي",
   "data.exportBtn": "تصدير CSV",
   "data.importBtn": "استيراد CSV",
   "data.importHint":
@@ -1426,7 +1426,7 @@ const ar: Record<TranslationKey, string> = {
   "account.syncKeyApply": "استخدام المفتاح",
   "account.syncKeyInvalid": "هذا المفتاح غير صالح.",
   "account.manageBilling": "إدارة الاشتراك",
-  "data.eraseBtn": "🗑️ حذف كل البيانات",
+  "data.eraseBtn": "حذف كل البيانات",
   "confirm.eraseLocal":
     "هل تريد حذف كل المدفوعات والإعدادات على هذا الجهاز نهائيًا؟ لا يمكن التراجع عن ذلك.",
   "toast.erased": "حُذفت كل البيانات",
@@ -1460,7 +1460,7 @@ const ar: Record<TranslationKey, string> = {
   "auth.error.invalidCredentials": "البريد أو كلمة المرور غير صحيحة.",
   "auth.error.userExists": "يوجد حساب بهذا البريد بالفعل.",
   "auth.profile.title": "الحساب والمزامنة السحابية",
-  "auth.profile.synced": "المزامنة السحابية مفعّلة ☁️",
+  "auth.profile.synced": "المزامنة السحابية مفعّلة",
   "auth.profile.lastSync": "آخر مزامنة: {time}",
   "auth.profile.justNow": "قبل لحظات",
   "auth.profile.syncNow": "زامن الآن",
@@ -1479,7 +1479,7 @@ const ar: Record<TranslationKey, string> = {
 
   "premium.title": "بريميوم",
   "premium.statusActive": "بريميوم مفعّل ⭐",
-  "premium.statusTrial": "أنت في فترتك المجانية 🎁",
+  "premium.statusTrial": "أنت في فترتك المجانية",
   "premium.periodEnd": "صالح حتى: {date}",
   "premium.locked":
     "المزامنة السحابية والوصول من عدة أجهزة من مزايا بريميوم. بياناتك آمنة على هذا الجهاز؛ مع بريميوم تُزامَن على كل أجهزتك.",
@@ -1516,7 +1516,7 @@ const ar: Record<TranslationKey, string> = {
   "lock.wipeConfirmText":
     "سيؤدي هذا إلى حذف كل بياناتك نهائيًا ولا يمكن التراجع عنه. هل أنت متأكد من المتابعة؟",
 
-  "banner.notif": "🔔 فعّل الإشعارات لتذكيرات التجديد",
+  "banner.notif": "فعّل الإشعارات لتذكيرات التجديد",
   "banner.open": "تفعيل",
   "toast.saved": "تم الحفظ ✓",
   "toast.deleted": "حُذفت الدفعة",

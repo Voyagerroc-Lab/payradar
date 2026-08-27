@@ -1,5 +1,6 @@
 import type { BillingCycle, CategoryId, Currency, Language, Payment } from "../types";
 import type { TranslationKey } from "../i18n/dict";
+import type { IconName } from "../components/icons";
 import { convert, type FxTable, type LegacyRates } from "./fx";
 
 /** Dil kodunu Intl locale'ine çevirir; tüm tarih/saat biçimlendirme bunu kullanmalı.
@@ -55,19 +56,19 @@ export function sanitizeCategoryFields(p: Payment): Payment {
 
 export const CATEGORIES: Record<
   CategoryId,
-  { emoji: string; color: string; labelKey: TranslationKey }
+  { icon: IconName; color: string; labelKey: TranslationKey }
 > = {
-  konut: { emoji: "🏠", color: "#e5484d", labelKey: "cat.konut" },
-  ulasim: { emoji: "🚗", color: "#0091ff", labelKey: "cat.ulasim" },
-  faturalar: { emoji: "🧾", color: "#f76b15", labelKey: "cat.faturalar" },
-  abonelik: { emoji: "📺", color: "#8e4ec6", labelKey: "cat.abonelik" },
-  egitim: { emoji: "📚", color: "#ffb224", labelKey: "cat.egitim" },
-  saglik: { emoji: "💪", color: "#30a46c", labelKey: "cat.saglik" },
-  sigorta: { emoji: "🛡️", color: "#05a2c2", labelKey: "cat.sigorta" },
-  kredi: { emoji: "🏦", color: "#2563eb", labelKey: "cat.kredi" },
-  cek_senet: { emoji: "📜", color: "#7c3aed", labelKey: "cat.cek_senet" },
-  oyun: { emoji: "🎮", color: "#7d6ee0", labelKey: "cat.oyun" },
-  diger: { emoji: "📦", color: "#8d8d8d", labelKey: "cat.diger" },
+  konut: { icon: "home", color: "#e5484d", labelKey: "cat.konut" },
+  ulasim: { icon: "car", color: "#0091ff", labelKey: "cat.ulasim" },
+  faturalar: { icon: "receipt", color: "#f76b15", labelKey: "cat.faturalar" },
+  abonelik: { icon: "screen", color: "#8e4ec6", labelKey: "cat.abonelik" },
+  egitim: { icon: "book", color: "#ffb224", labelKey: "cat.egitim" },
+  saglik: { icon: "pulse", color: "#30a46c", labelKey: "cat.saglik" },
+  sigorta: { icon: "shield", color: "#05a2c2", labelKey: "cat.sigorta" },
+  kredi: { icon: "bank", color: "#2563eb", labelKey: "cat.kredi" },
+  cek_senet: { icon: "scroll", color: "#7c3aed", labelKey: "cat.cek_senet" },
+  oyun: { icon: "gamepad", color: "#7d6ee0", labelKey: "cat.oyun" },
+  diger: { icon: "box", color: "#8d8d8d", labelKey: "cat.diger" },
 };
 
 export function formatMoney(

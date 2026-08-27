@@ -4,6 +4,7 @@ import { findGuide } from "../data/guides";
 import type { Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
+import { Icon } from "./icons";
 
 interface PaymentCardProps {
   payment: Payment;
@@ -65,17 +66,21 @@ export default function PaymentCard({
     >
       <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">
         <span>{payment.name.charAt(0).toLocaleUpperCase(localeFor(lang))}</span>
-        <small>{category.emoji}</small>
+        <small style={{ color: category.color }}>
+          <Icon name={category.icon} size={12} />
+        </small>
       </div>
 
       <div className="sub-info">
         <div className="sub-title-row">
           <h2 title={payment.name}>{payment.name}</h2>
           <span className="chip" style={{ borderColor: category.color }}>
-            <span aria-hidden="true">{category.emoji}</span> {t(category.labelKey)}
+            <Icon name={category.icon} size={11} /> {t(category.labelKey)}
           </span>
           {payment.isTrial && days >= 0 && (
-            <span className="chip chip-trial">🎁 {t("card.trial")}</span>
+            <span className="chip chip-trial">
+              <Icon name="gift" size={11} /> {t("card.trial")}
+            </span>
           )}
         </div>
         <p className="sub-price">
@@ -93,7 +98,8 @@ export default function PaymentCard({
         {payment.categoryId === "kredi" &&
           (payment.bankName || payment.currentInstallment != null) && (
             <p className="sub-detail-chip detail-kredi">
-              {payment.bankName ? `🏦 ${payment.bankName}` : "🏦"}
+              <Icon name="bank" size={11} />
+              {payment.bankName ? ` ${payment.bankName}` : ""}
               {payment.currentInstallment != null &&
                 payment.totalInstallments != null && (
                   <>
@@ -109,7 +115,8 @@ export default function PaymentCard({
         {payment.categoryId === "cek_senet" &&
           (payment.checkNumber || payment.payee) && (
             <p className="sub-detail-chip detail-cek">
-              {payment.checkNumber ? `📜 ${t("card.checkNo")} ${payment.checkNumber}` : "📜"}
+              <Icon name="scroll" size={11} />
+              {payment.checkNumber ? ` ${t("card.checkNo")} ${payment.checkNumber}` : ""}
               {payment.checkNumber && payment.payee ? ` • ${payment.payee}` : payment.payee ?? ""}
             </p>
           )}
@@ -117,7 +124,11 @@ export default function PaymentCard({
       </div>
 
       <div className="sub-actions">
-        <span className={`badge ${badge.className}`} title={badge.text} aria-label={badge.text}>
+        <span
+          className={`badge ${badge.className}${days >= 0 && days <= 3 ? " badge-ping" : ""}`}
+          title={badge.text}
+          aria-label={badge.text}
+        >
           {badge.short}
         </span>
         {hasGuide && (
@@ -132,7 +143,7 @@ export default function PaymentCard({
             aria-label={t("aria.history", { name: payment.name })}
             title={t("aria.history", { name: payment.name })}
           >
-            📈
+            <Icon name="chart" />
           </button>
         )}
         {canShare && (
@@ -142,7 +153,7 @@ export default function PaymentCard({
             aria-label={t("aria.share", { name: payment.name })}
             title={t("aria.share", { name: payment.name })}
           >
-            📤
+            <Icon name="share" />
           </button>
         )}
         {onAdvance && days <= 0 && (
@@ -152,7 +163,7 @@ export default function PaymentCard({
             aria-label={t("card.advance")}
             title={t("card.advance")}
           >
-            ✅
+            <Icon name="check" />
           </button>
         )}
         <button
@@ -160,14 +171,14 @@ export default function PaymentCard({
           onClick={onEdit}
           aria-label={t("aria.edit", { name: payment.name })}
         >
-          ✏️
+          <Icon name="pencil" />
         </button>
         <button
           className="icon-btn danger"
           onClick={onDelete}
           aria-label={t("aria.delete", { name: payment.name })}
         >
-          🗑️
+          <Icon name="trash" />
         </button>
       </div>
     </article>

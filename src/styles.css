@@ -10,6 +10,11 @@
   --accent-soft: #f1ebfe;
   /* Elektrik vurgusu: markanın "canlı sinyal" rengi (radar vuruşu) */
   --pulse: #d946ef;
+  /* Fosfor sinyali: gerçek radar ekranının yeşili. Yalnızca "canlı temas"
+     anlarında konuşur (tarama huzmesi, yaklaşan ödeme, canlı kur) —
+     anlamsal --ok yeşilinden bilinçli olarak ayrı tutulur. */
+  --signal: #0e9f6e;
+  --signal-soft: rgb(14 159 110 / 0.12);
   --danger: #dc2626;
   --danger-soft: #fee2e2;
   --warn: #b45309;
@@ -33,9 +38,9 @@
   --cast-a: 0.07;
   --cast-a-lift: 0.13;
   --radius: 12px;
-  /* Mikro etiketlerin teknik sesi: sistem mono yığını, ağ isteği sıfır */
-  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  /* Teknik ses: self-host IBM Plex Mono, gerisi sistem yığını yedeği */
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
   color-scheme: light;
 }
 
@@ -49,6 +54,8 @@
   --accent-strong: #8b5cf6;
   --accent-soft: #2a2342;
   --pulse: #e879f9;
+  --signal: #45f0ae;
+  --signal-soft: rgb(69 240 174 / 0.13);
   --danger: #f87171;
   --danger-soft: #3d1f22;
   --warn: #fbbf24;
@@ -81,6 +88,8 @@
     --accent-strong: #8b5cf6;
     --accent-soft: #2a2342;
     --pulse: #e879f9;
+    --signal: #45f0ae;
+    --signal-soft: rgb(69 240 174 / 0.13);
     --danger: #f87171;
     --danger-soft: #3d1f22;
     --warn: #fbbf24;
@@ -103,9 +112,61 @@
   }
 }
 
+/* ---------- Yerel fontlar ----------
+   IBM Plex Mono (OFL) yalnızca latin altkümesiyle self-host edilir: para
+   tutarları ve mikro etiketler her platformda AYNI karakterle konuşur —
+   sistem monosuna göre kimlik tutarlılığı. Ağ isteği yok (CSP: font-src
+   'self'), yüklenene dek sistem monosu gösterilir (font-display: swap). */
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
+/* Türkçe ₺ (U+20BA), Ş/ş, Ğ/ğ, İ/ı bu altkümede */
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latinext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C0;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latinext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C0;
+}
+
 /* ---------- Temel ---------- */
 * {
   box-sizing: border-box;
+}
+
+/* Çizgi ikonlar metinle aynı satırda oturur */
+.icon {
+  vertical-align: -0.18em;
+  flex-shrink: 0;
 }
 
 body {
@@ -281,9 +342,18 @@ button {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Kahraman + üç destek: aylık toplam tam satır, gerisi eşit üçlü. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin: 22px 0;
+}
+
+.summary-hero {
+  grid-column: 1 / -1;
+}
+
+.summary-hero .summary-value {
+  font-size: clamp(26px, 8vw, 40px);
 }
 
 .summary-card {
@@ -294,16 +364,6 @@ button {
   flex-direction: column;
   gap: 5px;
   padding: 18px 18px 16px;
-}
-
-.summary-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: var(--sum-color);
-  border-radius: var(--radius) var(--radius) 0 0;
-  opacity: 0.9;
 }
 
 /* Sınıf adları TSX'te sabit; paleti marka menekşe→fuşya eksenine çekildi */
@@ -352,7 +412,7 @@ button {
   place-items: center;
   width: 38px;
   height: 38px;
-  font-size: 19px;
+  color: var(--sum-label, var(--sum-color));
   background: var(--sum-soft);
   border-radius: 12px;
 }
@@ -374,8 +434,10 @@ button {
   /* Kolon daraldıkça tutar da küçülür: dar ekranda "₺545.175,64" 24px'te
      kolona sığmıyor ve ucu kırpılıyordu. Kırpmak yerine ölçekle. */
   font-size: clamp(13px, 4.2vw, 24px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  /* Para, uygulamanın başrolüdür: teknik mono sesle, her platformda aynı */
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -395,7 +457,8 @@ button {
 .summary-next small {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--text-soft);
+  /* Canlı temas satırı: radar bir sonraki ödemeyi yakaladı */
+  color: var(--signal);
 }
 
 .muted {
@@ -652,8 +715,10 @@ button {
 
 .sub-price {
   margin-top: 3px;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -707,6 +772,36 @@ button {
   background: var(--danger-soft);
 }
 
+/* Radar teması ana ekranda: yaklaşan ödemenin rozeti "temas" sinyali verir.
+   Halka rozetin kendi renginde genişleyip söner (currentColor) — aciliyet
+   rengiyle çelişmez. prefers-reduced-motion global kuralı animasyonu keser. */
+.badge-ping {
+  position: relative;
+}
+
+.badge-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid currentColor;
+  border-radius: inherit;
+  opacity: 0;
+  animation: radar-ping 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
 .no-results {
   padding: 40px 0;
   color: var(--text-soft);
@@ -744,7 +839,7 @@ button {
   place-items: center;
   width: 84px;
   height: 84px;
-  font-size: 40px;
+  color: var(--signal);
   background: none;
   border: 1px solid rgb(139 92 246 / 0.45);
   border-radius: 24px;
@@ -758,10 +853,11 @@ button {
   position: absolute;
   inset: 0;
   z-index: -1;
+  /* Gerçek radar ekranı: koyu cam üstünde fosfor yeşili tarama ve izler */
   background:
-    conic-gradient(from var(--sweep), rgb(167 139 250 / 0.5), transparent 28%),
-    radial-gradient(rgb(167 139 250 / 0.30) 1px, transparent 1.5px),
-    radial-gradient(120% 120% at 30% 20%, #171130, #0b0d16 70%);
+    conic-gradient(from var(--sweep), rgb(69 240 174 / 0.5), transparent 28%),
+    radial-gradient(rgb(69 240 174 / 0.28) 1px, transparent 1.5px),
+    radial-gradient(120% 120% at 30% 20%, #0e2018, #0b0d16 70%);
   background-size: auto, 9px 9px, auto;
   animation: radar-sweep 3.6s linear infinite;
 }
@@ -1826,6 +1922,11 @@ textarea.input {
     /* minmax(0, ...) şart: 1fr'nin örtük asgarisi min-content olduğu için
        bölünemeyen uzun bir tutar kolonu şişirip yatay taşma yaratıyor */
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* İki kolonda tek başına yarım kalmasın: en yakın ödeme de tam satır */
+  .summary-card-next {
+    grid-column: 1 / -1;
   }
 }
 

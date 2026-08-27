@@ -4,6 +4,7 @@ import { type FxTable } from "../lib/fx";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
 import type { TranslationKey } from "../i18n/dict";
+import { Icon } from "./icons";
 
 interface SummaryCardsProps {
   payments: Payment[];
@@ -36,30 +37,32 @@ export default function SummaryCards({
 
   return (
     <section className="summary" ref={sceneRef}>
-      <div className="card summary-card summary-indigo">
+      {/* Aylık toplam sahnenin kahramanıdır: tam satır, büyük punto.
+          Diğer üçü destek rolünde sessizleşir — renk çubuğu şablonu yok. */}
+      <div className="card summary-card summary-hero summary-indigo">
         <span className="summary-icon" aria-hidden="true">
-          💸
+          <Icon name="coins" size={19} />
         </span>
         <span className="summary-label">{t("summary.monthly")}</span>
         <span className="summary-value">{formatMoney(monthly, home, lang)}</span>
       </div>
       <div className="card summary-card summary-violet">
         <span className="summary-icon" aria-hidden="true">
-          📈
+          <Icon name="trend" size={17} />
         </span>
         <span className="summary-label">{t("summary.yearly")}</span>
         <span className="summary-value">{formatMoney(yearly, home, lang)}</span>
       </div>
       <div className="card summary-card summary-teal">
         <span className="summary-icon" aria-hidden="true">
-          🧾
+          <Icon name="layers" size={17} />
         </span>
         <span className="summary-label">{t("summary.active")}</span>
         <span className="summary-value">{payments.length}</span>
       </div>
-      <div className="card summary-card summary-amber">
+      <div className="card summary-card summary-amber summary-card-next">
         <span className="summary-icon" aria-hidden="true">
-          ⏰
+          <Icon name="radar" size={17} />
         </span>
         <span className="summary-label">{t("summary.next")}</span>
         {upcoming ? (

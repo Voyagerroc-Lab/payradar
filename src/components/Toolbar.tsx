@@ -2,6 +2,7 @@ import { CATEGORIES } from "../lib/format";
 import type { CategoryId } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
+import { Icon } from "./icons";
 
 export type SortKey = "date" | "price-desc" | "name";
 
@@ -53,7 +54,7 @@ export default function Toolbar({
             aria-pressed={category === id}
             onClick={() => onCategoryChange(id)}
           >
-            <span aria-hidden="true">{CATEGORIES[id].emoji}</span>{" "}
+            <Icon name={CATEGORIES[id].icon} size={13} />{" "}
             {t(CATEGORIES[id].labelKey as TranslationKey)}
           </button>
         ))}
