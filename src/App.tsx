@@ -1055,6 +1055,24 @@ function Footer() {
     <footer className="footer">
       <p>{t("footer.free")}</p>
       <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
+        {/* GitLab tanuki markası: kendi renkleriyle, tanınır kalsın diye
+            currentColor ikon setinden ayrı tutuldu */}
+        <svg
+          className="gitlab-mark"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="#E24329" d="M12 22.09 15.53 11.2H8.47L12 22.09z" />
+          <path fill="#FC6D26" d="M12 22.09 8.47 11.2H3.52L12 22.09z" />
+          <path fill="#FCA326" d="M3.52 11.2 2.45 14.5a.73.73 0 0 0 .26.82L12 22.09 3.52 11.2z" />
+          <path fill="#E24329" d="M3.52 11.2h4.95L6.34 4.66a.365.365 0 0 0-.694 0L3.52 11.2z" />
+          <path fill="#FC6D26" d="M12 22.09 15.53 11.2h4.95L12 22.09z" />
+          <path fill="#FCA326" d="M20.48 11.2l1.07 3.3a.73.73 0 0 1-.26.82L12 22.09l8.48-10.89z" />
+          <path fill="#E24329" d="M20.48 11.2h-4.95l2.13-6.54a.365.365 0 0 1 .694 0l2.126 6.54z" />
+        </svg>
         {t("footer.openSource")} · gitlab.com/Voyagerroc/payradar
       </a>
     </footer>
