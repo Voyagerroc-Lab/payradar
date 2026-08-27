@@ -1,108 +1,84 @@
+<div align="center">
+
 # 📡 PayRadar
 
-> **Track every recurring payment — rent, car leases, bills, subscriptions — in one private place.**
-> Kira, araç kirası, fatura ve aboneliklerin hepsi tek yerde; verileriniz cihazınızda şifreli kalır.
+**Tüm düzenli ödemelerini tek, gizli bir yerde takip et.**
+_Track every recurring payment — rent, bills, subscriptions — in one private place._
 
-PayRadar is a free, open-source recurring payment tracker that runs entirely in your browser. No accounts, no servers, no analytics — your data never leaves your device.
+[![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed.svg)](LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-installable-8b5cf6.svg)](https://payradar-bkp.pages.dev)
+[![Languages](https://img.shields.io/badge/i18n-TR%20·%20EN%20·%20MS%20·%20ES%20·%20AR-d946ef.svg)](#-languages--diller)
+[![Built with React](https://img.shields.io/badge/React%2019-Vite-a78bfa.svg)](#️-tech)
 
-## ✨ Features
+### **[▶ Uygulamayı aç / Open the app](https://payradar-bkp.pages.dev)**
 
-- 📊 **Instant overview** — monthly/yearly totals, active payments, next upcoming charge
-- 🏠🚗🧾📺 **Everything recurring** — housing, transport, utilities, subscriptions, insurance, education, bank loans, checks… 11 categories
-- 🏦 **Loan & check tracking** — bank name, installment counter (14/60), check serial number and payee on the card
-- 🔁 **Flexible cycles** — weekly, monthly, quarterly, yearly billing; one-tap "Paid / Advance" rolls the due date forward
-- 🌍 **Multi-currency** — TRY / USD / EUR payments with editable exchange rates for TL totals
-- 🗓️ **Renewal tracking** — color-coded countdown badges on every card
-- 🔔 **Reminders** — browser notifications 1–7 days before renewal (and up to 2 days overdue), with a grouped digest when several payments are due
-- 🚫 **Cancellation guides** — step-by-step guides + direct links for Netflix, Spotify, BluTV, TOD, Game Pass and [17 more](src/data/guides.ts), in Turkish and English
-- 🌐 **Trilingual** — Turkish, English & Malay UI (`tr` / `en` / `ms`), auto-detected from your browser
-- 🌙 **Dark mode** — follows system or manual override; theme & language roam across devices with cloud sync
-- 📱 **PWA** — installable on phone/desktop, works fully offline
+</div>
 
-> 🌿 **Branches:** `main` holds the web app (which also powers the Android TWA and iOS wrapper in [`ios/`](ios/)). An experimental native Android (Kotlin/Compose) client lives on the [`android-native`](https://github.com/Voyagerroc/payradar/tree/android-native) branch; all of its features have been ported into the web app.
+<div align="center">
+  <img src="docs/img/screen-dark.png"  alt="Ana ekran (koyu tema)" width="30%">
+  <img src="docs/img/screen-light.png" alt="Ana ekran (açık tema)" width="30%">
+  <img src="docs/img/screen-empty.png" alt="Karşılama ekranı" width="30%">
+</div>
 
-## 🔒 Security
+---
 
-| Measure | Detail |
+## 🇹🇷 Nedir? · 🇬🇧 What is it?
+
+**PayRadar**, kira, fatura, abonelik ve taksitler gibi **düzenli ödemelerini** tek yerden takip etmeni sağlayan, ücretsiz ve açık kaynak bir uygulamadır. Her ödemenin ne zaman yenileneceğini önceden görür, gereksizleri fark edip iptal edersin. Verilerin **cihazında** kalır — istemezsen hiçbir sunucuya gitmez.
+
+_PayRadar is a free, open-source tracker for your recurring payments — rent, bills, subscriptions, installments. See what renews next, catch what you no longer need, and cancel it. Your data stays **on your device** unless you choose to sync._
+
+## ✨ Özellikler · Features
+
+- 📊 **Anlık özet** — aylık & yıllık toplam, aktif ödeme sayısı, en yakın yenileme
+- 🗂️ **11 kategori** — konut, ulaşım, fatura, abonelik, eğitim, sağlık, sigorta, banka kredisi, çek/senet, oyun, diğer
+- 💱 **160+ para birimi, canlı kur motoru** — ödemeni herhangi bir birimde gir; Ayarlar'dan seçtiğin **tek gösterim birimine** güncel kurla otomatik çevrilir. 48.000 ₺'lik portföyün, birimi $'a çevirince güncel kurla ≈ $1.000 görünür — offline'da bile çalışır
+- 🔔 **Akıllı hatırlatmalar** — yenilemeden 1–7 gün önce tarayıcı bildirimi; aynı gün birkaç ödeme varsa gruplu özet
+- 🚫 **İptal rehberleri** — Netflix, Spotify, Game Pass ve onlarca servis için adım adım iptal + doğrudan bağlantı
+- 🔐 **Gizlilik önce** — veriler cihazda AES-256-GCM ile şifreli; opsiyonel PIN kilidi; istersen uçtan uca şifreli bulut senkronu
+- 🌗 **Koyu / açık tema** ve **radar** kimliği — çizgi ikonlar, canlı sinyal rengi
+- 📱 **PWA** — telefona/masaüstüne kurulur, tamamen çevrimdışı çalışır
+
+## 🌍 Languages · Diller
+
+Arayüz beş dilde, tarayıcından otomatik seçilir:
+
+🇹🇷 Türkçe · 🇬🇧 English · 🇲🇾 Bahasa Melayu · 🇪🇸 Español · 🇸🇦 العربية _(sağdan-sola tam destek)_
+
+## 🔒 Gizlilik & Güvenlik · Privacy & Security
+
+| Katman | Detay |
 |---|---|
-| Optional PIN lock | 4–8 digits, set up in Settings → Security |
-| AES-256-GCM encryption | Vault data encrypted at rest via WebCrypto |
-| PBKDF2-SHA256 key derivation | 150,000 iterations; key lives **only in memory** |
-| Hashed PIN | PIN itself is never stored — only a derived verify hash |
-| Auto-lock | Locks after configurable inactivity (1/3/5/10 min) |
-| Timing-safe comparison | Verify hash compared without early exit |
-| Strict CSP & headers | `vercel.json` + `_headers` ship hardened defaults |
-| Zero network calls | No analytics, no trackers, no third-party requests (unless cloud sync is enabled) |
-
-> ⚠️ Forgot your PIN? The data cannot be recovered — the lock screen offers a deliberate wipe option instead. This is by design.
-
-> ⚠️ PIN lock only protects the copy stored **on this device**. If you also enable cloud sync below, your data is uploaded to your own Supabase project **unencrypted** (protected there by Row Level Security and your project's own access controls, not by your local PIN).
-
-## ☁️ Optional Cloud Sync (Free)
-
-PayRadar works fully offline by default. Want your payments backed up under your own email/phone and synced across devices? Enable free cloud sync in 3 minutes:
-
-1. Create a free project at [supabase.com](https://supabase.com) (no credit card)
-2. Open **SQL Editor** and run [`supabase-setup.sql`](supabase-setup.sql) — this creates a `vaults` table protected by Row Level Security, so **every user can only ever read/write their own row**
-3. Copy `.env.example` → `.env` and paste your project URL + anon key
-4. To let people sign up with a phone number too, enable **Authentication → Providers → Phone** in your Supabase project and connect an SMS provider (e.g. Twilio) — this is a paid, external service you configure yourself
-
-Restart the app — a new **Account ☁️** section appears in Settings. Sign up with an email or phone number; from then on every change auto-syncs. No account? Everything still works 100% locally.
+| Yerel öncelikli | Tüm veriler tarayıcının kendi belleğinde; sunucu zorunlu değil |
+| AES-256-GCM | Kasa verisi cihazda şifreli saklanır (WebCrypto) |
+| PBKDF2-SHA256 | 150.000 tur anahtar türetme; anahtar **yalnızca bellekte** |
+| Opsiyonel bulut | Açarsan veri cihazında **uçtan uca şifrelenir**; sunucuda içerik okunamaz |
+| Reklam & takip yok | Analytics yok, üçüncü taraf yok |
 
 ## 🛠️ Tech
 
-[![React](https://img.shields.io/badge/React_19-20232A?logo=react&logoColor=61DAFB)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=fff)](https://vitejs.dev)
+React 19 · TypeScript · Vite · PWA (Service Worker + Web App Manifest) · WebCrypto · Supabase (opsiyonel senkron) · Cloudflare Pages · Android **TWA**
 
-Zero runtime dependencies beyond React. Hand-crafted CSS design system. ~75 KB gzipped total.
-
-## 🚀 Getting started
+## 🚀 Yerel çalıştırma · Run locally
 
 ```bash
-git clone https://github.com/Voyagerroc/payradar.git
-cd payradar
 npm install
-npm run dev        # dev server -> http://localhost:5173
-npm run build      # production build -> dist/
-npm run preview    # test the build locally
+npm run dev      # geliştirme sunucusu
+npm run build    # üretim derlemesi (dist/)
+npm run preview  # derlemeyi önizle
 ```
 
-### 🌐 Live demo
+## 📄 Lisans · License
 
-**https://payradar-bkp.pages.dev** — install it straight from there.
+[MIT](LICENSE) — özgürce kullan, çatalla, katkı yap.
 
-### ☁️ Deploy
+---
 
-Works on any static host:
+<div align="center">
 
-```bash
-npx vercel         # Vercel — security headers included via vercel.json
-```
+<a href="https://gitlab.com/Voyagerroc/payradar">
+  <img src="docs/img/gitlab-logo.svg" alt="GitLab" width="56"><br>
+  <sub><b>Hosted on GitLab</b> · gitlab.com/Voyagerroc/payradar</sub>
+</a>
 
-Netlify: connect the repo (`_headers` is picked up automatically). GitHub Pages: publish `dist/` (add your own header meta if needed).
-
-### 📲 Install as an app
-
-Open the deployed URL in Chrome/Safari → **"Add to Home Screen"**. PayRadar then launches fullscreen and works offline.
-
-## 🗺️ Roadmap
-
-- [x] CSV import/export (bank statement parsing)
-- [x] Price history chart — see subscription hikes at a glance
-- [x] Free-trial tracking ("card will be charged in X days")
-- [x] English cancellation guides for global services
-- [x] Web Share API for family plan splitting
-
-## 🤝 Contributing
-
-Adding a cancellation guide takes minutes: open [`src/data/guides.ts`](src/data/guides.ts), copy an entry, fill in `aliases`, `steps` and `cancelUrl`. Translations, bug fixes and features are welcome — fork, branch, PR!
-
-```bash
-git checkout -b feat/my-guide
-git commit -m "feat: add cancellation guide for X"
-```
-
-## 📄 License
-
-MIT — see [LICENSE](LICENSE).
+</div>
