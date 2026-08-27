@@ -70,7 +70,7 @@ Reklam yok, izleyici yok, veri satışı yok. Ödeme takibinin tamamı süresiz 
 • İsteğe bağlı PIN kilidi: veriler AES-256-GCM ile şifrelenir, anahtar yalnızca bellekte tutulur
 • Otomatik kilit: seçtiğiniz süre kadar hareketsizlikte uygulama kendini kilitler
 • İsteğe bağlı uçtan uca şifreli bulut senkronu: veriler cihazdan çıkmadan şifrelenir, sunucu içeriğinizi göremez (ilk 6 ay ücretsiz, sonrası aylık 1 $)
-• Açık kaynak: github.com/Voyagerroc/payradar — kodun tamamı denetlenebilir
+• Açık kaynak: gitlab.com/Voyagerroc/payradar — kodun tamamı denetlenebilir
 
 📂 VERİNİZ SİZİNDİR
 • Excel uyumlu CSV dışa aktarma: tüm kayıtlarınızı tek dosyada alın
@@ -151,7 +151,7 @@ No ads, no trackers, no data selling. Core payment tracking is free forever.
 • Optional PIN lock: data is encrypted with AES-256-GCM and the key lives only in memory
 • Auto-lock after the inactivity period you choose
 • Optional end-to-end encrypted cloud sync: data is encrypted before it leaves your device, so the server can't read it (first 6 months free, then $1/month)
-• Open source: github.com/Voyagerroc/payradar — audit every line
+• Open source: gitlab.com/Voyagerroc/payradar — audit every line
 
 📂 YOUR DATA IS YOURS
 • Excel-compatible CSV export: take all your records in one file
@@ -232,7 +232,7 @@ Tiada iklan, tiada penjejak, tiada penjualan data. Penjejakan pembayaran asas pe
 • Kunci PIN pilihan: data disulitkan dengan AES-256-GCM dan kunci hanya disimpan dalam memori
 • Kunci automatik selepas tempoh tidak aktif yang anda pilih
 • Penyegerakan awan tersulit hujung-ke-hujung (pilihan): data disulitkan sebelum meninggalkan peranti, pelayan tidak dapat membacanya (6 bulan pertama percuma, kemudian $1/bulan)
-• Sumber terbuka: github.com/Voyagerroc/payradar — setiap baris kod boleh diaudit
+• Sumber terbuka: gitlab.com/Voyagerroc/payradar — setiap baris kod boleh diaudit
 
 📂 DATA ANDA MILIK ANDA
 • Eksport CSV serasi Excel: ambil semua rekod anda dalam satu fail
@@ -313,7 +313,7 @@ Sin anuncios, sin rastreadores, sin venta de datos. El seguimiento de pagos es g
 • Bloqueo con PIN opcional: datos cifrados con AES-256-GCM y clave solo en memoria
 • Bloqueo automático tras el periodo de inactividad que elijas
 • Sincronización en la nube cifrada de extremo a extremo (opcional): los datos se cifran antes de salir de tu dispositivo, el servidor no puede leerlos (6 meses gratis, luego $1/mes)
-• Código abierto: github.com/Voyagerroc/payradar — audita cada línea
+• Código abierto: gitlab.com/Voyagerroc/payradar — audita cada línea
 
 📂 TUS DATOS SON TUYOS
 • Exportación CSV compatible con Excel: todos tus registros en un archivo
@@ -394,7 +394,7 @@ PayRadar: تتبع المدفوعات
 • قفل PIN اختياري: تُشفَّر البيانات بـ AES-256-GCM والمفتاح في الذاكرة فقط
 • قفل تلقائي بعد مدة الخمول التي تختارها
 • مزامنة سحابية مشفّرة من طرف إلى طرف (اختيارية): تُشفَّر البيانات قبل مغادرة جهازك فلا يستطيع الخادم قراءتها (6 أشهر مجانًا ثم 1$ شهريًا)
-• مفتوح المصدر: github.com/Voyagerroc/payradar — راجع كل سطر بنفسك
+• مفتوح المصدر: gitlab.com/Voyagerroc/payradar — راجع كل سطر بنفسك
 
 📂 بياناتك ملكك
 • تصدير CSV متوافق مع Excel: كل سجلاتك في ملف واحد
