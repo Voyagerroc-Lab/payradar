@@ -26,11 +26,19 @@
   /* 3B derinlik: yuzeyde gezen isik ve kartin zemine dusen golgesi */
   --sheen: rgb(124 58 237 / 0.18);
   /* Ortam katmanı: tepeden düşen ışık huzmesi + nokta-matris zemin
-     (radar ekranı metaforu: çizgi ızgara değil, tarama noktaları) */
-  --beam: rgb(124 58 237 / 0.10);
-  --beam-core: rgb(124 58 237 / 0.045);
-  --grid-line: rgb(16 24 40 / 0.07);
+     (radar ekranı metaforu: çizgi ızgara değil, tarama noktaları).
+     Noktalar huzmenin altında doğar, kenarlara doğru maske ile sönümlenir —
+     tekdüze "noktalı kağıt" değil, kaynağı olan bir tarama alanı. */
+  --beam: rgb(124 58 237 / 0.16);
+  --beam-core: rgb(124 58 237 / 0.07);
+  --grid-line: rgb(30 27 75 / 0.085);
   --grid-size: 24px;
+  /* Işık alanı: zemin tek düz gri değil, huzmeyle aynı sıcaklıkta
+     yukarıdan aydınlanıp aşağıda serinleyen bir sahne */
+  --field-top: #f8f7fc;
+  --field-mid: #f3f4f8;
+  --field-bottom: #edeff5;
+  --vignette: rgb(30 27 75 / 0.055);
   /* Cam yüzey: üst kenardaki ışık çizgisi ve yüzey aydınlanması */
   --glass-edge: rgb(255 255 255 / 0.95);
   --surface-lit: rgb(255 255 255 / 0);
@@ -65,10 +73,14 @@
   --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
   --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
-  --beam: rgb(139 92 246 / 0.16);
-  --beam-core: rgb(167 139 250 / 0.07);
-  --grid-line: rgb(255 255 255 / 0.05);
+  --beam: rgb(139 92 246 / 0.20);
+  --beam-core: rgb(167 139 250 / 0.08);
+  --grid-line: rgb(148 163 216 / 0.075);
   --grid-size: 24px;
+  --field-top: #0a0b13;
+  --field-mid: #07080c;
+  --field-bottom: #05060a;
+  --vignette: rgb(0 0 0 / 0.42);
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -99,10 +111,14 @@
     --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
     --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
   --sheen: rgb(255 255 255 / 0.09);
-  --beam: rgb(139 92 246 / 0.16);
-  --beam-core: rgb(167 139 250 / 0.07);
-  --grid-line: rgb(255 255 255 / 0.05);
+  --beam: rgb(139 92 246 / 0.20);
+  --beam-core: rgb(167 139 250 / 0.08);
+  --grid-line: rgb(148 163 216 / 0.075);
   --grid-size: 24px;
+  --field-top: #0a0b13;
+  --field-mid: #07080c;
+  --field-bottom: #05060a;
+  --vignette: rgb(0 0 0 / 0.42);
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -175,19 +191,16 @@ body {
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
   /* Sahnenin ışığı tek bir kaynaktan gelir: tepeden düşen dar bir huzme,
-     onun yumuşak halesi ve arkada duran nokta-matris. Noktalar radar
-     ekranının tarama dokusudur; sabit kalır, içerik üzerinde kayar —
-     arka plan bir zemin değil, mekân. */
+     halesi, yukarıdan aydınlanıp aşağıda serinleyen ışık alanı ve kenarları
+     karartan vinyet. Nokta-matris body::before katmanında yaşar; orada
+     radyal maske ile huzmenin altında yoğun, kenarlara doğru sessizdir —
+     arka plan bir kağıt değil, derinliği olan bir tarama sahnesi. */
   background:
+    radial-gradient(120% 90% at 50% 0%, transparent 58%, var(--vignette) 100%),
     radial-gradient(46% 32% at 50% -6%, var(--beam), transparent 72%),
     radial-gradient(92% 55% at 50% -20%, var(--beam-core), transparent 70%),
-    radial-gradient(var(--grid-line) 1px, transparent 1.4px),
+    linear-gradient(180deg, var(--field-top), var(--field-mid) 55%, var(--field-bottom)),
     var(--bg);
-  background-size:
-    100% 100%,
-    100% 100%,
-    var(--grid-size) var(--grid-size),
-    auto;
   background-attachment: fixed;
   color: var(--text);
   line-height: 1.5;
@@ -198,6 +211,21 @@ body {
   /* iOS yatay modda metni kendiliğinden büyütmesin */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* Tarama noktaları: huzmenin aydınlattığı alanda görünür, kenarlara doğru
+   radyal maske ile sönümlenir. Tekdüze nokta kağıdı yerine kaynağı olan
+   bir doku — radar ekranındaki gibi ışık nereye düşerse iz oradadır. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(var(--grid-line) 1px, transparent 1.4px) 0 0 /
+    var(--grid-size) var(--grid-size);
+  -webkit-mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
+  mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
 }
 
 h1,
