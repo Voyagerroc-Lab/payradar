@@ -302,13 +302,23 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* Marka bloğu büzülebilir olmalı: uzun tagline, sağdaki kontrolleri
+     (Ayarlar dahil) ekran dışına itmesin. */
+  min-width: 0;
+  flex: 1;
+}
+
+.brand > div {
+  min-width: 0;
 }
 
 .brand-icon {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
+  color: #fff;
   font-size: 22px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
@@ -336,6 +346,18 @@ button {
   font-size: 11px;
   letter-spacing: 0.01em;
   color: var(--text-soft);
+}
+
+/* Dar telefonda (≤380px) tagline'ı gizle: 5 satıra sarıp header'ı
+   şişirmesin ve Ayarlar dişlisini ekran dışına itmesin. Marka adı kalır. */
+@media (max-width: 380px) {
+  .brand p {
+    display: none;
+  }
+
+  .header-actions {
+    flex-shrink: 0;
+  }
 }
 
 /* ---------- Kartlar ---------- */
@@ -1494,6 +1516,8 @@ textarea.input {
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Kontroller (Giriş, kilit, Ayarlar) hiçbir ekranda büzülüp taşmaz */
+  flex-shrink: 0;
 }
 
 /* ---------- Kart detay rozetleri & notlar ---------- */
