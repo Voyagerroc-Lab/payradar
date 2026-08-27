@@ -71,7 +71,7 @@ import AuthModal from "./components/AuthModal";
 import AccountProfileModal from "./components/AccountProfileModal";
 import SyncKeyModal from "./components/SyncKeyModal";
 
-const REPO_URL = "https://github.com/Voyagerroc/payradar";
+const REPO_URL = "https://gitlab.com/Voyagerroc/payradar";
 
 export type SyncState = "idle" | "syncing" | "success" | "error";
 
@@ -1055,7 +1055,7 @@ function Footer() {
     <footer className="footer">
       <p>{t("footer.free")}</p>
       <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
-        {t("footer.openSource")} · github.com/Voyagerroc/payradar
+        {t("footer.openSource")} · gitlab.com/Voyagerroc/payradar
       </a>
     </footer>
   );
