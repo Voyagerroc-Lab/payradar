@@ -53,7 +53,12 @@ export default function Modal({ title, onClose, children, wide, top }: ModalProp
     const dialog = dialogRef.current;
     if (dialog) {
       const first = dialog.querySelector<HTMLElement>(FOCUSABLE);
-      (first ?? dialog).focus();
+      /* preventScroll: odak, gövdeyi odaklanan öğeye doğru kaydırmasın —
+         modal her zaman en üstten açılır (ör. Ayarlar'da Tema en üst
+         bölümdedir; odak kayması onu görünmez kılıyordu). */
+      (first ?? dialog).focus({ preventScroll: true });
+      const body = dialog.querySelector<HTMLElement>(".modal-body");
+      if (body) body.scrollTop = 0;
     }
 
     const trap = (e: KeyboardEvent) => {
