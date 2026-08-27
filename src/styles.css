@@ -39,6 +39,9 @@
   --field-mid: #f3f4f8;
   --field-bottom: #edeff5;
   --vignette: rgb(30 27 75 / 0.055);
+  /* Açılış süpürmesi: fosfor sinyali yalnızca "canlı temas" anlarında
+     konuşur — tarama da bir temastır. Tek geçiş, sonra sessizlik. */
+  --sweep: rgb(14 159 110 / 0.10);
   /* Cam yüzey: üst kenardaki ışık çizgisi ve yüzey aydınlanması */
   --glass-edge: rgb(255 255 255 / 0.95);
   --surface-lit: rgb(255 255 255 / 0);
@@ -81,6 +84,7 @@
   --field-mid: #07080c;
   --field-bottom: #05060a;
   --vignette: rgb(0 0 0 / 0.42);
+  --sweep: rgb(69 240 174 / 0.12);
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -119,6 +123,7 @@
   --field-mid: #07080c;
   --field-bottom: #05060a;
   --vignette: rgb(0 0 0 / 0.42);
+  --sweep: rgb(69 240 174 / 0.12);
   --glass-edge: rgb(255 255 255 / 0.10);
   --surface-lit: rgb(255 255 255 / 0.024);
   --cast-rgb: 0 0 0;
@@ -226,6 +231,58 @@ body::before {
     var(--grid-size) var(--grid-size);
   -webkit-mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
   mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
+}
+
+/* Açılış süpürmesi: huzme kaynağına (üst-orta) sabitlenmiş ince bir ışık
+   dilimi alanı soldan sağa BİR KEZ tarar ve söner — enstrümanın açılışı.
+   Salt CSS ve GPU dostu (yalnızca transform + opacity animasyonu); kol
+   uzunluğu radyal maskeyle sınırlanır ki süpürme yalnızca noktaların
+   yaşadığı tarama alanını yalasın. */
+@keyframes radar-sweep {
+  0% {
+    transform: translate(-50%, -50%) rotate(-72deg);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(72deg);
+    opacity: 0;
+  }
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 0;
+  width: 220vmax;
+  height: 220vmax;
+  z-index: -1;
+  pointer-events: none;
+  /* Aşağıya bakan ~10 derecelik dilim; gövde döndükçe alan taranır */
+  background: conic-gradient(
+    from 175deg at 50% 50%,
+    transparent 0deg,
+    var(--sweep) 5deg,
+    transparent 12deg
+  );
+  -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, #000 14%, transparent 38%);
+  mask-image: radial-gradient(50% 50% at 50% 50%, #000 14%, transparent 38%);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-72deg);
+  animation: radar-sweep 2.6s cubic-bezier(0.45, 0, 0.35, 1) 0.4s 1 both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 h1,
