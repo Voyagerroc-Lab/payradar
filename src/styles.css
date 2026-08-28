@@ -8,8 +8,23 @@
   --accent: #7c3aed;
   --accent-strong: #6d28d9;
   --accent-soft: #f1ebfe;
+  /* Vurgu zemininin üstüne düşen mürekkep. Kulüp temalarında vurgu açık bir
+     renk oluyor (altın, sarı, beyaz) ve orada beyaz yazı okunmaz; her tema
+     kendi mürekkebini seçer. */
+  --accent-ink: #fff;
+  /* --accent-soft yüzeyinde okunaklı kalan vurgu tonu */
+  --accent-ink-soft: var(--accent-strong);
   /* Elektrik vurgusu: markanın "canlı sinyal" rengi (radar vuruşu) */
   --pulse: #d946ef;
+  /* Marka glifindeki temas noktası — kulüp temalarında ikinci forma rengi */
+  --brand-blip: #f0abfc;
+  --toast-bg: #23252b;
+  --toast-ink: #fff;
+  /* Özet kartı etiketleri: koyu zeminde açık tonlara döner (WCAG AA) */
+  --sum-label-indigo: #6d28d9;
+  --sum-label-violet: #a21caf;
+  --sum-label-teal: #0f766e;
+  --sum-label-amber: #b45309;
   /* Fosfor sinyali: gerçek radar ekranının yeşili. Yalnızca "canlı temas"
      anlarında konuşur (tarama huzmesi, yaklaşan ödeme, canlı kur) —
      anlamsal --ok yeşilinden bilinçli olarak ayrı tutulur. */
@@ -64,7 +79,16 @@
   --accent: #a78bfa;
   --accent-strong: #8b5cf6;
   --accent-soft: #2a2342;
+  --accent-ink: #fff;
+  --accent-ink-soft: var(--accent);
   --pulse: #e879f9;
+  --brand-blip: #f0abfc;
+  --toast-bg: var(--accent-strong);
+  --toast-ink: #fff;
+  --sum-label-indigo: #c4b5fd;
+  --sum-label-violet: #f0abfc;
+  --sum-label-teal: #5eead4;
+  --sum-label-amber: #fcd34d;
   --signal: #45f0ae;
   --signal-soft: rgb(69 240 174 / 0.13);
   --danger: #f87171;
@@ -103,7 +127,16 @@
     --accent: #a78bfa;
     --accent-strong: #8b5cf6;
     --accent-soft: #2a2342;
+    --accent-ink: #fff;
+    --accent-ink-soft: var(--accent);
     --pulse: #e879f9;
+    --brand-blip: #f0abfc;
+    --toast-bg: var(--accent-strong);
+    --toast-ink: #fff;
+    --sum-label-indigo: #c4b5fd;
+    --sum-label-violet: #f0abfc;
+    --sum-label-teal: #5eead4;
+    --sum-label-amber: #fcd34d;
     --signal: #45f0ae;
     --signal-soft: rgb(69 240 174 / 0.13);
     --danger: #f87171;
@@ -131,6 +164,133 @@
   --cast-a-lift: 0.26;
     color-scheme: dark;
   }
+}
+
+/* ---------- Kulüp temaları ----------
+   Dört tema ortak koyu iskeleti paylaşır; her kulüp bloğu yalnızca kendi
+   forma renklerini ezer. Zemin nötr siyah değil, kulübün renginden gelen
+   çok koyu bir ton: tema tek bir vurgu rengi değil, sahnenin tamamıdır.
+   Vurgular açık (altın, sarı, beyaz) olduğu için üzerlerine düşen metin
+   --accent-ink ile koyuya çevrilir.
+   ------------------------------------------------------------------ */
+[data-theme="gs"],
+[data-theme="fb"],
+[data-theme="bjk"],
+[data-theme="ts"] {
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.55);
+  --sheen: rgb(255 255 255 / 0.09);
+  --grid-size: 24px;
+  --signal: #45f0ae;
+  --signal-soft: rgb(69 240 174 / 0.13);
+  --danger: #f87171;
+  --danger-soft: #3d1f22;
+  --warn: #fbbf24;
+  --warn-soft: #3a2f14;
+  --ok: #4ade80;
+  --ok-soft: #14321f;
+  --sum-label-indigo: #c4b5fd;
+  --sum-label-violet: #f0abfc;
+  --sum-label-teal: #5eead4;
+  --sum-label-amber: #fcd34d;
+  --accent-ink-soft: var(--accent);
+  --toast-bg: var(--accent-strong);
+  --toast-ink: var(--accent-ink);
+  --vignette: rgb(0 0 0 / 0.45);
+  --glass-edge: rgb(255 255 255 / 0.1);
+  --surface-lit: rgb(255 255 255 / 0.03);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
+  color-scheme: dark;
+}
+
+/* Galatasaray — altın sarısı, kırmızı temas */
+[data-theme="gs"] {
+  --bg: #14070a;
+  --card: #1e0d11;
+  --text: #fdf4e3;
+  --text-soft: #b79a86;
+  --border: #341820;
+  --accent: #fdb913;
+  --accent-strong: #f5a300;
+  --accent-soft: #3a2409;
+  --accent-ink: #1a0d05;
+  --pulse: #ff5b6b;
+  --brand-blip: #e01a2b;
+  --beam: rgb(253 185 19 / 0.17);
+  --beam-core: rgb(224 26 43 / 0.09);
+  --grid-line: rgb(253 185 19 / 0.075);
+  --field-top: #1c0a0e;
+  --field-mid: #14070a;
+  --field-bottom: #0c0406;
+  --sweep: rgb(253 185 19 / 0.11);
+}
+
+/* Fenerbahçe — lacivert saha, sarı vurgu */
+[data-theme="fb"] {
+  --bg: #061024;
+  --card: #0c1b3d;
+  --text: #eef3fd;
+  --text-soft: #93a6cc;
+  --border: #17295a;
+  --accent: #ffe000;
+  --accent-strong: #f0ce00;
+  --accent-soft: #1b2c5c;
+  --accent-ink: #101d3f;
+  --pulse: #6ea0ff;
+  --brand-blip: #1b458f;
+  --beam: rgb(255 224 0 / 0.15);
+  --beam-core: rgb(42 95 192 / 0.1);
+  --grid-line: rgb(147 168 216 / 0.09);
+  --field-top: #08152e;
+  --field-mid: #061024;
+  --field-bottom: #040b1a;
+  --sweep: rgb(255 224 0 / 0.1);
+}
+
+/* Beşiktaş — tek renk yok: siyahın üstünde beyaz */
+[data-theme="bjk"] {
+  --bg: #050506;
+  --card: #111113;
+  --text: #f4f4f5;
+  --text-soft: #9b9ba1;
+  --border: #26262a;
+  --accent: #f4f4f5;
+  --accent-strong: #ffffff;
+  --accent-soft: #212125;
+  --accent-ink: #0a0a0b;
+  --pulse: #b9b9c0;
+  --brand-blip: #0a0a0b;
+  --beam: rgb(255 255 255 / 0.13);
+  --beam-core: rgb(255 255 255 / 0.05);
+  --grid-line: rgb(255 255 255 / 0.07);
+  --field-top: #0b0b0d;
+  --field-mid: #050506;
+  --field-bottom: #000000;
+  --sweep: rgb(255 255 255 / 0.09);
+}
+
+/* Trabzonspor — bordo saha, mavi vurgu */
+[data-theme="ts"] {
+  --bg: #10060b;
+  --card: #1d0b13;
+  --text: #f9eef2;
+  --text-soft: #b99daa;
+  --border: #351421;
+  --accent: #4fa8e8;
+  --accent-strong: #2e90d8;
+  --accent-soft: #10263c;
+  --accent-ink: #04121f;
+  --pulse: #e0527a;
+  --brand-blip: #8a1538;
+  --beam: rgb(79 168 232 / 0.16);
+  --beam-core: rgb(138 21 56 / 0.11);
+  --grid-line: rgb(185 157 170 / 0.08);
+  --field-top: #180912;
+  --field-mid: #10060b;
+  --field-bottom: #0a0308;
+  --sweep: rgb(79 168 232 / 0.1);
 }
 
 /* ---------- Yerel fontlar ----------
@@ -313,7 +473,7 @@ button {
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent-strong);
   border-radius: 10px;
   text-decoration: none;
@@ -403,11 +563,12 @@ button {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  color: #fff;
+  /* Glif currentColor ile çizilir: altın/beyaz zeminde beyaz radar kaybolurdu */
+  color: var(--accent-ink);
   font-size: 22px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  box-shadow: 0 4px 12px rgb(124 58 237 / 0.35);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-strong) 40%, transparent);
 }
 
 .brand-icon svg {
@@ -483,39 +644,26 @@ button {
 /* Sınıf adları TSX'te sabit; paleti marka menekşe→fuşya eksenine çekildi */
 .summary-indigo {
   --sum-color: #7c3aed;
-  --sum-label: #6d28d9;
+  --sum-label: var(--sum-label-indigo);
   --sum-soft: rgb(124 58 237 / 0.14);
 }
 
 .summary-violet {
   --sum-color: #c026d3;
-  --sum-label: #a21caf;
+  --sum-label: var(--sum-label-violet);
   --sum-soft: rgb(192 38 211 / 0.13);
 }
 
 .summary-teal {
   --sum-color: #0d9488;
-  --sum-label: #0f766e;
+  --sum-label: var(--sum-label-teal);
   --sum-soft: rgb(13 148 136 / 0.14);
 }
 
 .summary-amber {
   --sum-color: #d97706;
-  --sum-label: #b45309;
+  --sum-label: var(--sum-label-amber);
   --sum-soft: rgb(217 119 6 / 0.16);
-}
-
-/* Koyu temada etiketler açık tonlara döner (WCAG AA kontrastı) */
-[data-theme="dark"] .summary-indigo { --sum-label: #c4b5fd; }
-[data-theme="dark"] .summary-violet { --sum-label: #f0abfc; }
-[data-theme="dark"] .summary-teal { --sum-label: #5eead4; }
-[data-theme="dark"] .summary-amber { --sum-label: #fcd34d; }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-indigo { --sum-label: #c4b5fd; }
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-violet { --sum-label: #f0abfc; }
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-teal { --sum-label: #5eead4; }
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .summary-amber { --sum-label: #fcd34d; }
 }
 
 .summary-icon {
@@ -659,22 +807,12 @@ button {
   color: var(--text);
 }
 
+/* Soft yüzeyde okunaklı kalan vurgu tonu temaya göre değişir */
 .chip-btn.active {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-strong);
+  color: var(--accent-ink-soft);
   font-weight: 600;
-}
-
-/* Koyu zeminde soft yüzey üstünde okunaklı olan açık ton --accent'tir */
-[data-theme="dark"] .chip-btn.active {
-  color: var(--accent);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .chip-btn.active {
-    color: var(--accent);
-  }
 }
 
 .toolbar-right {
@@ -700,19 +838,19 @@ button {
 }
 
 .btn-primary {
-  color: #fff;
+  color: var(--accent-ink);
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   /* Üst kenardaki 1px iç ışık düğmeyi cam yüzey diline bağlar */
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.22),
-    0 2px 8px rgb(109 40 217 / 0.35);
+    0 2px 8px color-mix(in srgb, var(--accent-strong) 38%, transparent);
 }
 
 .btn-primary:hover {
   filter: brightness(1.08);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.22),
-    0 4px 14px rgb(109 40 217 / 0.45);
+    0 4px 14px color-mix(in srgb, var(--accent-strong) 48%, transparent);
 }
 
 .btn-secondary {
@@ -800,41 +938,71 @@ button {
   flex: 1 1 180px;
 }
 
-.sub-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sub-title-row h2 {
+/* Ad satırın tamamını alır. Kategori ve deneme etiketleri eskiden adın
+   yanında duruyordu ve "Netflix" gibi kısa adları bile kırpıyordu; artık
+   tutarın yanında, mikro ölçekte. İki satıra kadar tam görünür. */
+.sub-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 700;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 
-.chip {
-  flex-shrink: 0;
-  padding: 2px 8px;
+/* Tutar ve etiketler ortak taban çizgisinde: tutar yüksek sesle,
+   kategori ile deneme fısıltıyla konuşur. */
+.sub-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1px 9px;
+  margin-top: 4px;
+}
+
+/* Etiketler her kartta aynı satırda: kimi kartta tutarın yanına sığıp
+   kimindeyse alta düşseydi ızgaranın ritmi bozulurdu. */
+.sub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 3px 8px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--text-soft);
-  border: 1px solid var(--border);
-  border-radius: 999px;
 }
 
-.chip-trial {
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-  border-color: var(--accent);
+/* Kategori rozet yerine tek nokta: rengi kartın sol şeridiyle aynı */
+.tag-dot {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.tag-trial {
+  gap: 3px;
+  color: var(--accent-ink-soft);
 }
 
 .sub-price {
-  margin-top: 3px;
   font-size: 14px;
   font-family: var(--font-mono);
   font-weight: 600;
@@ -849,7 +1017,7 @@ button {
 }
 
 .sub-date {
-  margin-top: 1px;
+  margin-top: 3px;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
   color: var(--text-soft);
@@ -961,10 +1129,10 @@ button {
   height: 84px;
   color: var(--signal);
   background: none;
-  border: 1px solid rgb(139 92 246 / 0.45);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 24px;
   box-shadow:
-    0 12px 30px rgb(124 58 237 / 0.32),
+    0 12px 30px color-mix(in srgb, var(--accent-strong) 32%, transparent),
     inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 
@@ -1186,6 +1354,70 @@ textarea.input {
   color: var(--text-soft);
 }
 
+/* ---------- Tema seçici ---------- */
+.theme-group-label {
+  margin-top: 6px;
+}
+
+.team-grid {
+  display: grid;
+  /* Dört kulüp 2x2 durur: üçlü+tek satır dizilimi rastgele görünüyordu */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-tile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px 10px;
+  text-align: start;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.team-tile:hover {
+  border-color: var(--accent);
+}
+
+.team-tile.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Kulübün iki forma rengi yan yana: tema seçilmeden ne olduğu görülür */
+.team-swatch {
+  display: flex;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgb(125 125 125 / 0.35);
+}
+
+.team-swatch i {
+  flex: 1;
+}
+
+.team-name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.team-tile.active .team-name {
+  color: var(--accent-ink-soft);
+}
+
 /* ---------- Canlı döviz kurları ---------- */
 .fx-box {
   display: flex;
@@ -1285,7 +1517,7 @@ textarea.input {
   height: 24px;
   font-size: 12.5px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent-strong);
   border-radius: 50%;
 }
@@ -1347,8 +1579,8 @@ textarea.input {
   padding: 11px 20px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
-  background: #23252b;
+  color: var(--toast-ink);
+  background: var(--toast-bg);
   border-radius: 12px;
   transform: translateX(-50%);
   animation: rise-in 0.25s ease-out;
@@ -1363,16 +1595,6 @@ textarea.input {
   opacity: 0;
   pointer-events: none;
   animation: none;
-}
-
-[data-theme="dark"] .toast {
-  background: var(--accent-strong);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .toast {
-    background: var(--accent-strong);
-  }
 }
 
 @keyframes rise-in {
@@ -1646,110 +1868,20 @@ textarea.input {
 }
 
 /* ---------- Hesap diyaloğu ---------- */
-.auth-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 4px;
-  background: var(--bg);
-  border-radius: 12px;
-}
-
-.auth-tab {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-soft);
-  background: transparent;
-  border: none;
-  border-radius: 9px;
-  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
-}
-
-.auth-tab.active {
-  color: var(--accent-strong);
-  background: var(--card);
-  box-shadow: var(--shadow);
-}
-
-.password-wrap {
-  position: relative;
-}
-
-.password-wrap .input {
-  width: 100%;
-  padding-right: 42px;
-}
-
-.password-toggle {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  font-size: 15px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  transform: translateY(-50%);
-  transition: background-color 0.15s;
-}
-
-.password-toggle:hover {
-  background: var(--accent-soft);
-}
-
-.link-btn {
-  padding: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-strong);
-  background: none;
-  border: none;
-  text-decoration: underline;
-}
-
-.forgot-link {
-  align-self: flex-start;
-  margin-top: -6px;
-}
-
 .auth-sync-hint {
   padding: 9px 12px;
   background: var(--accent-soft);
   border-radius: 10px;
 }
 
-.auth-submit {
-  width: 100%;
-}
-
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 2px 0;
-  color: var(--text-soft);
-  font-size: 12.5px;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
 .auth-google {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
 }
 
 /* ---------- Profil diyaloğu ---------- */
@@ -1768,7 +1900,7 @@ textarea.input {
   height: 50px;
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border-radius: 50%;
 }
@@ -1841,20 +1973,6 @@ textarea.input {
   text-decoration: none;
 }
 
-.recovery-box {
-  margin: 10px 0 14px;
-  padding: 12px 14px;
-  font-size: 12.5px;
-  background: var(--bg);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-}
-
-.recovery-box p {
-  margin: 5px 0 9px;
-  color: var(--text-soft);
-}
-
 .delete-account-btn {
   margin-top: 10px;
 }
@@ -1883,26 +2001,16 @@ textarea.input {
   font-weight: 600;
   /* Metin asla sarmamalı: sarınca hap daireye dönüp bozuluyordu */
   white-space: nowrap;
-  color: var(--accent-strong);
+  color: var(--accent-ink-soft);
   background: var(--accent-soft);
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: 999px;
   transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 
-[data-theme="dark"] .account-chip {
-  color: var(--accent);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) .account-chip {
-    color: var(--accent);
-  }
-}
-
 .account-chip:hover {
   background: color-mix(in srgb, var(--accent-soft) 75%, var(--accent));
-  box-shadow: 0 1px 6px rgb(124 58 237 / 0.25);
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .account-chip-avatar {
@@ -1912,7 +2020,7 @@ textarea.input {
   height: 20px;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   border-radius: 50%;
 }
@@ -2334,10 +2442,6 @@ textarea.input {
   transform: translateZ(18px);
 }
 
-.sub-card .sub-title-row .chip {
-  transform: translateZ(9px);
-}
-
 .summary-card .summary-icon {
   transform: translateZ(36px);
   box-shadow: 0 calc(3px + var(--z) * 0.5) calc(10px + var(--z)) rgb(16 24 40 / 0.16);
@@ -2410,8 +2514,7 @@ textarea.input {
 
   .btn,
   .chip-btn,
-  .auth-tab,
-  .password-toggle {
+  .team-tile {
     min-height: 44px;
   }
 

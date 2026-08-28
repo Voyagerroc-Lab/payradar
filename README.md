@@ -35,8 +35,8 @@ _PayRadar is a free, open-source tracker for your recurring payments — rent, b
 - 💱 **160+ para birimi, canlı kur motoru** — ödemeni herhangi bir birimde gir; Ayarlar'dan seçtiğin **tek gösterim birimine** güncel kurla otomatik çevrilir. 48.000 ₺'lik portföyün, birimi $'a çevirince güncel kurla ≈ $1.000 görünür — offline'da bile çalışır
 - 🔔 **Akıllı hatırlatmalar** — yenilemeden 1–7 gün önce tarayıcı bildirimi; aynı gün birkaç ödeme varsa gruplu özet
 - 🚫 **İptal rehberleri** — Netflix, Spotify, Game Pass ve onlarca servis için adım adım iptal + doğrudan bağlantı
-- 🔐 **Gizlilik önce** — veriler cihazda AES-256-GCM ile şifreli; opsiyonel PIN kilidi; istersen uçtan uca şifreli bulut senkronu
-- 🌗 **Koyu / açık tema** ve **radar** kimliği — çizgi ikonlar, canlı sinyal rengi
+- 🔐 **Gizlilik önce** — veriler cihazda AES-256-GCM ile şifreli; opsiyonel PIN kilidi; istersen şifreli bulut senkronu (giriş yalnızca Google hesabıyla)
+- 🌗 **Koyu / açık tema**, **kulüp temaları** (Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor) ve **radar** kimliği — çizgi ikonlar, canlı sinyal rengi
 - 📱 **PWA** — telefona/masaüstüne kurulur, tamamen çevrimdışı çalışır
 
 ## 🌍 Languages · Diller
@@ -52,7 +52,7 @@ Arayüz beş dilde, tarayıcından otomatik seçilir:
 | Yerel öncelikli | Tüm veriler tarayıcının kendi belleğinde; sunucu zorunlu değil |
 | AES-256-GCM | Kasa verisi cihazda şifreli saklanır (WebCrypto) |
 | PBKDF2-SHA256 | 150.000 tur anahtar türetme; anahtar **yalnızca bellekte** |
-| Opsiyonel bulut | Açarsan veri cihazında **uçtan uca şifrelenir**; sunucuda içerik okunamaz |
+| Opsiyonel bulut | Açarsan veri cihazında **şifrelenir**, sunucuya yalnızca şifreli blok gider. Anahtar Google hesabının kimliğinden türetilir ve hiçbir yerde saklanmaz — böylece her cihazın kendiliğinden açılır, saklaman gereken kurtarma anahtarı olmaz |
 | Reklam & takip yok | Analytics yok, üçüncü taraf yok |
 
 ## 🛠️ Tech

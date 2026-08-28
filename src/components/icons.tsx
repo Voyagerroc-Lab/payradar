@@ -12,8 +12,8 @@ export type IconName =
   | "bank" | "scroll" | "gamepad" | "box"
   | "coins" | "trend" | "layers" | "radar"
   | "pencil" | "trash" | "share" | "check" | "chart" | "bell" | "sparkle"
-  | "gift" | "eye" | "eye-off"
-  | "cloud" | "star" | "refresh" | "globe" | "key" | "bulb" | "mail"
+  | "gift"
+  | "cloud" | "star" | "refresh" | "globe" | "bulb"
   | "lock" | "unlock" | "gear" | "warn" | "download" | "upload";
 
 const PATHS: Record<IconName, JSX.Element> = {
@@ -150,19 +150,6 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M12 7.6c-1.9 0-4.3-.7-4.3-2.2 0-1.4 1.5-1.9 2.4-1.2C11.1 5 12 7.6 12 7.6zm0 0c1.9 0 4.3-.7 4.3-2.2 0-1.4-1.5-1.9-2.4-1.2C12.9 5 12 7.6 12 7.6z" />
     </>
   ),
-  eye: (
-    <>
-      <path d="M3.2 12S6.5 5.8 12 5.8 20.8 12 20.8 12 17.5 18.2 12 18.2 3.2 12 3.2 12z" />
-      <circle cx="12" cy="12" r="2.8" />
-    </>
-  ),
-  "eye-off": (
-    <>
-      <path d="M3.2 12S6.5 5.8 12 5.8c1.6 0 3 .5 4.2 1.2M20.8 12s-3.3 6.2-8.8 6.2c-1.6 0-3-.5-4.2-1.2" />
-      <path d="M9.6 9.6a2.8 2.8 0 1 0 4.8 4.8" />
-      <path d="M4.5 4.5l15 15" />
-    </>
-  ),
   cloud: <path d="M7 17.6h9.4a4.1 4.1 0 0 0 .7-8.1A5.6 5.6 0 0 0 6.3 8.5 4.3 4.3 0 0 0 7 17.6z" />,
   star: <path d="M12 4.4l2.2 4.6 5.1.7-3.7 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.7-3.5 5.1-.7z" />,
   refresh: (
@@ -178,22 +165,10 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M12 3.8c2.5 2.5 2.5 13.9 0 16.4M12 3.8c-2.5 2.5-2.5 13.9 0 16.4" />
     </>
   ),
-  key: (
-    <>
-      <circle cx="8" cy="14.8" r="3.2" />
-      <path d="M10.3 12.5 19 3.8M15.6 7.2l2.5 2.5M13.2 9.6l1.9 1.9" />
-    </>
-  ),
   bulb: (
     <>
       <path d="M12 3.8a5.6 5.6 0 0 0-3.2 10.2c.7.5 1.2 1.2 1.2 2h4c0-.8.5-1.5 1.2-2A5.6 5.6 0 0 0 12 3.8z" />
       <path d="M9.8 19h4.4M10.6 21.2h2.8" />
-    </>
-  ),
-  mail: (
-    <>
-      <rect x="3.6" y="5.6" width="16.8" height="12.8" rx="1.8" />
-      <path d="M4.4 6.8 12 12.6l7.6-5.8" />
     </>
   ),
   lock: (

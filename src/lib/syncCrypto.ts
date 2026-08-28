@@ -1,31 +1,39 @@
 import {
   decryptJSON,
+  deriveVaultKey,
   encryptJSON,
-  exportKeyBase64,
-  generateDataKey,
   importKeyBase64,
   type EncryptedPayload,
 } from "./crypto";
 
 /**
- * Bulut senkronu için uçtan uca şifreleme.
+ * Bulut senkronu için şifreleme.
  *
- * Vault, buluta gitmeden önce cihazda üretilen rastgele bir AES-256-GCM
- * anahtarıyla şifrelenir. Anahtar YALNIZCA cihazda (localStorage) durur ve
- * sunucuya hiç gönderilmez — Supabase yalnızca şifreli bloğu görür.
+ * Vault, buluta gitmeden önce AES-256-GCM ile şifrelenir. Anahtar hiçbir
+ * yerde saklanmaz: her cihazda Google hesabının kullanıcı kimliğinden
+ * (Supabase uid) PBKDF2 ile yeniden türetilir. Aynı hesapla giren her cihaz
+ * aynı anahtara ulaştığı için senkron kendiliğinden çalışır — kullanıcıdan
+ * kurtarma anahtarı istenmez, kaybedilecek bir anahtar da yoktur.
  *
- * Bunun bilinçli sonucu: anahtar başka cihazda yoksa oradaki veri çözülemez.
- * Bu yüzden kullanıcıya "Kurtarma anahtarı" olarak gösterilip ikinci cihaza
- * elle taşınabiliyor (Ayarlar > Hesap). Anahtar kaybolursa buluttaki kopya
- * kurtarılamaz; bu, sunucunun düz metni görmemesinin bedelidir.
+ * Bunun bilinçli bedeli: anahtar hesabın kimliğinden türediği için artık
+ * "sunucunun asla çözemeyeceği" bir uçtan uca şifreleme değil, kimliğe bağlı
+ * bir dinlenme hâli şifrelemesidir. Satırı okuyan üçüncü bir taraf düz metni
+ * göremez; sırlar sunucuda durmaz.
+ *
+ * ev:1 zarfları eski sürümün cihaz-yerel rastgele anahtarıyla yazılmıştı.
+ * O anahtar hâlâ bu cihazdaysa okunur ve ilk yazımda ev:2'ye taşınır.
  */
 
-const SYNC_KEY_STORAGE = "payradar:syncKey:v1";
+/** Eski (cihaz-yerel, rastgele) senkron anahtarı — yalnızca okuma/göç için. */
+const LEGACY_KEY_STORAGE = "payradar:syncKey:v1";
+
+/** PBKDF2 tuzu: uid ile birlikte anahtarı bu uygulamaya bağlar. */
+const KEY_SALT = "payradar:sync:v2";
 
 /** Şifreli bulut yükü — düz metin vault yerine bu yazılır. */
 export interface EncryptedVaultEnvelope {
-  /** Şema sürümü; ileride algoritma değişirse ayırt etmek için */
-  ev: 1;
+  /** Şema sürümü: 1 = cihaz anahtarı (eski), 2 = hesaptan türetilen anahtar */
+  ev: 1 | 2;
   payload: EncryptedPayload;
   /** Çakışma çözümü sunucuda düz metin okumadan yapılabilsin diye açıkta */
   updatedAt: number;
@@ -34,79 +42,67 @@ export interface EncryptedVaultEnvelope {
 export function isEncryptedEnvelope(raw: unknown): raw is EncryptedVaultEnvelope {
   if (typeof raw !== "object" || raw === null) return false;
   const r = raw as Record<string, unknown>;
-  return r.ev === 1 && typeof r.payload === "object" && r.payload !== null;
+  return (r.ev === 1 || r.ev === 2) && typeof r.payload === "object" && r.payload !== null;
 }
 
-function readStoredKey(): string | null {
+/* PBKDF2 pahalıdır (600k iterasyon); oturum boyunca tek türetme yeter. */
+let cached: { uid: string; key: CryptoKey } | null = null;
+
+/** Hesap kimliğinden senkron anahtarını türetir (oturum içinde önbelleklenir). */
+async function accountKey(uid: string): Promise<CryptoKey> {
+  if (cached?.uid === uid) return cached.key;
+  const key = await deriveVaultKey(uid, KEY_SALT);
+  cached = { uid, key };
+  return key;
+}
+
+function readLegacyKey(): string | null {
   try {
-    return localStorage.getItem(SYNC_KEY_STORAGE);
+    return localStorage.getItem(LEGACY_KEY_STORAGE);
   } catch {
     return null;
   }
 }
 
-function writeStoredKey(base64: string): void {
-  try {
-    localStorage.setItem(SYNC_KEY_STORAGE, base64);
-  } catch {
-    /* depolama kapalıysa senkron şifrelenemez; çağıran hatayı görür */
-  }
-}
-
+/** Türetilmiş anahtarı ve varsa eski cihaz anahtarını unutur (çıkış/silme). */
 export function clearSyncKey(): void {
+  cached = null;
   try {
-    localStorage.removeItem(SYNC_KEY_STORAGE);
+    localStorage.removeItem(LEGACY_KEY_STORAGE);
   } catch {
     /* önemsiz */
   }
 }
 
-export function hasSyncKey(): boolean {
-  return Boolean(readStoredKey());
+export async function encryptVault(
+  value: unknown,
+  updatedAt: number,
+  uid: string,
+): Promise<EncryptedVaultEnvelope> {
+  const key = await accountKey(uid);
+  return { ev: 2, payload: await encryptJSON(key, value), updatedAt };
 }
 
-/** Cihazdaki senkron anahtarını döndürür; yoksa üretip saklar. */
-export async function getOrCreateSyncKey(): Promise<CryptoKey> {
-  const stored = readStoredKey();
-  if (stored) return importKeyBase64(stored);
-  const key = await generateDataKey();
-  writeStoredKey(await exportKeyBase64(key));
-  return key;
-}
-
-/** Kullanıcıya gösterilecek/yedeklenecek kurtarma anahtarı (base64). */
-export async function getRecoveryKey(): Promise<string> {
-  const stored = readStoredKey();
-  if (stored) return stored;
-  const key = await getOrCreateSyncKey();
-  return exportKeyBase64(key);
-}
-
-/** Başka cihazdan taşınan kurtarma anahtarını kurar. Geçersizse false döner. */
-export async function importRecoveryKey(base64: string): Promise<boolean> {
-  const trimmed = base64.trim();
-  if (!trimmed) return false;
-  try {
-    await importKeyBase64(trimmed); // doğrula
-    writeStoredKey(trimmed);
-    return true;
-  } catch {
-    return false;
+/**
+ * Zarfı çözer; çözülemezse null döner (veri kaybı yaşanmaz, çağıran karar verir).
+ * ev:2 hesabın anahtarıyla, ev:1 bu cihazda kalmış eski anahtarla açılır.
+ */
+export async function decryptVault<T>(
+  envelope: EncryptedVaultEnvelope,
+  uid: string,
+): Promise<T | null> {
+  if (envelope.ev === 2) {
+    try {
+      return await decryptJSON<T>(await accountKey(uid), envelope.payload);
+    } catch {
+      return null;
+    }
   }
-}
 
-export async function encryptVault(value: unknown, updatedAt: number): Promise<EncryptedVaultEnvelope> {
-  const key = await getOrCreateSyncKey();
-  return { ev: 1, payload: await encryptJSON(key, value), updatedAt };
-}
-
-/** Zarfı çözer; anahtar yanlış/eksikse null döner (veri kaybı yaşanmaz). */
-export async function decryptVault<T>(envelope: EncryptedVaultEnvelope): Promise<T | null> {
-  const stored = readStoredKey();
-  if (!stored) return null;
+  const legacy = readLegacyKey();
+  if (!legacy) return null;
   try {
-    const key = await importKeyBase64(stored);
-    return await decryptJSON<T>(key, envelope.payload);
+    return await decryptJSON<T>(await importKeyBase64(legacy), envelope.payload);
   } catch {
     return null;
   }

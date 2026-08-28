@@ -20,7 +20,7 @@ export default function Header({
 }: HeaderProps) {
   const { t, lang } = useI18n();
 
-  const identity = cloudUser?.displayName ?? cloudUser?.email ?? cloudUser?.phone ?? "";
+  const identity = cloudUser?.displayName ?? cloudUser?.email ?? "";
   const initial = identity ? identity.charAt(0).toLocaleUpperCase(localeFor(lang)) : "";
 
   return (
@@ -28,13 +28,16 @@ export default function Header({
       <div className="container header-inner">
         <div className="brand">
           <span className="brand-icon" aria-hidden="true">
-            {/* Radar glifi: uygulama ikonuyla aynı motif, platform emojisine bağımlı değil */}
+            {/* Radar glifi: uygulama ikonuyla aynı motif, platform emojisine bağımlı değil.
+                Çizgiler currentColor ile gider (.brand-icon rengi --accent-ink) — kulüp
+                temalarında zemin altın/beyaz olunca beyaz glif kaybolurdu. Temas noktası
+                temanın ikinci rengidir. */}
             <svg viewBox="0 0 24 24" width="25" height="25" fill="none">
-              <circle cx="12" cy="12" r="4.4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" />
-              <circle cx="12" cy="12" r="8.6" stroke="rgba(255,255,255,0.42)" strokeWidth="1.5" />
-              <path d="M12 12 L18.6 5.4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-              <circle cx="12" cy="12" r="1.7" fill="#fff" />
-              <circle cx="17" cy="8.1" r="2" fill="#f0abfc" />
+              <circle cx="12" cy="12" r="4.4" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeOpacity="0.42" strokeWidth="1.5" />
+              <path d="M12 12 L18.6 5.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="1.7" fill="currentColor" />
+              <circle cx="17" cy="8.1" r="2" fill="var(--brand-blip)" />
             </svg>
           </span>
           <div>
@@ -47,15 +50,15 @@ export default function Header({
             <button
               className="account-chip"
               onClick={onOpenAccount}
-              aria-label={cloudUser ? t("auth.profile.title") : t("auth.tabSignIn")}
-              title={cloudUser ? t("auth.profile.title") : t("auth.tabSignIn")}
+              aria-label={cloudUser ? t("auth.profile.title") : t("auth.signIn")}
+              title={cloudUser ? t("auth.profile.title") : t("auth.signIn")}
             >
               {cloudUser ? (
                 <>
                   <span className="account-chip-avatar">{initial}</span> <Icon name="cloud" size={14} />
                 </>
               ) : (
-                t("auth.tabSignIn")
+                t("auth.signIn")
               )}
             </button>
           )}

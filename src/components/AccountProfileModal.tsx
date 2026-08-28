@@ -20,7 +20,6 @@ interface AccountProfileModalProps {
   subscription: Subscription;
   onSyncNow: () => void;
   onDeleteAccount: () => void;
-  onCopyRecoveryKey: () => void;
   onSignOut: () => void;
   onSwitchAccount: () => void;
   onClose: () => void;
@@ -33,14 +32,13 @@ export default function AccountProfileModal({
   subscription,
   onSyncNow,
   onDeleteAccount,
-  onCopyRecoveryKey,
   onSignOut,
   onSwitchAccount,
   onClose,
 }: AccountProfileModalProps) {
   const { t, lang } = useI18n();
 
-  const identity = user.email ?? user.phone ?? "";
+  const identity = user.email ?? "";
   const displayName = user.displayName ?? (user.email ? user.email.split("@")[0] : identity);
   const initial = (displayName || identity || "U").charAt(0).toLocaleUpperCase(localeFor(lang));
 
@@ -66,7 +64,6 @@ export default function AccountProfileModal({
         <div className="profile-identity">
           <strong>{displayName}</strong>
           {user.email && <span>{user.email}</span>}
-          {!user.email && user.phone && <span>{user.phone}</span>}
         </div>
       </div>
 
@@ -131,13 +128,9 @@ export default function AccountProfileModal({
         <p>{t("auth.profile.webAccessDesc", { email: identity })}</p>
       </div>
 
-      <div className="recovery-box">
-        <strong><Icon name="key" size={13} /> {t("account.syncKeyTitle")}</strong>
-        <p>{t("account.syncKeyHint")}</p>
-        <button className="btn btn-secondary" onClick={onCopyRecoveryKey}>
-          {t("account.syncKeyCopy")}
-        </button>
-      </div>
+      <p className="field-hint">
+        <Icon name="lock" size={13} /> {t("account.cloudKeyHint")}
+      </p>
 
       <div className="form-actions security-actions">
         <button className="btn btn-secondary" onClick={onSwitchAccount}>

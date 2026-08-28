@@ -72,21 +72,30 @@ export default function PaymentCard({
       </div>
 
       <div className="sub-info">
-        <div className="sub-title-row">
-          <h2 title={payment.name}>{payment.name}</h2>
-          <span className="chip" style={{ borderColor: category.color }}>
-            <Icon name={category.icon} size={11} /> {t(category.labelKey)}
-          </span>
-          {payment.isTrial && days >= 0 && (
-            <span className="chip chip-trial">
-              <Icon name="gift" size={11} /> {t("card.trial")}
+        {/* Ad kendi satırının tamamını alır: "Netflix" gibi kısa adlar da,
+            uzun fatura adları da kırpılmadan okunur. Kategori ve deneme
+            etiketleri adın yanından alınıp tutarın yanına, mikro ölçeğe
+            indirildi — kartta okunacak ilk iki şey ad ve tutardır. */}
+        <h2 className="sub-name" title={payment.name}>
+          {payment.name}
+        </h2>
+        <div className="sub-meta">
+          <p className="sub-price">
+            {shownPrice}
+            <span> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</span>
+          </p>
+          <p className="sub-tags">
+            <span className="tag">
+              <i className="tag-dot" style={{ background: category.color }} aria-hidden="true" />
+              {t(category.labelKey)}
             </span>
-          )}
+            {payment.isTrial && days >= 0 && (
+              <span className="tag tag-trial">
+                <Icon name="gift" size={10} /> {t("card.trial")}
+              </span>
+            )}
+          </p>
         </div>
-        <p className="sub-price">
-          {shownPrice}
-          <span> {t(`suffix.${payment.billingCycle}` as TranslationKey)}</span>
-        </p>
         <p className="sub-date">
           {t("card.nextPayment")} {formatDateTR(payment.nextPaymentDate, lang)} ·{" "}
           {payment.isTrial && days >= 0

@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { requestNotificationPermission } from "../lib/notify";
 import { formatMoney, localeFor } from "../lib/format";
 import { CURRENCIES, convert, currencyLabel, type FxTable } from "../lib/fx";
-import type { Language, Prefs, VaultData } from "../types";
+import type { Language, Prefs, ThemeId, VaultData } from "../types";
 import type { CloudUser } from "../lib/cloud";
+import { applyTheme } from "../lib/theme";
 import { useI18n } from "../i18n";
 import { Icon } from "./icons";
 
@@ -31,6 +32,18 @@ interface SettingsModalProps {
 }
 
 const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
+
+const BASE_THEMES = ["auto", "light", "dark"] as const;
+
+/* Kulüp adları çevrilmez; renkler kulübün forma renkleridir ve düğmenin
+   üstündeki iki bantta aynen görünür — tema seçilmeden önce ne olduğu
+   okunmadan anlaşılır. */
+const TEAM_THEMES: { id: ThemeId; name: string; colors: [string, string] }[] = [
+  { id: "gs", name: "Galatasaray", colors: ["#A90432", "#FDB913"] },
+  { id: "fb", name: "Fenerbahçe", colors: ["#1B458F", "#FFED00"] },
+  { id: "bjk", name: "Beşiktaş", colors: ["#0B0B0C", "#FFFFFF"] },
+  { id: "ts", name: "Trabzonspor", colors: ["#8A1538", "#4FA8E8"] },
+];
 
 export default function SettingsModal({
   prefs,
@@ -70,6 +83,20 @@ export default function SettingsModal({
   const [currentPin, setCurrentPin] = useState("");
   const [pinError, setPinError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  /* Tema anında önizlenir: kulüp seçildiğinde uygulamanın kendisi değişir.
+     Kaydetmeden çıkılırsa (İptal, ✕, Esc) kayıtlı tema geri gelir; kaydedilirse
+     App'in kendi tema etkisi devralır. */
+  useEffect(() => {
+    applyTheme(draftPrefs.theme);
+  }, [draftPrefs.theme]);
+
+  useEffect(
+    () => () => {
+      applyTheme(prefs.theme);
+    },
+    [prefs.theme],
+  );
 
   function toggleNotifications() {
     if (draftVault.notificationsEnabled) {
@@ -246,20 +273,43 @@ export default function SettingsModal({
           <p className="field-hint">{t("settings.ratesHint")}</p>
         </div>
 
-        <label className="field">
+        <div className="field">
           <span>{t("settings.theme")}</span>
-          <select
-            className="input"
-            value={draftPrefs.theme}
-            onChange={(e) =>
-              setDraftPrefs({ ...draftPrefs, theme: e.target.value as Prefs["theme"] })
-            }
-          >
-            <option value="auto">{t("theme.auto")}</option>
-            <option value="light">{t("theme.light")}</option>
-            <option value="dark">{t("theme.dark")}</option>
-          </select>
-        </label>
+          <div className="chips" role="group" aria-label={t("settings.theme")}>
+            {BASE_THEMES.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`chip-btn ${draftPrefs.theme === id ? "active" : ""}`}
+                aria-pressed={draftPrefs.theme === id}
+                onClick={() => setDraftPrefs({ ...draftPrefs, theme: id })}
+              >
+                {t(`theme.${id}`)}
+              </button>
+            ))}
+          </div>
+
+          <span className="theme-group-label">{t("theme.groupTeams")}</span>
+          <div className="team-grid" role="group" aria-label={t("theme.groupTeams")}>
+            {TEAM_THEMES.map((team) => (
+              <button
+                key={team.id}
+                type="button"
+                className={`team-tile ${draftPrefs.theme === team.id ? "active" : ""}`}
+                aria-pressed={draftPrefs.theme === team.id}
+                onClick={() => setDraftPrefs({ ...draftPrefs, theme: team.id })}
+              >
+                <span className="team-swatch" aria-hidden="true">
+                  <i style={{ background: team.colors[0] }} />
+                  <i style={{ background: team.colors[1] }} />
+                </span>
+                <span className="team-name" translate="no">
+                  {team.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* ---------- Hesap ---------- */}
         <h3 className="section-title">{t("auth.profile.title")}</h3>
@@ -272,9 +322,7 @@ export default function SettingsModal({
           <div className="settings-account-card">
             <span>
               <Icon name="cloud" size={14} />{" "}
-              {t("account.signedInAs", {
-                identity: (cloudUser.email ?? cloudUser.phone ?? "") as string,
-              })}
+              {t("account.signedInAs", { identity: cloudUser.email ?? "" })}
             </span>
             <button className="btn btn-secondary" onClick={onOpenProfile}>
               {t("auth.profile.title")}
@@ -284,7 +332,7 @@ export default function SettingsModal({
           <div className="settings-account-card">
             <span>{t("auth.signInSubtitle")}</span>
             <button className="btn btn-primary" onClick={onOpenAuth}>
-              {t("auth.tabSignIn")}
+              {t("auth.signIn")}
             </button>
           </div>
         )}

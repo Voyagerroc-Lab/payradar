@@ -18,6 +18,23 @@ export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
 export type Language = "tr" | "en" | "ms" | "es" | "ar";
 
+/** Görünüm teması: üç temel tema + dört kulüp teması. */
+export type ThemeId = "auto" | "light" | "dark" | "gs" | "fb" | "bjk" | "ts";
+
+/** Ayarlar ekranındaki kulüp temaları (sıra ekranda göründüğü sıradır). */
+export const TEAM_THEMES = ["gs", "fb", "bjk", "ts"] as const;
+
+export const THEME_IDS: readonly ThemeId[] = [
+  "auto",
+  "light",
+  "dark",
+  ...TEAM_THEMES,
+];
+
+export function isThemeId(value: unknown): value is ThemeId {
+  return typeof value === "string" && (THEME_IDS as readonly string[]).includes(value);
+}
+
 /** Fiyat geçmişindeki tek nokta */
 export interface PricePoint {
   /** ISO tarih: fiyat bu tarihte geçerliydi */
@@ -56,7 +73,7 @@ export interface Payment {
 /** Kilit açılmadan önce okunması güvenli tercihler (şifresiz saklanır) */
 export interface Prefs {
   language: Language;
-  theme: "auto" | "light" | "dark";
+  theme: ThemeId;
   /** Gösterim para birimi: tüm tutarlar bu birimde gösterilir (dilden bağımsız) */
   displayCurrency: Currency;
   lockEnabled: boolean;
@@ -73,7 +90,7 @@ export interface VaultData {
   /** Son değişiklik zamanı (bulut çakışma çözümü için) */
   updatedAt: number;
   /** Cihazlar arası taşınan görünüm tercihleri (bulut senkronuyla gelir) */
-  appTheme?: "auto" | "light" | "dark";
+  appTheme?: ThemeId;
   appLanguage?: Language;
 }
 

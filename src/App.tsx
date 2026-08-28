@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CategoryId, Currency, Language, Payment, Prefs, VaultData } from "./types";
+import { isThemeId } from "./types";
+import type {
+  CategoryId,
+  Currency,
+  Language,
+  Payment,
+  Prefs,
+  VaultData,
+} from "./types";
 import {
   DEFAULT_PREFS,
   DEFAULT_VAULT,
@@ -37,13 +45,8 @@ import {
   onAuthChange,
   pullVaultData,
   pushVaultData,
-  signInEmail,
   signInGoogle,
-  signInPhone,
   signOutCloud,
-  signUpEmail,
-  signUpPhone,
-  verifyPhoneOtp,
   type CloudUser,
 } from "./lib/cloud";
 import {
@@ -52,7 +55,8 @@ import {
   premiumGateEnabled,
   type Subscription,
 } from "./lib/premium";
-import { clearSyncKey, getRecoveryKey, importRecoveryKey } from "./lib/syncCrypto";
+import { clearSyncKey } from "./lib/syncCrypto";
+import { applyTheme } from "./lib/theme";
 import { useTilt } from "./lib/tilt";
 import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
@@ -69,7 +73,6 @@ import LockScreen from "./components/LockScreen";
 import ConfirmModal from "./components/ConfirmModal";
 import AuthModal from "./components/AuthModal";
 import AccountProfileModal from "./components/AccountProfileModal";
-import SyncKeyModal from "./components/SyncKeyModal";
 
 const REPO_URL = "https://gitlab.com/Voyagerroc/payradar";
 
@@ -126,7 +129,6 @@ export default function App() {
   const [demoConfirmOpen, setDemoConfirmOpen] = useState(false);
   const [eraseConfirmOpen, setEraseConfirmOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
-  const [needsSyncKey, setNeedsSyncKey] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -242,17 +244,26 @@ export default function App() {
       return;
     }
 
-    // Bu cihazda şifre çözme anahtarı yok — buluttaki veriyi ezme, kullanıcıdan iste
-    if (remote.needsKey) {
-      setNeedsSyncKey(true);
-      return;
-    }
-
-    const remoteData = asVaultData(remote.data, remote.updatedAt);
     const current = vaultRef.current;
     const owner = loadVaultOwner();
     // Yereldeki veri farklı bir hesaba aitse ASLA yukarı gönderme (hesap değiştirme koruması)
     const foreignLocal = Boolean(uid && owner && owner !== uid);
+
+    /* Eski sürümün cihaz anahtarıyla yazılmış, bu cihazda çözülemeyen satır.
+       Yerelde ödeme varsa o kazanır ve satır yeniden yazılır; yerel boşken
+       buluttaki kaydı ezmek veri kaybı olurdu — dokunmadan haber veririz. */
+    if (remote.unreadable) {
+      if (foreignLocal || current.payments.length === 0) {
+        setToast(t("toast.cloudUnreadable"));
+        return;
+      }
+      lastPushedAtRef.current = Date.now();
+      if (uid) saveVaultOwner(uid);
+      void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
+      return;
+    }
+
+    const remoteData = asVaultData(remote.data, remote.updatedAt);
 
     if (!foreignLocal && (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0))) {
       // Yerel daha güncel -> buluta yaz
@@ -278,6 +289,18 @@ export default function App() {
     // appTheme/appLanguage prefs'e uygulandı; vault state'inde bayat kopya tutma
     const { appTheme: _theme, appLanguage: _lang, ...vaultOnly } = remoteData;
     setVault((v) => ({ ...v, ...vaultOnly }));
+
+    /* Satır eski (cihaz anahtarlı) biçimdeyse hemen yeni anahtarla yeniden
+       yazılır; yoksa kullanıcı bir şey düzenleyene dek diğer cihazları
+       buluttaki kaydı açamazdı. */
+    if (remote.legacy) {
+      lastPushedAtRef.current = Date.now();
+      void syncedPush(
+        { ...current, ...vaultOnly },
+        remoteData.appTheme ?? prefsRef.current.theme,
+        remoteData.appLanguage ?? prefsRef.current.language,
+      );
+    }
   }
 
   /* ---------- Dış oturum değişikliği (Google OAuth dönüşü, başka sekme) ---------- */
@@ -289,6 +312,7 @@ export default function App() {
         if (!user) return;
         setCloudUser(user);
         await pullAndMerge(user.uid);
+        if (user.email) setToast(t("toast.signedIn", { email: user.email }));
       })();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -335,8 +359,7 @@ export default function App() {
 
   useEffect(() => {
     savePrefs(prefs);
-    document.documentElement.dataset.theme =
-      prefs.theme === "auto" ? "" : prefs.theme;
+    applyTheme(prefs.theme);
     document.documentElement.lang = prefs.language;
     // Arapça sağdan sola akar; flex/grid düzeni dir ile kendiliğinden aynalanır
     document.documentElement.dir = prefs.language === "ar" ? "rtl" : "ltr";
@@ -562,68 +585,6 @@ export default function App() {
   }
 
   /* ---------- Bulut hesap işlemleri ---------- */
-  async function handleCloudSignIn(email: string, password: string): Promise<string | null> {
-    const result = await signInEmail(email, password);
-    if (!result.ok) return result.error ?? "error";
-    const user = await getCloudUser();
-    setCloudUser(user);
-    await pullAndMerge(user?.uid);
-    setToast(t("toast.signedIn", { email }));
-    return null;
-  }
-
-  async function handleCloudSignUp(
-    email: string,
-    password: string,
-    name: string,
-  ): Promise<{ error: string | null; needsConfirm: boolean }> {
-    const result = await signUpEmail(email, password, name);
-    if (!result.ok) return { error: result.error ?? "error", needsConfirm: false };
-    if (result.needsConfirm) return { error: null, needsConfirm: true };
-    const user = await getCloudUser();
-    setCloudUser(user);
-    lastPushedAtRef.current = Date.now();
-    await syncedPush(vault, prefs.theme, prefs.language);
-    setToast(t("toast.signedUp"));
-    return { error: null, needsConfirm: false };
-  }
-
-  async function handleCloudSignInPhone(phone: string, password: string): Promise<string | null> {
-    const result = await signInPhone(phone, password);
-    if (!result.ok) return result.error ?? "error";
-    const user = await getCloudUser();
-    setCloudUser(user);
-    await pullAndMerge(user?.uid);
-    setToast(t("toast.signedIn", { email: phone }));
-    return null;
-  }
-
-  async function handleCloudSignUpPhone(
-    phone: string,
-    password: string,
-  ): Promise<{ error: string | null; needsOtp: boolean }> {
-    const result = await signUpPhone(phone, password);
-    if (!result.ok) return { error: result.error ?? "error", needsOtp: false };
-    if (result.needsConfirm) return { error: null, needsOtp: true };
-    const user = await getCloudUser();
-    setCloudUser(user);
-    lastPushedAtRef.current = Date.now();
-    await syncedPush(vault, prefs.theme, prefs.language);
-    setToast(t("toast.signedUp"));
-    return { error: null, needsOtp: false };
-  }
-
-  async function handleCloudVerifyPhoneOtp(phone: string, token: string): Promise<string | null> {
-    const result = await verifyPhoneOtp(phone, token);
-    if (!result.ok) return result.error ?? "error";
-    const user = await getCloudUser();
-    setCloudUser(user);
-    lastPushedAtRef.current = Date.now();
-    await syncedPush(vault, prefs.theme, prefs.language);
-    setToast(t("toast.signedUp"));
-    return null;
-  }
-
   async function handleCloudGoogle(): Promise<string | null> {
     const result = await signInGoogle();
     // Başarıda sayfa Google'a yönlenir; dönüşte oturum efekti devralır
@@ -635,7 +596,6 @@ export default function App() {
     setCloudUser(null);
     setSubscription({ status: "none", currentPeriodEnd: null });
     setProfileOpen(false);
-    setNeedsSyncKey(false);
     lastPushedAtRef.current = 0;
     // Yereldeki kasa çıkış yapan hesaba aitti; bir sonraki hesaba taşınmasın
     saveVaultOwner(null);
@@ -658,16 +618,6 @@ export default function App() {
     clearSyncKey();
     lastPushedAtRef.current = 0;
     setToast(t("account.deleted"));
-  }
-
-  async function handleCopyRecoveryKey(): Promise<void> {
-    try {
-      const key = await getRecoveryKey();
-      await navigator.clipboard.writeText(key);
-      setToast(t("account.syncKeyCopied"));
-    } catch {
-      setToast(t("account.error.generic", { msg: "clipboard" }));
-    }
   }
 
   /** Ayarlar > tüm yerel verileri sil (PIN kilidi olmasa da erişilebilir). */
@@ -930,20 +880,6 @@ export default function App() {
             />
           )}
 
-          {needsSyncKey && (
-            <SyncKeyModal
-              onClose={() => setNeedsSyncKey(false)}
-              onApply={async (key) => {
-                const ok = await importRecoveryKey(key);
-                if (!ok) return false;
-                setNeedsSyncKey(false);
-                const user = await getCloudUser();
-                await pullAndMerge(user?.uid);
-                return true;
-              }}
-            />
-          )}
-
           {settingsOpen && (
             <SettingsModal
               prefs={prefs}
@@ -996,15 +932,7 @@ export default function App() {
           )}
 
           {authOpen && (
-            <AuthModal
-              onClose={() => setAuthOpen(false)}
-              onSignIn={handleCloudSignIn}
-              onSignUp={handleCloudSignUp}
-              onSignInPhone={handleCloudSignInPhone}
-              onSignUpPhone={handleCloudSignUpPhone}
-              onVerifyPhoneOtp={handleCloudVerifyPhoneOtp}
-              onGoogle={handleCloudGoogle}
-            />
+            <AuthModal onClose={() => setAuthOpen(false)} onGoogle={handleCloudGoogle} />
           )}
 
           {profileOpen && cloudUser && (
@@ -1015,7 +943,6 @@ export default function App() {
               subscription={subscription}
               onSyncNow={() => void handleSyncNow()}
               onDeleteAccount={() => setDeleteAccountOpen(true)}
-              onCopyRecoveryKey={() => void handleCopyRecoveryKey()}
               onSignOut={() => void handleCloudSignOut()}
               onSwitchAccount={() => {
                 void handleCloudSignOut().then(() => setAuthOpen(true));
@@ -1165,8 +1092,7 @@ function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null 
     usdTry: Number(r.usdTry ?? 42),
     eurTry: Number(r.eurTry ?? 48),
     updatedAt: Number(r.updatedAt ?? fallbackUpdatedAt),
-    appTheme:
-      theme === "auto" || theme === "light" || theme === "dark" ? theme : undefined,
+    appTheme: isThemeId(theme) ? theme : undefined,
     appLanguage:
       language === "tr" || language === "en" || language === "ms" ||
       language === "es" || language === "ar"
