@@ -349,6 +349,11 @@ export default function App() {
     if (syncBlockedRef.current) return;
     if (vault.updatedAt <= lastPushedAtRef.current) return;
     const timer = setTimeout(() => {
+      /* Bayrak timer kurulduktan SONRA da kalkabilir: pullAndMerge hâlâ
+         sürüyorsa ve satırın çözülemediğini 300 ms sonra anlıyorsa, efektin
+         bağımlılıkları değişmediği için cleanup çalışmaz ve timer iptal
+         olmaz. Kararı gönderme anında yeniden ver. */
+      if (syncBlockedRef.current) return;
       lastPushedAtRef.current = Date.now();
       void syncedPush(vault, prefsRef.current.theme, prefsRef.current.language);
     }, 1500);
