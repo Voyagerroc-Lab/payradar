@@ -18,7 +18,15 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const cloudEnabled = Boolean(url && anonKey);
 
-export const supabase = cloudEnabled ? createClient(url!, anonKey!) : null;
+/* PKCE zorunlu. auth-js varsayılanı "implicit": adres çubuğundaki fragman'da
+   gelen bir access_token'ı state/nonce doğrulaması OLMADAN benimsiyor. Bu,
+   saldırganın kendi oturumunu kurbanın uygulamasına iliştirmesine (session
+   fixation) ve kurbanın ödeme kayıtlarının saldırganın satırına yazılmasına
+   izin veriyordu. PKCE'de yerelde saklanan code_verifier şart olduğu için
+   dışarıdan enjekte edilen bir jeton/kod kabul edilmez. */
+export const supabase = cloudEnabled
+  ? createClient(url!, anonKey!, { auth: { flowType: "pkce" } })
+  : null;
 
 export interface CloudUser {
   email?: string;

@@ -20,6 +20,8 @@
   --brand-blip: #f0abfc;
   --toast-bg: #23252b;
   --toast-ink: #fff;
+  /* Kulüp madalyonu: yalnızca kulüp temalarında dolar */
+  --club-motif: none;
   /* Özet kartı etiketleri: koyu zeminde açık tonlara döner (WCAG AA) */
   --sum-label-indigo: #6d28d9;
   --sum-label-violet: #a21caf;
@@ -211,6 +213,8 @@
 
 /* Galatasaray — altın sarısı, kırmızı temas */
 [data-theme="gs"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.32'><g clip-path='url(%23c)'><path d='M0 0H240V240Z' fill='%23FDB913'/><path d='M0 0H240L0 240Z' fill='%23E01A2B'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FDB913' stroke-width='2.4'/><g fill='none' stroke='%23FDB913' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FDB913'/></g></svg>");
   --bg: #14070a;
   --card: #1e0d11;
   --text: #fdf4e3;
@@ -233,6 +237,8 @@
 
 /* Fenerbahçe — lacivert saha, sarı vurgu */
 [data-theme="fb"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.3'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%230B2A63'/><rect x='24' width='24' height='240' fill='%23FFE000'/><rect x='72' width='24' height='240' fill='%23FFE000'/><rect x='120' width='24' height='240' fill='%23FFE000'/><rect x='168' width='24' height='240' fill='%23FFE000'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FFE000' stroke-width='2.4'/><g fill='none' stroke='%23FFE000' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FFE000'/></g></svg>");
   --bg: #061024;
   --card: #0c1b3d;
   --text: #eef3fd;
@@ -255,6 +261,8 @@
 
 /* Beşiktaş — tek renk yok: siyahın üstünde beyaz */
 [data-theme="bjk"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.28'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%23F4F4F5'/><rect x='24' width='24' height='240' fill='%230A0A0B'/><rect x='72' width='24' height='240' fill='%230A0A0B'/><rect x='120' width='24' height='240' fill='%230A0A0B'/><rect x='168' width='24' height='240' fill='%230A0A0B'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FFFFFF' stroke-width='2.4'/><g fill='none' stroke='%23FFFFFF' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FFFFFF'/></g></svg>");
   --bg: #050506;
   --card: #111113;
   --text: #f4f4f5;
@@ -277,6 +285,8 @@
 
 /* Trabzonspor — bordo saha, mavi vurgu */
 [data-theme="ts"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.3'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%238A1538'/><rect x='24' width='24' height='240' fill='%234FA8E8'/><rect x='72' width='24' height='240' fill='%234FA8E8'/><rect x='120' width='24' height='240' fill='%234FA8E8'/><rect x='168' width='24' height='240' fill='%234FA8E8'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%234FA8E8' stroke-width='2.4'/><g fill='none' stroke='%234FA8E8' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%234FA8E8'/></g></svg>");
   --bg: #10060b;
   --card: #1d0b13;
   --text: #f9eef2;
@@ -368,6 +378,11 @@ body {
     radial-gradient(120% 90% at 50% 0%, transparent 58%, var(--vignette) 100%),
     radial-gradient(46% 32% at 50% -6%, var(--beam), transparent 72%),
     radial-gradient(92% 55% at 50% -20%, var(--beam-core), transparent 70%),
+    /* Kulüp madalyonu sahnenin İÇİNDE yaşar: huzme ve vinyet onun üstünden de
+       geçer, nokta matrisi (body::before) üzerine düşer — ekrana yapıştırılmış
+       bir logo değil, radar ekranındaki bir temas gibi durur. Tema değişince
+       yalnızca bu custom property değiştiği için aynı karede döner. */
+    var(--club-motif) 50% 42% / min(152vmin, 1180px) no-repeat,
     linear-gradient(180deg, var(--field-top), var(--field-mid) 55%, var(--field-bottom)),
     var(--bg);
   background-attachment: fixed;

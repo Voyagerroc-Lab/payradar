@@ -283,7 +283,14 @@ export default function App() {
       void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
       return;
     }
-    if (!remoteData) return;
+    if (!remoteData) {
+      /* Buraya yalnızca foreignLocal iken düşülür (yukarıdaki dal diğer hâli
+         alır): uzak satır ayrıştırılamadı ve yereldeki kasa BAŞKA hesaba ait.
+         Yazma yolu kapatılmazsa debounce'lu push, yabancı kasayı bu hesabın
+         satırına yazardı. */
+      syncBlockedRef.current = true;
+      return;
+    }
     if (uid) saveVaultOwner(uid);
 
     lastPushedAtRef.current = Date.now();
@@ -514,6 +521,12 @@ export default function App() {
 
   function handleWipe() {
     wipeAllData();
+    /* Bulut oturumu da gitmeli: yerel kasa silinip token cihazda kalırsa,
+       cihazı sonradan eline alan kişi uygulamayı açtığında hesap AÇIK olur
+       ve kasa buluttan geri iner — "her şeyi sildim" tam tersine döner. */
+    clearSyncKey();
+    void signOutCloud();
+    setCloudUser(null);
     sessionKeyRef.current = null;
     setPrefs({ ...DEFAULT_PREFS });
     const wiped: VaultData = { ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() };
@@ -644,6 +657,9 @@ export default function App() {
   function handleEraseLocal() {
     wipeAllData();
     clearSyncKey();
+    // Aynı gerekçe (bkz. handleWipe): oturum artığı bırakma
+    void signOutCloud();
+    setCloudUser(null);
     sessionKeyRef.current = null;
     setPrefs({ ...DEFAULT_PREFS });
     setVault({ ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() });
