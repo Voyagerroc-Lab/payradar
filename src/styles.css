@@ -117,8 +117,12 @@
   color-scheme: dark;
 }
 
+/* "Sistemle aynı" + sistem koyu. Kulüp kimlikleri de dışlanmalı: bu seçici
+   :not() zinciri yüzünden [data-theme="gs"] gibi tek nitelikli bloklardan
+   daha özgül; dışlanmasalardı sistemi koyu olan cihazlarda kulüp temaları
+   hiç görünmezdi (tema seçilir, ekran koyu temada kalırdı). */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="gs"]):not([data-theme="fb"]):not([data-theme="bjk"]):not([data-theme="ts"]) {
     --bg: #07080c;
     --card: #0f111a;
     --text: #eef0f4;

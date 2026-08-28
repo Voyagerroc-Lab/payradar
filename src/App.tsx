@@ -165,6 +165,13 @@ export default function App() {
     entitledRef.current = entitled;
   }, [entitled]);
   const lastPushedAtRef = useRef(0);
+  /* Buluttaki satır bu cihazda çözülemedi ve yerel veri onu ezmemeli:
+     erken dönüş tek başına yetmiyordu, 1,5 sn sonraki debounced push
+     (ve elle "Şimdi Eşitle") satırı yine de ezerdi. */
+  const syncBlockedRef = useRef(false);
+  /* Aynı hesap için "giriş yapıldı" bildirimi bir kez çıksın: supabase-js
+     sekmeye her dönüşte SIGNED_IN yayıyor. */
+  const lastSignedInUidRef = useRef<string | null>(null);
   // Güncel state'e updater dışında erişim için (pullAndMerge yan etkisiz kalsın)
   const vaultRef = useRef(vault);
   const prefsRef = useRef(prefs);
@@ -226,6 +233,7 @@ export default function App() {
   /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
    *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
   async function pullAndMerge(uid?: string) {
+    syncBlockedRef.current = false;
     // Abonelik durumunu tazele; premium kapısı aktifken yetkisiz hesaplar senkron yapmaz
     const sub = await getSubscription();
     setSubscription(sub);
@@ -254,6 +262,9 @@ export default function App() {
        buluttaki kaydı ezmek veri kaybı olurdu — dokunmadan haber veririz. */
     if (remote.unreadable) {
       if (foreignLocal || current.payments.length === 0) {
+        // Yazma yolunu kapat: yoksa ilk düzenlemede (tema değişimi bile yeter)
+        // debounced push bu satırı sessizce ezerdi.
+        syncBlockedRef.current = true;
         setToast(t("toast.cloudUnreadable"));
         return;
       }
@@ -311,8 +322,14 @@ export default function App() {
         const user = await getCloudUser();
         if (!user) return;
         setCloudUser(user);
+        /* SIGNED_IN olayı sekmeye her dönüşte de geliyor; bildirim yalnızca
+           hesap gerçekten değiştiğinde ve pull'dan ÖNCE çıkar ki pull'un
+           kendi bildirimi (buluttan yüklendi / okunamadı) üstte kalsın. */
+        if (user.uid && lastSignedInUidRef.current !== user.uid) {
+          lastSignedInUidRef.current = user.uid;
+          if (user.email) setToast(t("toast.signedIn", { email: user.email }));
+        }
         await pullAndMerge(user.uid);
-        if (user.email) setToast(t("toast.signedIn", { email: user.email }));
       })();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -322,6 +339,7 @@ export default function App() {
   useEffect(() => {
     if (mode !== "ready" || !cloudUser) return;
     if (premiumGateEnabled && !entitled) return;
+    if (syncBlockedRef.current) return;
     if (vault.updatedAt <= lastPushedAtRef.current) return;
     const timer = setTimeout(() => {
       lastPushedAtRef.current = Date.now();
@@ -597,6 +615,8 @@ export default function App() {
     setSubscription({ status: "none", currentPeriodEnd: null });
     setProfileOpen(false);
     lastPushedAtRef.current = 0;
+    syncBlockedRef.current = false;
+    lastSignedInUidRef.current = null;
     // Yereldeki kasa çıkış yapan hesaba aitti; bir sonraki hesaba taşınmasın
     saveVaultOwner(null);
     setVault({ ...DEFAULT_VAULT, updatedAt: 0 });
@@ -635,6 +655,10 @@ export default function App() {
   async function handleSyncNow(): Promise<void> {
     if (!cloudUser) return;
     if (premiumGateEnabled && !entitledRef.current) return;
+    if (syncBlockedRef.current) {
+      setToast(t("toast.cloudUnreadable"));
+      return;
+    }
     lastPushedAtRef.current = Date.now();
     const ok = await syncedPush(vault, prefs.theme, prefs.language);
     if (ok) setToast(t("toast.syncSuccess"));
