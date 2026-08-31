@@ -33,7 +33,7 @@ interface SettingsModalProps {
 
 const AUTO_LOCK_OPTIONS = [1, 3, 5, 10];
 
-const BASE_THEMES = ["auto", "light", "dark"] as const;
+const BASE_THEMES = ["auto", "light", "dark", "paper"] as const;
 
 /* Kulüp adları çevrilmez; renkler kulübün forma renkleridir ve düğmenin
    üstündeki iki bantta aynen görünür — tema seçilmeden önce ne olduğu

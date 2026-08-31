@@ -13,6 +13,7 @@ import type { ThemeId } from "../types";
 const THEME_COLORS: Record<Exclude<ThemeId, "auto">, string> = {
   light: "#f6f7f9",
   dark: "#07080c",
+  paper: "#faf8f5",
   gs: "#14070a",
   fb: "#061024",
   bjk: "#050506",

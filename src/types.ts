@@ -18,8 +18,9 @@ export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
 
 export type Language = "tr" | "en" | "ms" | "es" | "ar";
 
-/** Görünüm teması: üç temel tema + dört kulüp teması. */
-export type ThemeId = "auto" | "light" | "dark" | "gs" | "fb" | "bjk" | "ts";
+/** Görünüm teması: dört temel tema + dört kulüp teması.
+    "paper": sıcak kâğıt zemin + derin turkuaz vurgu (basılı enstrüman havası). */
+export type ThemeId = "auto" | "light" | "dark" | "paper" | "gs" | "fb" | "bjk" | "ts";
 
 /** Ayarlar ekranındaki kulüp temaları (sıra ekranda göründüğü sıradır). */
 export const TEAM_THEMES = ["gs", "fb", "bjk", "ts"] as const;
@@ -28,6 +29,7 @@ export const THEME_IDS: readonly ThemeId[] = [
   "auto",
   "light",
   "dark",
+  "paper",
   ...TEAM_THEMES,
 ];
 

@@ -129,6 +129,7 @@ const tr = {
   "theme.auto": "Sistem ile aynı",
   "theme.light": "Açık",
   "theme.dark": "Koyu",
+  "theme.paper": "Kâğıt",
   "theme.groupTeams": "Takım temaları",
 
   // Ayarlar > Güvenlik
@@ -410,6 +411,7 @@ const en: Record<TranslationKey, string> = {
   "theme.auto": "Follow system",
   "theme.light": "Light",
   "theme.dark": "Dark",
+  "theme.paper": "Paper",
   "theme.groupTeams": "Team themes",
 
   "security.title": "Security",
@@ -683,6 +685,7 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "theme.auto": "Ikut Sistem",
   "theme.light": "Cerah",
   "theme.dark": "Gelap",
+  "theme.paper": "Kertas",
   "theme.groupTeams": "Tema pasukan",
 
   "security.title": "Keselamatan",
@@ -954,6 +957,7 @@ const es: Record<TranslationKey, string> = {
   "theme.auto": "Seguir al sistema",
   "theme.light": "Claro",
   "theme.dark": "Oscuro",
+  "theme.paper": "Papel",
   "theme.groupTeams": "Temas de equipos",
 
   "security.title": "Seguridad",
@@ -1222,6 +1226,7 @@ const ar: Record<TranslationKey, string> = {
   "theme.auto": "حسب النظام",
   "theme.light": "فاتح",
   "theme.dark": "داكن",
+  "theme.paper": "ورقي",
   "theme.groupTeams": "ثيمات الفرق",
 
   "security.title": "الأمان",

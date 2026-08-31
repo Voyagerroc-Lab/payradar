@@ -124,7 +124,7 @@
    daha özgül; dışlanmasalardı sistemi koyu olan cihazlarda kulüp temaları
    hiç görünmezdi (tema seçilir, ekran koyu temada kalırdı). */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="gs"]):not([data-theme="fb"]):not([data-theme="bjk"]):not([data-theme="ts"]) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="paper"]):not([data-theme="gs"]):not([data-theme="fb"]):not([data-theme="bjk"]):not([data-theme="ts"]) {
     --bg: #07080c;
     --card: #0f111a;
     --text: #eef0f4;
@@ -170,6 +170,60 @@
   --cast-a-lift: 0.26;
     color-scheme: dark;
   }
+}
+
+/* ---------- Kâğıt teması ----------
+   Basılı enstrüman havası: sıcak kâğıt zemin, koyu kahve-siyah mürekkep,
+   tek vurgu olarak derin turkuaz. Menekşe-fuşya marka ekseni bu temada
+   tamamen susar; radar sinyali de turkuazın kendisidir — kâğıt üstünde
+   ikinci bir fosfor yeşili gürültü olurdu. Işık sahnesi (huzme, noktalar,
+   süpürme) kalır ama mürekkep tonlarına çekilir: ekran değil, iyi
+   basılmış bir sayfa gibi. */
+[data-theme="paper"] {
+  --bg: #faf8f5;
+  --card: #fffefb;
+  --text: #27251e;
+  --text-soft: #7d7566;
+  --border: #e7e1d6;
+  --accent: #016a71;
+  --accent-strong: #01565c;
+  --accent-soft: #e2edeb;
+  --accent-ink: #faf8f5;
+  --accent-ink-soft: var(--accent-strong);
+  --pulse: #0e8f97;
+  --brand-blip: #8fc7c9;
+  --toast-bg: #27251e;
+  --toast-ink: #faf8f5;
+  --sum-label-indigo: #01565c;
+  --sum-label-violet: #01565c;
+  --sum-label-teal: #01565c;
+  --sum-label-amber: #01565c;
+  --signal: #016a71;
+  --signal-soft: rgb(1 106 113 / 0.1);
+  --danger: #b3403a;
+  --danger-soft: #f6e3e0;
+  --warn: #8a6116;
+  --warn-soft: #f3ead4;
+  --ok: #2c6e49;
+  --ok-soft: #e2ede4;
+  --shadow: 0 1px 2px rgb(60 50 30 / 0.06), 0 2px 6px rgb(60 50 30 / 0.05);
+  --shadow-lift: 0 4px 10px rgb(60 50 30 / 0.09), 0 10px 28px rgb(60 50 30 / 0.1);
+  --sheen: rgb(1 106 113 / 0.1);
+  --beam: rgb(1 106 113 / 0.09);
+  --beam-core: rgb(1 106 113 / 0.045);
+  --grid-line: rgb(39 26 0 / 0.09);
+  --grid-size: 24px;
+  --field-top: #fbf9f5;
+  --field-mid: #f8f5f0;
+  --field-bottom: #f2eee6;
+  --vignette: rgb(60 45 15 / 0.05);
+  --sweep: rgb(1 106 113 / 0.07);
+  --glass-edge: rgb(255 255 255 / 0.9);
+  --surface-lit: rgb(255 255 255 / 0);
+  --cast-rgb: 60 50 30;
+  --cast-a: 0.06;
+  --cast-a-lift: 0.11;
+  color-scheme: light;
 }
 
 /* ---------- Kulüp temaları ----------
