@@ -26,27 +26,37 @@ export interface Subscription {
   status: SubscriptionStatus;
   /** Bu tarihe kadar premium erişim geçerli (iptal edilmiş olsa bile) */
   currentPeriodEnd: number | null;
+  /** Sunucudaki is_entitled() kararı; RPC'ye ulaşılamadıysa null */
+  entitled?: boolean | null;
 }
 
-/** Kullanıcının abonelik satırını okur; satır yoksa "none" döner. */
+/** Kullanıcının abonelik satırını okur; satır yoksa "none" döner.
+ *  Yetki kararı sunucudan (is_entitled RPC) gelir — istemcideki kopya yalnızca
+ *  RPC'ye ulaşılamadığında devreye giren yedektir; iki tanımın ayrışmasını
+ *  önlemek için kural değişiklikleri SQL fonksiyonunda yapılır. */
 export async function getSubscription(): Promise<Subscription> {
-  if (!supabase) return { status: "none", currentPeriodEnd: null };
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .select("status,current_period_end")
-    .maybeSingle();
-  if (error || !data) return { status: "none", currentPeriodEnd: null };
+  if (!supabase) return { status: "none", currentPeriodEnd: null, entitled: null };
+  const [row, verdict] = await Promise.all([
+    supabase.from("subscriptions").select("status,current_period_end").maybeSingle(),
+    supabase.rpc("is_entitled"),
+  ]);
+  const entitled =
+    !verdict.error && typeof verdict.data === "boolean" ? verdict.data : null;
+  if (row.error || !row.data) return { status: "none", currentPeriodEnd: null, entitled };
   return {
-    status: (data.status as SubscriptionStatus) ?? "none",
-    currentPeriodEnd: data.current_period_end
-      ? new Date(data.current_period_end).getTime()
+    status: (row.data.status as SubscriptionStatus) ?? "none",
+    currentPeriodEnd: row.data.current_period_end
+      ? new Date(row.data.current_period_end).getTime()
       : null,
+    entitled,
   };
 }
 
 /** Deneme dahil, dönem sonu geçmemiş her abonelik premium sayılır. */
 export function isEntitled(sub: Subscription): boolean {
   if (!premiumGateEnabled) return true;
+  // Sunucu karar verdiyse o geçerlidir; aşağısı yalnızca çevrimdışı yedek
+  if (sub.entitled != null) return sub.entitled;
   const active = sub.status === "on_trial" || sub.status === "active" || sub.status === "past_due";
   const notExpired = !sub.currentPeriodEnd || sub.currentPeriodEnd > Date.now();
   // Kaçan/tekrarlanan webhook yüzünden "active" kalmış bayat satır premium vermez

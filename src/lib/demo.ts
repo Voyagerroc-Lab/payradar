@@ -18,6 +18,10 @@ interface DemoSpec {
   /** Jenerik kalem: kullanıcının dilinde üretilir */
   nameKey?: TranslationKey;
   price: number;
+  /** TR dışı dillerde kullanılan gerçekçi USD fiyatı: TL fiyatını kur ile
+      çevirmek "Netflix US$3.11" gibi inandırıcılığı bozan tutarlar üretiyordu.
+      Örnek veri ürünün vitrinidir; her pazarda o pazarın rakamıyla konuşur. */
+  priceUSD?: number;
   currency?: Currency;
   billingCycle?: Payment["billingCycle"];
   daysFromNow: number;
@@ -36,10 +40,11 @@ interface DemoSpec {
  * bulur. Araya kalem eklerken sona ekleyin.
  */
 const SPECS: DemoSpec[] = [
-  { nameKey: "demo.rent", price: 18500, daysFromNow: 9, categoryId: "konut" },
+  { nameKey: "demo.rent", price: 18500, priceUSD: 1450, daysFromNow: 9, categoryId: "konut" },
   {
     nameKey: "demo.mortgage",
     price: 14250,
+    priceUSD: 1180,
     daysFromNow: 4,
     categoryId: "kredi",
     bankKey: "demo.bankName",
@@ -49,27 +54,29 @@ const SPECS: DemoSpec[] = [
   {
     nameKey: "demo.supplierCheck",
     price: 45000,
+    priceUSD: 2500,
     daysFromNow: 6,
     categoryId: "cek_senet",
     checkKey: "demo.checkNumber",
     payeeKey: "demo.payee",
   },
-  { nameKey: "demo.carLease", price: 24000, daysFromNow: 14, categoryId: "ulasim" },
-  { nameKey: "demo.electricity", price: 850, daysFromNow: 3, categoryId: "faturalar" },
-  { nameKey: "demo.internet", price: 649, daysFromNow: 7, categoryId: "faturalar" },
-  { name: "Netflix", price: 149.99, daysFromNow: 2, categoryId: "abonelik" },
-  { name: "Spotify Premium", price: 59.99, daysFromNow: 5, categoryId: "abonelik" },
-  { name: "Xbox Game Pass Ultimate", price: 249.0, daysFromNow: 20, categoryId: "oyun" },
-  { name: "iCloud+ 200GB", price: 29.99, daysFromNow: 8, categoryId: "diger" },
+  { nameKey: "demo.carLease", price: 24000, priceUSD: 429, daysFromNow: 14, categoryId: "ulasim" },
+  { nameKey: "demo.electricity", price: 850, priceUSD: 92, daysFromNow: 3, categoryId: "faturalar" },
+  { nameKey: "demo.internet", price: 649, priceUSD: 59.99, daysFromNow: 7, categoryId: "faturalar" },
+  { name: "Netflix", price: 149.99, priceUSD: 15.49, daysFromNow: 2, categoryId: "abonelik" },
+  { name: "Spotify Premium", price: 59.99, priceUSD: 11.99, daysFromNow: 5, categoryId: "abonelik" },
+  { name: "Xbox Game Pass Ultimate", price: 249.0, priceUSD: 19.99, daysFromNow: 20, categoryId: "oyun" },
+  { name: "iCloud+ 200GB", price: 29.99, priceUSD: 2.99, daysFromNow: 8, categoryId: "diger" },
   { name: "ChatGPT Plus", price: 20, currency: "USD", daysFromNow: 15, categoryId: "abonelik" },
   {
     nameKey: "demo.homeInsurance",
     price: 1240,
+    priceUSD: 380,
     billingCycle: "yearly",
     daysFromNow: 45,
     categoryId: "sigorta",
   },
-  { name: "Canva Pro", price: 449.99, daysFromNow: 4, categoryId: "diger", isTrial: true },
+  { name: "Canva Pro", price: 449.99, priceUSD: 14.99, daysFromNow: 4, categoryId: "diger", isTrial: true },
 ];
 
 const ALL_LANGS: Language[] = ["tr", "en", "ms"];
@@ -81,11 +88,14 @@ export function buildDemoPayments(lang: Language): Payment[] {
     const date = new Date();
     date.setDate(date.getDate() + spec.daysFromNow);
     const name = spec.nameKey ? t(spec.nameKey) : (spec.name as string);
+    // TR demoda TL, diğer dillerde USD: kur çevirisiyle üretilmiş garip
+    // tutarlar yerine her pazarın kendi gerçekçi fiyatı gösterilir.
+    const useUSD = lang !== "tr" && spec.priceUSD != null && !spec.currency;
     return {
       id: `demo-${now}-${index}`,
       name,
-      price: spec.price,
-      currency: spec.currency ?? "TRY",
+      price: useUSD ? (spec.priceUSD as number) : spec.price,
+      currency: spec.currency ?? (useUSD ? "USD" : "TRY"),
       billingCycle: spec.billingCycle ?? "monthly",
       nextPaymentDate: date.toISOString().slice(0, 10),
       categoryId: spec.categoryId,
@@ -99,10 +109,15 @@ export function buildDemoPayments(lang: Language): Payment[] {
       // Netflix'e örnek zam geçmişi: grafik özelliğini göstermek için
       priceHistory:
         spec.name === "Netflix"
-          ? [
-              { date: "2024-01-15", price: 99.99 },
-              { date: "2025-02-01", price: 129.99 },
-            ]
+          ? useUSD
+            ? [
+                { date: "2024-01-15", price: 11.99 },
+                { date: "2025-02-01", price: 13.99 },
+              ]
+            : [
+                { date: "2024-01-15", price: 99.99 },
+                { date: "2025-02-01", price: 129.99 },
+              ]
           : undefined,
     };
   });

@@ -660,29 +660,54 @@ button {
   padding: 18px 18px 16px;
 }
 
-/* Sınıf adları TSX'te sabit; paleti marka menekşe→fuşya eksenine çekildi */
+/* Renk disiplini: kategori renkleri VERİ kodlamasıdır ve yalnızca kartlarda/
+   dağılım çubuğunda konuşur. İstatistik kartlarının dekoratif dörtlü paleti
+   (menekşe/fuşya/petrol/amber) sayfadaki renk sayısını şişiriyordu — kahraman
+   marka vurgusuyla, üç destek kartı tek sessiz tonla konuşur. Sınıf adları
+   TSX'te sabit kaldı; yalnızca değerleri sadeleşti. */
 .summary-indigo {
-  --sum-color: #7c3aed;
-  --sum-label: var(--sum-label-indigo);
-  --sum-soft: rgb(124 58 237 / 0.14);
+  --sum-color: var(--accent-strong);
+  --sum-label: var(--accent-ink-soft);
+  --sum-soft: var(--accent-soft);
 }
 
-.summary-violet {
-  --sum-color: #c026d3;
-  --sum-label: var(--sum-label-violet);
-  --sum-soft: rgb(192 38 211 / 0.13);
-}
-
-.summary-teal {
-  --sum-color: #0d9488;
-  --sum-label: var(--sum-label-teal);
-  --sum-soft: rgb(13 148 136 / 0.14);
-}
-
+.summary-violet,
+.summary-teal,
 .summary-amber {
-  --sum-color: #d97706;
-  --sum-label: var(--sum-label-amber);
-  --sum-soft: rgb(217 119 6 / 0.16);
+  --sum-color: var(--text-soft);
+  --sum-label: var(--text-soft);
+  --sum-soft: color-mix(in srgb, var(--text-soft) 11%, transparent);
+}
+
+/* Sıradaki ödeme "canlı temas"tır: yalnızca bu kart fosfor sinyaliyle konuşur */
+.summary-card-next {
+  --sum-color: var(--signal);
+  --sum-label: var(--signal);
+  --sum-soft: var(--signal-soft);
+  /* Halkalar (::before) kart köşesinden taşar; kart camının içinde kalsın */
+  overflow: hidden;
+}
+
+/* İmza öğesi — radar halkaları: sıradaki ödeme kartının sağ üst köşesinde,
+   ikon kutusunun arkasından taşan eşmerkezli fosfor halkalar. Ürünün adı
+   ekranda tek bir yerde görselleşir; süs değil, "radar bir temas yakaladı"
+   bilgisinin kendisidir. Ödeme yoksa (TSX '—' basar) halkalar da anlamsız
+   kalmaz: kart yine tarama alanıdır. */
+.summary-card-next::before {
+  content: "";
+  position: absolute;
+  top: -34px;
+  right: -34px;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 30px, var(--signal-soft) 31px, transparent 33px),
+    radial-gradient(circle, transparent 48px, var(--signal-soft) 49px, transparent 51px),
+    radial-gradient(circle, transparent 66px, var(--signal-soft) 67px, transparent 69px);
+  -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 40%, transparent 72%);
 }
 
 .summary-icon {
@@ -727,6 +752,48 @@ button {
 .summary-next small {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Kahraman kartın hikâyesi: aylık toplamın kategori dağılımı. Renkler
+   kartlardaki sol şeritlerle AYNI veri kodudur — dekor değil, açıklama. */
+.summary-breakdown {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-top: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.summary-breakdown i {
+  min-width: 3px;
+  border-radius: 999px;
+}
+
+.summary-breakdown-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-breakdown-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.summary-breakdown-legend li span {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .summary-next {
@@ -1042,6 +1109,14 @@ button {
   color: var(--text-soft);
 }
 
+/* Tipografi sözleşmesi: VERİ (rakam, tarih, kod) mono sesle, DİL sans ile
+   konuşur. Cümle içindeki tarih bu sınıfla işaretlenir. */
+.mono-data {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  letter-spacing: -0.01em;
+}
+
 .sub-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1049,6 +1124,24 @@ button {
   justify-content: flex-end;
   align-items: center;
   gap: 6px;
+}
+
+/* Eylem gürültüsü: imleçli cihazlarda ikincil ikonlar (paylaş/düzenle/sil)
+   kart üzerine gelinceye ya da klavye odağı içine girinceye dek susar —
+   satırda yalnızca rozet ve "İptal Rehberi" konuşur. Silme gibi yıkıcı bir
+   eylemin 13 kartta sürekli bağırması hem risk hem gürültüydü. Dokunmatikte
+   (hover yok) her şey görünür kalır; opacity kullanıldığı için ikonlar
+   Tab sırasında yerini korur ve odaklanınca kendiliğinden belirir. */
+@media (hover: hover) and (pointer: fine) {
+  .sub-actions .icon-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .sub-card:hover .icon-btn,
+  .sub-card:focus-within .icon-btn {
+    opacity: 1;
+  }
 }
 
 .badge {

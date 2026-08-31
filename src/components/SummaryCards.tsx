@@ -1,5 +1,5 @@
-import type { Currency, Payment, VaultData } from "../types";
-import { daysUntil, formatMoney, toMonthlyIn } from "../lib/format";
+import type { CategoryId, Currency, Payment, VaultData } from "../types";
+import { CATEGORIES, daysUntil, formatMoney, toMonthlyIn } from "../lib/format";
 import { type FxTable } from "../lib/fx";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
@@ -30,6 +30,22 @@ export default function SummaryCards({
   );
   const yearly = monthly * 12;
 
+  // Kategori dağılımı: aylık toplamın hangi kalemlerden oluştuğu.
+  // Kahraman kart tek bir sayı değil, o sayının hikâyesidir.
+  const byCategory = new Map<CategoryId, number>();
+  for (const p of payments) {
+    const m = toMonthlyIn(p, home, fx, legacy);
+    byCategory.set(p.categoryId, (byCategory.get(p.categoryId) ?? 0) + m);
+  }
+  const breakdown = [...byCategory.entries()]
+    .map(([id, amount]) => ({
+      id,
+      amount,
+      share: monthly > 0 ? amount / monthly : 0,
+      category: CATEGORIES[id] ?? CATEGORIES.diger,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
   const upcoming = [...payments]
     .map((p) => ({ p, days: daysUntil(p.nextPaymentDate) }))
     .filter((x) => x.days >= 0)
@@ -45,6 +61,27 @@ export default function SummaryCards({
         </span>
         <span className="summary-label">{t("summary.monthly")}</span>
         <span className="summary-value">{formatMoney(monthly, home, lang)}</span>
+        {breakdown.length > 0 && (
+          <>
+            <div className="summary-breakdown" aria-hidden="true">
+              {breakdown.map((b) => (
+                <i
+                  key={b.id}
+                  style={{ flexGrow: Math.max(b.share, 0.015), background: b.category.color }}
+                />
+              ))}
+            </div>
+            <ul className="summary-breakdown-legend">
+              {breakdown.slice(0, 3).map((b) => (
+                <li key={b.id}>
+                  <i className="tag-dot" style={{ background: b.category.color }} aria-hidden="true" />
+                  {t(b.category.labelKey)}
+                  <span>{Math.round(b.share * 100)}%</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
       <div className="card summary-card summary-violet">
         <span className="summary-icon" aria-hidden="true">

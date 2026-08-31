@@ -4,16 +4,28 @@
 -- Tekrar çalıştırmak güvenlidir (idempotent).
 -- =============================================================
 
+-- Deneme/tanıtım suistimal koruması e-posta hash'i için gerekli
+create extension if not exists pgcrypto;
+
 -- -------------------------------------------------------------
 -- 1) Kasa (bulut senkronu)
---    İçerik cihazda AES-256-GCM ile şifrelenip yazılır; sunucu
---    yalnızca şifreli bloğu görür.
+--    İçerik cihazda AES-256-GCM ile şifrelenip yazılır. NOT: anahtar
+--    hesabın uid'inden türetildiği ve uid bu tablonun id sütununda
+--    durduğu için bu, "sunucunun asla çözemeyeceği" uçtan uca şifreleme
+--    DEĞİLDİR; tabloyu okuyabilen bir taraf anahtarı türetebilir.
+--    Koruduğu şey: yalnızca şifreli bloğu (satırın kendisini değil)
+--    ele geçiren taraflar ve kazara loglanan/dökümlenen içerik.
 -- -------------------------------------------------------------
 create table if not exists public.vaults (
   id uuid primary key references auth.users on delete cascade,
   data jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+-- Tek satır MB'larca büyüyemesin (RLS satırı sahibine kilitler ama boyutu değil)
+alter table public.vaults drop constraint if exists vaults_data_size;
+alter table public.vaults
+  add constraint vaults_data_size check (pg_column_size(data) < 1048576);
 
 -- id varsayılanı olmadan istemcinin upsert'ü NOT NULL hatası verir
 alter table public.vaults alter column id set default auth.uid();
@@ -36,6 +48,53 @@ create policy "own vault update" on public.vaults
 drop policy if exists "own vault delete" on public.vaults;
 create policy "own vault delete" on public.vaults
   for delete using (auth.uid() = id);
+
+-- -------------------------------------------------------------
+-- 1b) Korumalı kasa yazımı (sunucu tarafı last-write-wins bekçisi)
+--     İstemci saatine körü körüne güvenen upsert yerine: satır yalnızca
+--     yeni zarfın updatedAt'i sunucudakinden ESKİ DEĞİLSE güncellenir.
+--     Saati geri kalmış bir cihaz ya da yarışan iki push, daha yeni
+--     veriyi sessizce ezemez. false dönerse istemci "eşitlenmedi" bilir.
+-- -------------------------------------------------------------
+create or replace function public.push_vault(envelope jsonb)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  new_ts numeric := coalesce((envelope->>'updatedAt')::numeric, 0);
+  cur_ts numeric;
+begin
+  if uid is null then
+    raise exception 'not authenticated';
+  end if;
+
+  select coalesce((data->>'updatedAt')::numeric, 0)
+    into cur_ts
+    from public.vaults where id = uid
+    for update;
+
+  if not found then
+    insert into public.vaults (id, data, updated_at)
+    values (uid, envelope, now());
+    return true;
+  end if;
+
+  if new_ts < cur_ts then
+    return false; -- sunucudaki daha yeni; ezme
+  end if;
+
+  update public.vaults
+     set data = envelope, updated_at = now()
+   where id = uid;
+  return true;
+end;
+$$;
+
+revoke all on function public.push_vault(jsonb) from public, anon;
+grant execute on function public.push_vault(jsonb) to authenticated;
 
 -- -------------------------------------------------------------
 -- 2) Abonelikler (Premium — Lemon Squeezy)
@@ -71,6 +130,8 @@ create table if not exists public.webhook_events (
   received_at timestamptz not null default now()
 );
 alter table public.webhook_events enable row level security;
+-- Not: tablo sınırsız büyümesin diye ls-webhook fonksiyonu her çağrıda
+-- 90 günden eski kayıtları siler; ayrıca pg_cron gerekmez.
 
 -- -------------------------------------------------------------
 -- 4) Premium yetki kontrolü (sunucu tarafı)
@@ -128,19 +189,48 @@ grant execute on function public.delete_own_account() to authenticated;
 --    Not: Lemon Squeezy ürününde AYRICA deneme tanımlamayın —
 --    ücretsiz dönem burada yönetiliyor.
 -- -------------------------------------------------------------
+-- Tanıtım dönemi hesap silme döngüsüyle sıfırlanamasın: hakkını kullanan
+-- e-postanın tek yönlü hash'i tutulur (kişisel veri saklanmaz). Hesap
+-- silinse ve aynı Google hesabıyla (yeni uid) tekrar açılsa da hash aynı
+-- kalır ve ikinci bir 6 ay verilmez.
+create table if not exists public.redeemed_intros (
+  email_hash text primary key,
+  redeemed_at timestamptz not null default now()
+);
+alter table public.redeemed_intros enable row level security;
+-- Politika yok = yalnızca service-role / security definer fonksiyonlar erişir.
+
 create or replace function public.grant_intro_period()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  ehash text := encode(digest(lower(coalesce(new.email, new.id::text)), 'sha256'), 'hex');
 begin
+  -- Bu e-posta tanıtımını daha önce kullandıysa yeni hak verme
+  if exists (select 1 from public.redeemed_intros where email_hash = ehash) then
+    return new;
+  end if;
+
+  insert into public.redeemed_intros (email_hash) values (ehash)
+  on conflict (email_hash) do nothing;
+
   insert into public.subscriptions (user_id, status, current_period_end, trial_used)
   values (new.id, 'on_trial', now() + interval '6 months', true)
   on conflict (user_id) do nothing;
   return new;
 end;
 $$;
+
+-- Mevcut hesapların hakları da kayda geçsin (yeniden kurulumda çifte hak yok)
+insert into public.redeemed_intros (email_hash)
+select encode(digest(lower(u.email), 'sha256'), 'hex')
+from auth.users u
+join public.subscriptions s on s.user_id = u.id
+where u.email is not null and s.trial_used
+on conflict (email_hash) do nothing;
 
 drop trigger if exists on_auth_user_created_grant_intro on auth.users;
 create trigger on_auth_user_created_grant_intro

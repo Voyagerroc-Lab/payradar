@@ -32,17 +32,24 @@ const KEY_SALT = "payradar:sync:v2";
 
 /** Şifreli bulut yükü — düz metin vault yerine bu yazılır. */
 export interface EncryptedVaultEnvelope {
-  /** Şema sürümü: 1 = cihaz anahtarı (eski), 2 = hesaptan türetilen anahtar */
-  ev: 1 | 2;
+  /** Şema sürümü: 1 = cihaz anahtarı (eski), 2 = hesap anahtarı,
+      3 = hesap anahtarı + updatedAt GCM AAD'sinde (bütünlük korumalı) */
+  ev: 1 | 2 | 3;
   payload: EncryptedPayload;
-  /** Çakışma çözümü sunucuda düz metin okumadan yapılabilsin diye açıkta */
+  /** Çakışma çözümü sunucuda düz metin okumadan yapılabilsin diye açıkta.
+      ev:3'te bu alan AAD olarak imzalıdır: zarfa dokunmadan değiştirilirse
+      çözme başarısız olur — LWW kararı oynanabilir bir alandan çıkmaz. */
   updatedAt: number;
 }
 
 export function isEncryptedEnvelope(raw: unknown): raw is EncryptedVaultEnvelope {
   if (typeof raw !== "object" || raw === null) return false;
   const r = raw as Record<string, unknown>;
-  return (r.ev === 1 || r.ev === 2) && typeof r.payload === "object" && r.payload !== null;
+  return (
+    (r.ev === 1 || r.ev === 2 || r.ev === 3) &&
+    typeof r.payload === "object" &&
+    r.payload !== null
+  );
 }
 
 /* PBKDF2 pahalıdır (600k iterasyon); oturum boyunca tek türetme yeter. */
@@ -74,26 +81,35 @@ export function clearSyncKey(): void {
   }
 }
 
+/** AAD dizgesi: updatedAt tek başına değil, alan adıyla bağlanır. */
+function aadFor(updatedAt: number): string {
+  return `payradar:updatedAt:${updatedAt}`;
+}
+
 export async function encryptVault(
   value: unknown,
   updatedAt: number,
   uid: string,
 ): Promise<EncryptedVaultEnvelope> {
   const key = await accountKey(uid);
-  return { ev: 2, payload: await encryptJSON(key, value), updatedAt };
+  return { ev: 3, payload: await encryptJSON(key, value, aadFor(updatedAt)), updatedAt };
 }
 
 /**
  * Zarfı çözer; çözülemezse null döner (veri kaybı yaşanmaz, çağıran karar verir).
- * ev:2 hesabın anahtarıyla, ev:1 bu cihazda kalmış eski anahtarla açılır.
+ * ev:3/ev:2 hesabın anahtarıyla, ev:1 bu cihazda kalmış eski anahtarla açılır.
  */
 export async function decryptVault<T>(
   envelope: EncryptedVaultEnvelope,
   uid: string,
 ): Promise<T | null> {
-  if (envelope.ev === 2) {
+  if (envelope.ev === 3 || envelope.ev === 2) {
     try {
-      return await decryptJSON<T>(await accountKey(uid), envelope.payload);
+      return await decryptJSON<T>(
+        await accountKey(uid),
+        envelope.payload,
+        envelope.ev === 3 ? aadFor(envelope.updatedAt) : undefined,
+      );
     } catch {
       return null;
     }

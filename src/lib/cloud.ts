@@ -115,12 +115,13 @@ export async function pullVaultData(): Promise<
     if (!decrypted) {
       return { data: null, updatedAt: raw.updatedAt || remoteUpdatedAt, unreadable: true };
     }
-    // legacy: satır eski cihaz anahtarıyla yazılmış; çağıran yeni anahtarla
-    // yeniden yazsın ki kullanıcının diğer cihazları da açabilsin
+    // legacy: satır eski biçimde (ev:1 cihaz anahtarı ya da ev:2 AAD'siz);
+    // çağıran güncel zarfla yeniden yazsın ki hem diğer cihazlar açabilsin
+    // hem de updatedAt bütünlük korumasına kavuşsun
     return {
       data: decrypted,
       updatedAt: raw.updatedAt || remoteUpdatedAt,
-      legacy: raw.ev === 1,
+      legacy: raw.ev !== 3,
     };
   }
 
@@ -143,11 +144,24 @@ export async function pushVaultData(data: unknown): Promise<boolean> {
   } catch {
     return false; // şifreleme mümkün değilse düz metin GÖNDERME
   }
-  const { error } = await supabase.from("vaults").upsert({
-    data: envelope,
-    updated_at: new Date().toISOString(),
-  });
-  return !error;
+
+  /* Korumalı yazım: push_vault() RPC'si satırı yalnızca yeni updatedAt,
+     sunucudakinden küçük DEĞİLSE günceller — saati geri kalmış bir cihaz ya
+     da iki cihazın yarışan push'ları, daha yeni veriyi sessizce ezemez.
+     RPC henüz kurulmamışsa (supabase-setup.sql çalıştırılmamış eski proje)
+     eski davranışa, koşulsuz upsert'e düşülür. */
+  const { data: accepted, error } = await supabase.rpc("push_vault", { envelope });
+  // false = sunucu daha yeni bir kaydı korudu; başarı sayma ki kullanıcı
+  // "eşitlendi" sanmasın (bir sonraki açılışta pull güncel veriyi indirir)
+  if (!error) return accepted !== false;
+  if (error.code === "PGRST202" || error.code === "42883") {
+    const { error: upsertErr } = await supabase.from("vaults").upsert({
+      data: envelope,
+      updated_at: new Date().toISOString(),
+    });
+    return !upsertErr;
+  }
+  return false;
 }
 
 /**

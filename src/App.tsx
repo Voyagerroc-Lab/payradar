@@ -131,7 +131,24 @@ export default function App() {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [bannerDismissed, setBannerDismissed] = useState(false);
+  /* Bildirim bandı bir kez kapatılınca bir daha çıkmaz: bildirimler her
+     zaman Ayarlar'dan açılabilir, bant her açılışta içeriğin üstüne binmesin. */
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("payradar:notifBannerDismissed:v1") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismissNotifBanner() {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem("payradar:notifBannerDismissed:v1", "1");
+    } catch {
+      /* depolama kapalıysa yalnızca bu oturumda gizli kalır */
+    }
+  }
   /* Giriş şeridi kapatılınca bir daha çıkmaz (giriş her zaman başlıktan ve
      Ayarlar'dan erişilebilir kalır); tercih cihazda kalıcıdır. */
   const [cloudBannerDismissed, setCloudBannerDismissed] = useState(() => {
@@ -391,6 +408,9 @@ export default function App() {
     savePrefs(prefs);
     applyTheme(prefs.theme);
     document.documentElement.lang = prefs.language;
+    // Sekme başlığı arayüzle aynı dilde konuşsun (index.html'deki statik
+    // Türkçe başlık yalnızca ilk boyamada görünür)
+    document.title = `PayRadar — ${t("tagline")}`;
     // Arapça sağdan sola akar; flex/grid düzeni dir ile kendiliğinden aynalanır
     document.documentElement.dir = prefs.language === "ar" ? "rtl" : "ltr";
   }, [prefs]);
@@ -1001,7 +1021,7 @@ export default function App() {
             !bannerDismissed && (
               <NotificationBanner
                 onEnable={handleEnableNotifications}
-                onDismiss={() => setBannerDismissed(true)}
+                onDismiss={dismissNotifBanner}
               />
             )}
 

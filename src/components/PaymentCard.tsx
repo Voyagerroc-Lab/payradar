@@ -97,7 +97,8 @@ export default function PaymentCard({
           </p>
         </div>
         <p className="sub-date">
-          {t("card.nextPayment")} {formatDateTR(payment.nextPaymentDate, lang)} ·{" "}
+          {t("card.nextPayment")}{" "}
+          <span className="mono-data">{formatDateTR(payment.nextPaymentDate, lang)}</span> ·{" "}
           {payment.isTrial && days >= 0
             ? days === 0
               ? t("card.trialChargeToday")

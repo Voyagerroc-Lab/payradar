@@ -52,7 +52,7 @@ Arayüz beş dilde, tarayıcından otomatik seçilir:
 | Yerel öncelikli | Tüm veriler tarayıcının kendi belleğinde; sunucu zorunlu değil |
 | AES-256-GCM | Kasa verisi cihazda şifreli saklanır (WebCrypto) |
 | PBKDF2-SHA256 | 150.000 tur anahtar türetme; anahtar **yalnızca bellekte** |
-| Opsiyonel bulut | Açarsan veri cihazında **şifrelenir**, sunucuya yalnızca şifreli blok gider. Anahtar Google hesabının kimliğinden türetilir ve hiçbir yerde saklanmaz — böylece her cihazın kendiliğinden açılır, saklaman gereken kurtarma anahtarı olmaz |
+| Opsiyonel bulut | Açarsan veri cihazında **şifrelenir**, sunucuya yalnızca şifreli blok gider. Anahtar Google hesabının kimliğinden türetilir ve ayrıca saklanmaz — her cihaz kendiliğinden açılır, kurtarma anahtarı gerekmez. Dürüst not: bu, uçtan uca şifreleme **değildir**; anahtar hesap kimliğinden türediği için veritabanına tam erişimi olan bir taraf içeriği çözebilir. Koruduğu şey aktarım, yedek/log sızıntıları ve satır dışı erişimlerdir |
 | Reklam & takip yok | Analytics yok, üçüncü taraf yok |
 
 ## 🛠️ Tech

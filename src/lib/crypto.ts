@@ -112,18 +112,44 @@ export interface EncryptedPayload {
   data: string;
 }
 
-export async function encryptJSON(key: CryptoKey, value: unknown): Promise<EncryptedPayload> {
+/**
+ * aad (additional authenticated data): şifrelenmez ama GCM etiketine dahil
+ * edilir — zarfın DIŞINDA düz metin duran bir alan (ör. updatedAt) sonradan
+ * değiştirilirse çözme başarısız olur. Şifreleme ile çözme aynı aad'yi
+ * vermek zorundadır; aad'siz yazılmış eski yükler aad'siz çözülür.
+ */
+export async function encryptJSON(
+  key: CryptoKey,
+  value: unknown,
+  aad?: string,
+): Promise<EncryptedPayload> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const plaintext = new TextEncoder().encode(JSON.stringify(value)) as Bytes;
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+  const ciphertext = await crypto.subtle.encrypt(
+    aad
+      ? { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(aad) as Bytes }
+      : { name: "AES-GCM", iv },
+    key,
+    plaintext,
+  );
   // IV de base64 — decryptJSON base64 çözüyor; hex yazmak kasayı açılamaz hale getirirdi.
   return { iv: toBase64(iv), data: toBase64(new Uint8Array(ciphertext)) };
 }
 
-export async function decryptJSON<T>(key: CryptoKey, payload: EncryptedPayload): Promise<T> {
+export async function decryptJSON<T>(
+  key: CryptoKey,
+  payload: EncryptedPayload,
+  aad?: string,
+): Promise<T> {
   const iv = fromBase64(payload.iv);
   const ciphertext = fromBase64(payload.data);
-  // GCM doğrulaması başarısızsa burada hata fırlar (yanlış PIN sinyali).
-  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  // GCM doğrulaması başarısızsa burada hata fırlar (yanlış PIN / oynanmış aad sinyali).
+  const plaintext = await crypto.subtle.decrypt(
+    aad
+      ? { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(aad) as Bytes }
+      : { name: "AES-GCM", iv },
+    key,
+    ciphertext,
+  );
   return JSON.parse(new TextDecoder().decode(plaintext)) as T;
 }
