@@ -4,6 +4,32 @@ import App from "./App";
 import "./styles.css";
 
 /**
+ * Yükseltme bağlantısı: `/?update=1` (veya `?guncelle`) ile açılınca kurulu
+ * uygulamanın service worker'ı ve önbelleği temizlenir, sayfa temiz adrese
+ * yeniden yüklenir. Normalde gerekmez — sayfa gezinmeleri "önce ağ" olduğu
+ * için yeni deploy bir sonraki açılışta kendiliğinden gelir; bu bağlantı
+ * eski bir sürümde takılı kalmış cihaz için tek dokunuşluk çıkış yoludur.
+ * Veriye dokunulmaz: yalnızca SW kaydı ve Cache Storage silinir.
+ */
+const updateParams = new URLSearchParams(window.location.search);
+if (updateParams.has("update") || updateParams.has("guncelle")) {
+  void (async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } finally {
+      window.location.replace(import.meta.env.BASE_URL);
+    }
+  })();
+}
+
+/**
  * Son savunma hattı: render/effect aşamasında yakalanmamış bir hata React
  * ağacını söker ve kurulu uygulamada kalıcı BOŞ EKRAN bırakır (bunu bir kez
  * yaşadık: Android'de desteklenmeyen Notification kurucusu her açılışta

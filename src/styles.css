@@ -667,15 +667,30 @@ button {
   color: var(--text-soft);
 }
 
-/* Dar telefonda (≤380px) tagline'ı gizle: 5 satıra sarıp header'ı
-   şişirmesin ve Ayarlar dişlisini ekran dışına itmesin. Marka adı kalır. */
-@media (max-width: 380px) {
+/* Telefonda (≤480px) tagline'ı gizle: 390–430px'te üç satıra sarıp header'ı
+   95px'e şişiriyordu; ≤380'de Ayarlar dişlisini ekran dışına itiyordu. Marka adı kalır. */
+@media (max-width: 480px) {
   .brand p {
     display: none;
   }
 
   .header-actions {
     flex-shrink: 0;
+  }
+}
+
+/* En dar telefonda (≤380px) marka adı hiçbir dilde düğmelerin altına girmez:
+   Arapça "Giriş" pili genişleyince h1 kutusundan taşıyor ve RTL'de sağdan sola
+   akan taşma düğmelerin üstüne biniyordu. Pilin metni ikona indirgenir. */
+@media (max-width: 380px) {
+  .brand h1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .account-chip-label {
+    display: none;
   }
 }
 
@@ -1078,6 +1093,27 @@ button {
   flex: 1 1 180px;
 }
 
+/* Dar telefonda 180px taban avatarın yanına sığmayıp bilgi bloğunu alt satıra
+   düşürüyordu (avatar tek başına, yarım kart boşluk). Kalan alanı alsın. */
+@media (max-width: 380px) {
+  .sub-card {
+    gap: 12px;
+  }
+
+  .sub-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .sub-avatar span {
+    font-size: 19px;
+  }
+
+  .sub-info {
+    flex-basis: 0;
+  }
+}
+
 /* Ad satırın tamamını alır. Kategori ve deneme etiketleri eskiden adın
    yanında duruyordu ve "Netflix" gibi kısa adları bile kırpıyordu; artık
    tutarın yanında, mikro ölçekte. İki satıra kadar tam görünür. */
@@ -1276,8 +1312,11 @@ button {
   margin-bottom: 18px;
 }
 
-/* Tarama açısı tiplenmeli, yoksa conic-gradient animasyonu çalışmaz */
-@property --sweep {
+/* Tarama açısı tiplenmeli, yoksa conic-gradient animasyonu çalışmaz.
+   Adı --sweep OLAMAZ: o ad temaların renk token'ı; <angle> olarak kaydedilince
+   sekiz temanın rgb() değeri geçersiz sayılıp 0deg'e düşüyor ve body::after'daki
+   açılış süpürmesi hiç çizilmiyordu. */
+@property --hero-sweep {
   syntax: "<angle>";
   initial-value: 0deg;
   inherits: false;
@@ -1309,16 +1348,18 @@ button {
   z-index: -1;
   /* Gerçek radar ekranı: koyu cam üstünde fosfor yeşili tarama ve izler */
   background:
-    conic-gradient(from var(--sweep), rgb(69 240 174 / 0.5), transparent 28%),
-    radial-gradient(rgb(69 240 174 / 0.28) 1px, transparent 1.5px),
+    conic-gradient(from var(--hero-sweep), color-mix(in srgb, var(--signal) 50%, transparent), transparent 28%),
+    radial-gradient(color-mix(in srgb, var(--signal) 28%, transparent) 1px, transparent 1.5px),
     radial-gradient(120% 120% at 30% 20%, #0e2018, #0b0d16 70%);
   background-size: auto, 9px 9px, auto;
-  animation: radar-sweep 3.6s linear infinite;
+  animation: hero-sweep 3.6s linear infinite;
 }
 
-@keyframes radar-sweep {
+/* Ayrı ad şart: ikinci bir "radar-sweep" tanımı body::after'ın
+   transform/opacity keyframe'ini eziyordu. */
+@keyframes hero-sweep {
   to {
-    --sweep: 360deg;
+    --hero-sweep: 360deg;
   }
 }
 
@@ -1452,6 +1493,18 @@ button {
 
 .form-row .input {
   width: 100%;
+}
+
+/* ≤400px'te modal içi ~240px kalıyor; iki sabit kolon "Dışa Aktar / İçe Aktar"
+   düğmelerini ve kulüp adlarını taşırıyordu (yatay kaydırma çubuğu). */
+@media (max-width: 400px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .field {
@@ -2120,11 +2173,12 @@ textarea.input {
   margin: 10px 0;
   padding: 13px 15px;
   font-size: 13.5px;
-  /* Menekşe→fuşya eğim + LED nokta dokusu: premium yüzey "ekran" gibi durur */
+  /* Vurgu→nabız eğimi + LED nokta dokusu: premium yüzey "ekran" gibi durur.
+     Renkler temadan gelir; sabit menekşe kâğıt ve kulüp temalarında yabancıydı. */
   background:
-    linear-gradient(135deg, rgb(124 58 237 / 0.10), rgb(217 70 239 / 0.10)),
-    radial-gradient(rgb(124 58 237 / 0.14) 1px, transparent 1.4px) 0 0 / 10px 10px;
-  border: 1px solid rgb(124 58 237 / 0.28);
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), color-mix(in srgb, var(--pulse) 10%, transparent)),
+    radial-gradient(color-mix(in srgb, var(--accent) 14%, transparent) 1px, transparent 1.4px) 0 0 / 10px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
   border-radius: 12px;
 }
 
@@ -2201,11 +2255,12 @@ textarea.input {
   margin-bottom: 14px;
   padding: 7px 8px 7px 13px;
   font-size: 13px;
-  text-align: left;
+  text-align: start;
   color: var(--text);
+  /* Vurgu token'ından türer: kâğıt (turkuaz) ve kulüp temalarında mor kalmasın */
   background:
-    linear-gradient(to right, rgb(124 58 237 / 0.07), rgb(124 58 237 / 0.03)),
-    radial-gradient(rgb(124 58 237 / 0.09) 1px, transparent 1.4px) 0 0 / 10px 10px;
+    linear-gradient(to right, color-mix(in srgb, var(--accent) 7%, transparent), color-mix(in srgb, var(--accent) 3%, transparent)),
+    radial-gradient(color-mix(in srgb, var(--accent) 9%, transparent) 1px, transparent 1.4px) 0 0 / 10px 10px;
   border: 1px solid var(--accent-soft);
   border-radius: var(--radius);
 }

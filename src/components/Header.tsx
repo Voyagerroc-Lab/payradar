@@ -58,7 +58,12 @@ export default function Header({
                   <span className="account-chip-avatar">{initial}</span> <Icon name="cloud" size={14} />
                 </>
               ) : (
-                t("auth.signIn")
+                <>
+                  {/* İkon her genişlikte kalır; metin ≤380px'te CSS ile gizlenir ki
+                      Arapça gibi uzun etiketler marka adını ezmesin (aria-label var). */}
+                  <Icon name="cloud" size={14} />
+                  <span className="account-chip-label">{t("auth.signIn")}</span>
+                </>
               )}
             </button>
           )}
