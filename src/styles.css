@@ -729,6 +729,14 @@ button {
   padding: 18px 18px 16px;
 }
 
+/* Üç destek kartı eşit yükseklikte bir sıradır; kısa olanların değeri boşlukta
+   yüzmesin diye etiket üste, tutar ortak bir alt hizaya sabitlenir — üç rakam
+   tek çizgide okunur, bir gösterge paneli gibi. Kahraman kart hariç. */
+.summary-card:not(.summary-hero) {
+  justify-content: space-between;
+  min-height: 104px;
+}
+
 /* Renk disiplini: kategori renkleri VERİ kodlamasıdır ve yalnızca kartlarda/
    dağılım çubuğunda konuşur. İstatistik kartlarının dekoratif dörtlü paleti
    (menekşe/fuşya/petrol/amber) sayfadaki renk sayısını şişiriyordu — kahraman
@@ -839,6 +847,13 @@ button {
   border-radius: 999px;
 }
 
+/* Katlanan "diğer" dilimi ve efsane noktası: renk kodu taşımaz, bilinçli
+   olarak sessiz kalır — kategori renkleri veri, bu ise "gerisi" demektir. */
+.summary-breakdown i.is-other {
+  background: var(--text-soft);
+  opacity: 0.3;
+}
+
 .summary-breakdown-legend {
   display: flex;
   flex-wrap: wrap;
@@ -863,6 +878,11 @@ button {
 .summary-breakdown-legend li span {
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+
+.summary-breakdown-legend .tag-dot-other {
+  background: var(--text-soft);
+  opacity: 0.55;
 }
 
 .summary-next {

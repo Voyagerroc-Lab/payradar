@@ -37,7 +37,7 @@ export default function SummaryCards({
     const m = toMonthlyIn(p, home, fx, legacy);
     byCategory.set(p.categoryId, (byCategory.get(p.categoryId) ?? 0) + m);
   }
-  const breakdown = [...byCategory.entries()]
+  const ranked = [...byCategory.entries()]
     .map(([id, amount]) => ({
       id,
       amount,
@@ -45,6 +45,20 @@ export default function SummaryCards({
       category: CATEGORIES[id] ?? CATEGORIES.diger,
     }))
     .sort((a, b) => b.amount - a.amount);
+
+  // Dağılım çubuğu bir açıklamadır, konfeti değil: yalnızca anlamlı paylar
+  // (≥ %6, en çok 4 kalem) kendi renk koduyla konuşur. Kalan küçük kalemler
+  // ve "diğer" kategorisi tek sessiz dilime katlanır — böylece çubuğun sağ
+  // ucu okunmayan ince renk kırıntılarıyla dağılmaz ve efsane %100'e tamamlanır.
+  const MIN_SHARE = 0.06;
+  const majors = ranked
+    .filter((b) => b.id !== "diger" && b.share >= MIN_SHARE)
+    .slice(0, 4);
+  const majorIds = new Set(majors.map((m) => m.id));
+  const otherShare = ranked
+    .filter((b) => !majorIds.has(b.id))
+    .reduce((s, b) => s + b.share, 0);
+  const hasOther = otherShare > 0.0005;
 
   const upcoming = [...payments]
     .map((p) => ({ p, days: daysUntil(p.nextPaymentDate) }))
@@ -61,24 +75,34 @@ export default function SummaryCards({
         </span>
         <span className="summary-label">{t("summary.monthly")}</span>
         <span className="summary-value">{formatMoney(monthly, home, lang)}</span>
-        {breakdown.length > 0 && (
+        {ranked.length > 0 && (
           <>
             <div className="summary-breakdown" aria-hidden="true">
-              {breakdown.map((b) => (
+              {majors.map((b) => (
                 <i
                   key={b.id}
-                  style={{ flexGrow: Math.max(b.share, 0.015), background: b.category.color }}
+                  style={{ flexGrow: b.share, background: b.category.color }}
                 />
               ))}
+              {hasOther && (
+                <i className="is-other" style={{ flexGrow: otherShare }} />
+              )}
             </div>
             <ul className="summary-breakdown-legend">
-              {breakdown.slice(0, 3).map((b) => (
+              {majors.map((b) => (
                 <li key={b.id}>
                   <i className="tag-dot" style={{ background: b.category.color }} aria-hidden="true" />
                   {t(b.category.labelKey)}
                   <span>{Math.round(b.share * 100)}%</span>
                 </li>
               ))}
+              {hasOther && (
+                <li>
+                  <i className="tag-dot tag-dot-other" aria-hidden="true" />
+                  {t(CATEGORIES.diger.labelKey)}
+                  <span>{Math.round(otherShare * 100)}%</span>
+                </li>
+              )}
             </ul>
           </>
         )}
