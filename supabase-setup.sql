@@ -4,17 +4,17 @@
 -- Tekrar çalıştırmak güvenlidir (idempotent).
 -- =============================================================
 
--- Deneme/tanıtım suistimal koruması e-posta hash'i için gerekli
+-- Deneme/tanıtım kötüye kullanım koruması ve e-posta özeti (hash) için gerekli
 create extension if not exists pgcrypto;
 
 -- -------------------------------------------------------------
--- 1) Kasa (bulut senkronu)
---    İçerik cihazda AES-256-GCM ile şifrelenip yazılır. NOT: anahtar
---    hesabın uid'inden türetildiği ve uid bu tablonun id sütununda
---    durduğu için bu, "sunucunun asla çözemeyeceği" uçtan uca şifreleme
+-- 1) Kasa (bulut senkronizasyonu)
+--    İçerik cihazda AES-256-GCM ile şifrelenip yazılır. NOT: Anahtar,
+--    hesabın UID değerinden türetildiği ve UID bu tablonun id sütununda
+--    yer aldığı için bu, "sunucunun asla çözemeyeceği" uçtan uca şifreleme
 --    DEĞİLDİR; tabloyu okuyabilen bir taraf anahtarı türetebilir.
---    Koruduğu şey: yalnızca şifreli bloğu (satırın kendisini değil)
---    ele geçiren taraflar ve kazara loglanan/dökümlenen içerik.
+--    Koruduğu durum: Yalnızca şifreli bloğu (satırın kendisini değil)
+--    ele geçiren taraflar ve kazara günlüğe kaydedilen (loglanan) veya dökümü alınan içeriktir.
 -- -------------------------------------------------------------
 create table if not exists public.vaults (
   id uuid primary key references auth.users on delete cascade,
@@ -22,17 +22,17 @@ create table if not exists public.vaults (
   updated_at timestamptz not null default now()
 );
 
--- Tek satır MB'larca büyüyemesin (RLS satırı sahibine kilitler ama boyutu değil)
+-- Tek satır megabaytlarca büyüyemesin (RLS satırı sahibine kilitler ancak boyutu sınırlandırmaz)
 alter table public.vaults drop constraint if exists vaults_data_size;
 alter table public.vaults
   add constraint vaults_data_size check (pg_column_size(data) < 1048576);
 
--- id varsayılanı olmadan istemcinin upsert'ü NOT NULL hatası verir
+-- id için varsayılan değer atanmazsa istemcinin upsert işlemi NOT NULL hatası verir
 alter table public.vaults alter column id set default auth.uid();
 
 alter table public.vaults enable row level security;
 
--- Kullanıcı SADECE kendi satırını görebilir/güncelleyebilir
+-- Kullanıcı SADECE kendi satırını görebilir ve güncelleyebilir
 drop policy if exists "own vault select" on public.vaults;
 create policy "own vault select" on public.vaults
   for select using (auth.uid() = id);
@@ -50,11 +50,11 @@ create policy "own vault delete" on public.vaults
   for delete using (auth.uid() = id);
 
 -- -------------------------------------------------------------
--- 1b) Korumalı kasa yazımı (sunucu tarafı last-write-wins bekçisi)
---     İstemci saatine körü körüne güvenen upsert yerine: satır yalnızca
---     yeni zarfın updatedAt'i sunucudakinden ESKİ DEĞİLSE güncellenir.
---     Saati geri kalmış bir cihaz ya da yarışan iki push, daha yeni
---     veriyi sessizce ezemez. false dönerse istemci "eşitlenmedi" bilir.
+-- 1b) Korumalı kasa yazımı (sunucu tarafı son yazan kazanır / last-write-wins denetleyicisi)
+--     İstemci saatine körü körüne güvenen upsert yerine: Satır yalnızca
+--     yeni zarfın updatedAt değeri sunucudakinden ESKİ DEĞİLSE güncellenir.
+--     Saati geri kalmış bir cihaz ya da eşzamanlı yarışan iki push işlemi, daha yeni
+--     veriyi sessizce ezemez. false dönerse istemci verinin eşitlenmediğini anlar.
 -- -------------------------------------------------------------
 create or replace function public.push_vault(envelope jsonb)
 returns boolean
@@ -83,7 +83,7 @@ begin
   end if;
 
   if new_ts < cur_ts then
-    return false; -- sunucudaki daha yeni; ezme
+    return false; -- Sunucudaki veri daha yeni; üzerine yazma
   end if;
 
   update public.vaults
@@ -98,7 +98,7 @@ grant execute on function public.push_vault(jsonb) to authenticated;
 
 -- -------------------------------------------------------------
 -- 2) Abonelikler (Premium — Lemon Squeezy)
---    Satırları YALNIZCA service-role (webhook) yazar.
+--    Satırları YALNIZCA service-role (webhook) yazabilir.
 -- -------------------------------------------------------------
 create table if not exists public.subscriptions (
   user_id uuid primary key references auth.users on delete cascade,
@@ -107,7 +107,7 @@ create table if not exists public.subscriptions (
   current_period_end timestamptz,
   ls_customer_id text,
   ls_subscription_id text,
-  -- Deneme suistimalini engeller: bu hesap denemesini kullandı mı?
+  -- Deneme hakkının kötüye kullanımını engeller: Bu hesap deneme süresini kullandı mı?
   trial_used boolean not null default false,
   updated_at timestamptz not null default now()
 );
@@ -122,19 +122,19 @@ create policy "own subscription select" on public.subscriptions
   for select using (auth.uid() = user_id);
 
 -- -------------------------------------------------------------
--- 3) Webhook tekrar-gönderim (replay) koruması
---    Politika yok = yalnızca service-role erişir.
+-- 3) Webhook tekrar gönderim (replay) koruması
+--    Politika tanımlanmamıştır = Yalnızca service-role erişebilir.
 -- -------------------------------------------------------------
 create table if not exists public.webhook_events (
   event_id text primary key,
   received_at timestamptz not null default now()
 );
 alter table public.webhook_events enable row level security;
--- Not: tablo sınırsız büyümesin diye ls-webhook fonksiyonu her çağrıda
--- 90 günden eski kayıtları siler; ayrıca pg_cron gerekmez.
+-- Not: Tablo sınırsız büyümesin diye ls-webhook fonksiyonu her çağrıda
+-- 90 günden eski kayıtları temizler; bu nedenle ayrıca pg_cron gerekmez.
 
 -- -------------------------------------------------------------
--- 4) Premium yetki kontrolü (sunucu tarafı)
+-- 4) Premium yetki denetimi (sunucu tarafı)
 -- -------------------------------------------------------------
 create or replace function public.is_entitled()
 returns boolean
@@ -150,15 +150,15 @@ as $$
         s.status in ('on_trial', 'active', 'past_due')
         or (s.status = 'cancelled' and s.current_period_end > now())
       )
-      -- Süresi geçmiş satır (kaçan webhook) premium saymaz
+      -- Süresi geçmiş satır (ulaşmayan/kaçan webhook) kullanıcıyı premium saymaz
       and (s.current_period_end is null or s.current_period_end > now())
   );
 $$;
 
 -- -------------------------------------------------------------
 -- 5) Uygulama içi hesap silme (Google Play zorunluluğu)
---    Kullanıcı yalnızca KENDİ hesabını siler; auth.uid() dışına
---    çıkamaz. Edge Function gerektirmez.
+--    Kullanıcı yalnızca KENDİ hesabını silebilir; auth.uid() kapsamı dışına
+--    çıkamaz. Ayrı bir Edge Function gerektirmez.
 -- -------------------------------------------------------------
 create or replace function public.delete_own_account()
 returns void
@@ -183,22 +183,22 @@ revoke all on function public.delete_own_account() from public, anon;
 grant execute on function public.delete_own_account() to authenticated;
 
 -- -------------------------------------------------------------
--- 6) 6 AY ÜCRETSİZ KULLANIM (sunucu tarafında verilir)
+-- 6) 6 AY ÜCRETSİZ KULLANIM (sunucu tarafında tanımlanır)
 --    Her hesap, kaydolduğu andan itibaren 6 ay boyunca Premium
---    sayılır. Süre dolunca abonelik ($1/ay) gerekir.
---    Not: Lemon Squeezy ürününde AYRICA deneme tanımlamayın —
---    ücretsiz dönem burada yönetiliyor.
+--    sayılır. Süre dolunca abonelik ($1/ay) gereklidir.
+--    Not: Lemon Squeezy ürününde AYRICA deneme süresi tanımlamayın;
+--    ücretsiz deneme dönemi doğrudan burada yönetilmektedir.
 -- -------------------------------------------------------------
--- Tanıtım dönemi hesap silme döngüsüyle sıfırlanamasın: hakkını kullanan
--- e-postanın tek yönlü hash'i tutulur (kişisel veri saklanmaz). Hesap
--- silinse ve aynı Google hesabıyla (yeni uid) tekrar açılsa da hash aynı
--- kalır ve ikinci bir 6 ay verilmez.
+-- Tanıtım dönemi hesap silme döngüsüyle sıfırlanamasın: Tanıtım hakkını kullanan
+-- e-posta adresinin tek yönlü kriptografik özeti (hash) saklanır (kişisel veri tutulmaz).
+-- Hesap silinip aynı Google hesabıyla (yeni bir UID ile) tekrar açılsa dahi özet aynı
+-- kalacağından ikinci kez 6 aylık ücretsiz hak verilmez.
 create table if not exists public.redeemed_intros (
   email_hash text primary key,
   redeemed_at timestamptz not null default now()
 );
 alter table public.redeemed_intros enable row level security;
--- Politika yok = yalnızca service-role / security definer fonksiyonlar erişir.
+-- Politika tanımlanmamıştır = Yalnızca service-role ve security definer fonksiyonlar erişebilir.
 
 create or replace function public.grant_intro_period()
 returns trigger
@@ -209,7 +209,7 @@ as $$
 declare
   ehash text := encode(digest(lower(coalesce(new.email, new.id::text)), 'sha256'), 'hex');
 begin
-  -- Bu e-posta tanıtımını daha önce kullandıysa yeni hak verme
+  -- Bu e-posta adresi tanıtım hakkını daha önce kullandıysa yeni hak tanımlama
   if exists (select 1 from public.redeemed_intros where email_hash = ehash) then
     return new;
   end if;
@@ -224,7 +224,7 @@ begin
 end;
 $$;
 
--- Mevcut hesapların hakları da kayda geçsin (yeniden kurulumda çifte hak yok)
+-- Mevcut hesapların hakları da kayda geçsin (yeniden kurulumda mükerrer hak tanınmasın)
 insert into public.redeemed_intros (email_hash)
 select encode(digest(lower(u.email), 'sha256'), 'hex')
 from auth.users u
@@ -237,7 +237,7 @@ create trigger on_auth_user_created_grant_intro
   after insert on auth.users
   for each row execute function public.grant_intro_period();
 
--- Mevcut hesaplar da 6 ay alsın (kapı açıldığında kimse kilitlenmesin)
+-- Mevcut hesaplar da 6 ay ücretsiz kullanım alsın (özellik devreye girdiğinde mevcut kullanıcılar kilitlenmesin)
 insert into public.subscriptions (user_id, status, current_period_end, trial_used)
 select id, 'on_trial', now() + interval '6 months', true
 from auth.users
