@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Yerel anahtarlar (supabase vb.)
+.env
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+.vercel
+
+# iOS (Xcode/CocoaPods; Codemagic installs Pods fresh in CI)
+ios/Pods
+ios/*.xcworkspace/xcuserdata
+ios/*.xcodeproj/xcuserdata
+ios/*.xcodeproj/project.xcworkspace/xcuserdata
+ios/DerivedData
+
+# Android (Gradle build caches/artifacts)
+.gradle/
+app/build/
+build/
+local.properties
+
+# Local Netlify folder
+.netlify
+android-dist/
