@@ -1,6 +1,16 @@
 import { useRef, useState } from "react";
 import Modal from "./Modal";
-import { CATEGORIES, parseAmount, parseInstallment, sanitizeCategoryFields } from "../lib/format";
+import {
+  CATEGORIES,
+  addMonths,
+  parseAmount,
+  parseInstallment,
+  parseISO,
+  sanitizeCategoryFields,
+  todayISO,
+  toISO,
+} from "../lib/format";
+import { CURRENCIES } from "../lib/fx";
 import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 
@@ -21,9 +31,12 @@ export default function PaymentFormModal({
   const { t } = useI18n();
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState(initial ? String(initial.price) : "");
-  // Birim ödeme başına seçilmez: yeni ödeme Ayarlar'daki gösterim biriminde
-  // girilir; düzenlemede tutar, ödemenin GİRİLDİĞİ birimde kalır (veri bozulmaz)
-  const currency: Currency = initial?.currency ?? displayCurrency;
+  // Birim ödeme başına seçilir: yeni ödeme Ayarlar'daki gösterim biriminde
+  // açılır ama kullanıcı dövizli bir kalemi (USD abonelik, EUR kira) kendi
+  // biriminde girebilir; düzenlemede ödemenin GİRİLDİĞİ birim korunur.
+  const [currency, setCurrency] = useState<Currency>(
+    initial?.currency ?? displayCurrency,
+  );
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     initial?.billingCycle ?? "monthly",
   );
@@ -48,6 +61,7 @@ export default function PaymentFormModal({
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
+  const installmentRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +80,14 @@ export default function PaymentFormModal({
     if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate)) {
       dateRef.current?.focus();
       return setError(t("form.error.date"));
+    }
+
+    // 15/12 gibi imkânsız bir taksit durumu kaydedilemez: sayaç toplamı aşamaz
+    const current = parseInstallment(currentInstallment);
+    const total = parseInstallment(totalInstallments);
+    if (categoryId === "kredi" && current != null && total != null && current > total) {
+      installmentRef.current?.focus();
+      return setError(t("form.error.installment"));
     }
 
     // sanitizeCategoryFields kategoriye ait olmayan alanları düşürür
@@ -123,12 +145,24 @@ export default function PaymentFormModal({
             />
           </label>
 
-          <div className="field">
+          <label className="field">
             <span>{t("form.currency")}</span>
-            <span className="input currency-static" aria-label={t("form.currency")}>
-              {currency}
-            </span>
-          </div>
+            <select
+              className="input"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            >
+              {/* Kullanıcının kendi birimi listede yoksa (eski kayıt) yine de
+                  seçili kalsın — düzenleme tutarın birimini sessizce değiştiremez */}
+              {(CURRENCIES.includes(currency) ? CURRENCIES : [currency, ...CURRENCIES]).map(
+                (code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ),
+              )}
+            </select>
+          </label>
         </div>
 
         <div className="form-row">
@@ -178,6 +212,7 @@ export default function PaymentFormModal({
               <label className="field">
                 <span>{t("form.currentInstallment")}</span>
                 <input
+                  ref={installmentRef}
                   className="input"
                   inputMode="numeric"
                   value={currentInstallment}
@@ -280,8 +315,8 @@ export default function PaymentFormModal({
   );
 }
 
+/** Bir ay sonrası — yerel saatle. toISOString() UTC'ye kaydırıp UTC+3'te gece
+ *  yarısı bir gün geri atıyordu; addMonths 31 Mart'ta 1 Mayıs'a taşmayı önler. */
 function defaultNextMonth(): string {
-  const d = new Date();
-  d.setMonth(d.getMonth() + 1);
-  return d.toISOString().slice(0, 10);
+  return toISO(addMonths(parseISO(todayISO()), 1));
 }

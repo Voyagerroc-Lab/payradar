@@ -3,7 +3,7 @@ import { CURRENCIES } from "./fx";
 import { parseAmount, parseInstallment, sanitizeCategoryFields, todayISO } from "./format";
 
 const HEADER =
-  "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial";
+  "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial,isCompleted";
 
 
 const CYCLES: BillingCycle[] = ["weekly", "monthly", "quarterly", "yearly"];
@@ -39,6 +39,7 @@ export function exportCsv(payments: Payment[]): void {
       p.checkNumber ?? "",
       p.payee ?? "",
       p.isTrial ? "1" : "",
+      p.isCompleted ? "1" : "",
     ]
       .map(csvEscape)
       .join(","),
@@ -156,6 +157,7 @@ function toPayment(fields: string[]): Payment | null {
     rawCheckNumber,
     rawPayee,
     rawIsTrial,
+    rawIsCompleted,
   ] = fields.map((f) => f.trim());
 
   const name = rawName;
@@ -189,6 +191,10 @@ function toPayment(fields: string[]): Payment | null {
     checkNumber: rawCheckNumber || undefined,
     payee: rawPayee || undefined,
     isTrial: rawIsTrial === "1" || rawIsTrial?.toLowerCase() === "true" || undefined,
+    // Arşiv durumu dışa aktarımda da korunur: kapanmış bir kredi CSV turundan
+    // sonra yeniden aylık toplamlara sızmasın
+    isCompleted:
+      rawIsCompleted === "1" || rawIsCompleted?.toLowerCase() === "true" || undefined,
   });
 }
 

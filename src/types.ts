@@ -70,6 +70,11 @@ export interface Payment {
   checkNumber?: string;
   /** Yalnızca cek_senet kategorisi: keşideci/alacaklı firma */
   payee?: string;
+  /** true ise kalem kapandı (son taksit ödendi / çek tahsil edildi): arşivdedir,
+   *  aylık-yıllık toplamlara ve hatırlatmalara girmez. */
+  isCompleted?: boolean;
+  /** Kapanış zamanı (epoch ms) — arşiv sıralaması ve geri alma için */
+  completedAt?: number;
 }
 
 /** Kilit açılmadan önce okunması güvenli tercihler (şifresiz saklanır) */

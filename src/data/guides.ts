@@ -343,13 +343,47 @@ export function normalizeName(name: string): string {
     .trim();
 }
 
+/** Kısmi eşleşmenin güvenilir sayıldığı en kısa parça. "tv", "play", "music"
+ *  gibi jenerik kırıntılar bu eşiğin altında kalır. */
+const MIN_PARTIAL_LENGTH = 4;
+
+/** Parça, metinde kelime sınırında mı geçiyor? ("netflix tr" ⊃ "netflix" ✓,
+ *  "playstation plus" ⊅ "play" ✗ — "play" burada kelimenin yalnızca başıdır.) */
+function containsWord(haystack: string, needle: string): boolean {
+  if (needle.length < MIN_PARTIAL_LENGTH) return false;
+  let from = 0;
+  for (;;) {
+    const at = haystack.indexOf(needle, from);
+    if (at === -1) return false;
+    const before = at === 0 ? "" : haystack[at - 1];
+    const afterAt = at + needle.length;
+    const after = afterAt >= haystack.length ? "" : haystack[afterAt];
+    const isBoundary = (ch: string) => ch === "" || !/[a-z0-9]/.test(ch);
+    if (isBoundary(before) && isBoundary(after)) return true;
+    from = at + 1;
+  }
+}
+
+/**
+ * Ada göre iptal rehberi bulur. Tam eşleşme her zaman kazanır; kısmi eşleşme
+ * yalnızca kelime sınırında ve en az 4 karakterlik parçalarda kabul edilir.
+ * Eskiden salt `includes` kullanıldığı için "TV" araması Turkcell TV+'ı,
+ * "Play" ise PlayStation Plus'ı çekiyordu.
+ */
 export function findGuide(name: string): CancelGuide | null {
   const normalized = normalizeName(name);
   if (!normalized) return null;
+
+  for (const guide of CANCEL_GUIDES) {
+    for (const alias of guide.aliases) {
+      if (normalized === normalizeName(alias)) return guide;
+    }
+  }
+
   for (const guide of CANCEL_GUIDES) {
     for (const alias of guide.aliases) {
       const nAlias = normalizeName(alias);
-      if (normalized === nAlias || normalized.includes(nAlias) || nAlias.includes(normalized)) {
+      if (containsWord(normalized, nAlias) || containsWord(nAlias, normalized)) {
         return guide;
       }
     }

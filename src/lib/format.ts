@@ -20,6 +20,42 @@ export function parseInstallment(raw: string | undefined): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
+/** Tek seferlik (vadeli) kalemler: çek/senet döngüye girmez, vadesi gelince kapanır. */
+export function isOneShot(payment: Payment): boolean {
+  return payment.categoryId === "cek_senet";
+}
+
+/** Son taksiti ödenmek üzere olan kredi mi? (12/12'deki "Ödendi" krediyi kapatır) */
+export function isFinalInstallment(payment: Payment): boolean {
+  return (
+    payment.categoryId === "kredi" &&
+    payment.currentInstallment != null &&
+    payment.totalInstallments != null &&
+    payment.currentInstallment >= payment.totalInstallments
+  );
+}
+
+/** "Ödendi" bu kalemi kapatır mı, yoksa bir sonraki döneme mi taşır? */
+export function completesOnAdvance(payment: Payment): boolean {
+  return isOneShot(payment) || isFinalInstallment(payment);
+}
+
+/** Arşivlenmemiş, hâlâ para çıkışı yaratan kalemler — tüm toplamların girdisi. */
+export function activePayments(payments: Payment[]): Payment[] {
+  return payments.filter((p) => !p.isCompleted);
+}
+
+/**
+ * Kartın sıralamada ve özetlerde kullandığı vade.
+ * Periyodik kalemlerde geçmiş tarih bir sonraki döneme sarılır; tek seferlik
+ * çek/senette sarmaz — vadesi geçmiş bir çek "geçen ay"da kalır, aya devretmez.
+ */
+export function dueDateOf(payment: Payment): string {
+  return isOneShot(payment)
+    ? payment.nextPaymentDate
+    : nextOccurrence(payment.nextPaymentDate, payment.billingCycle);
+}
+
 /** Aylık eşdeğerin ana para birimindeki karşılığı. Özet kartları ve sıralama ortak kullanır. */
 export function toMonthlyIn(
   payment: Payment,
@@ -54,21 +90,29 @@ export function sanitizeCategoryFields(p: Payment): Payment {
   };
 }
 
+/**
+ * Kategori paleti. `ink`, o renk zeminde okunabilir yazı rengidir: açık/parlak
+ * zeminlerde (sarı, turkuaz…) beyaz harf 1.4:1 kontrastla okunmuyordu; koyu
+ * mürekkep WCAG AA eşiğini geçirir. Renk seçilirken zeminin bağıl parlaklığı
+ * ölçüldü — göz kararı değil.
+ */
+export const CATEGORY_INK_DARK = "#1a1c1e";
+
 export const CATEGORIES: Record<
   CategoryId,
-  { icon: IconName; color: string; labelKey: TranslationKey }
+  { icon: IconName; color: string; ink: string; labelKey: TranslationKey }
 > = {
-  konut: { icon: "home", color: "#e5484d", labelKey: "cat.konut" },
-  ulasim: { icon: "car", color: "#0091ff", labelKey: "cat.ulasim" },
-  faturalar: { icon: "receipt", color: "#f76b15", labelKey: "cat.faturalar" },
-  abonelik: { icon: "screen", color: "#8e4ec6", labelKey: "cat.abonelik" },
-  egitim: { icon: "book", color: "#ffb224", labelKey: "cat.egitim" },
-  saglik: { icon: "pulse", color: "#30a46c", labelKey: "cat.saglik" },
-  sigorta: { icon: "shield", color: "#05a2c2", labelKey: "cat.sigorta" },
-  kredi: { icon: "bank", color: "#2563eb", labelKey: "cat.kredi" },
-  cek_senet: { icon: "scroll", color: "#7c3aed", labelKey: "cat.cek_senet" },
-  oyun: { icon: "gamepad", color: "#7d6ee0", labelKey: "cat.oyun" },
-  diger: { icon: "box", color: "#8d8d8d", labelKey: "cat.diger" },
+  konut: { icon: "home", color: "#e5484d", ink: "#fff", labelKey: "cat.konut" },
+  ulasim: { icon: "car", color: "#0091ff", ink: "#fff", labelKey: "cat.ulasim" },
+  faturalar: { icon: "receipt", color: "#f76b15", ink: CATEGORY_INK_DARK, labelKey: "cat.faturalar" },
+  abonelik: { icon: "screen", color: "#8e4ec6", ink: "#fff", labelKey: "cat.abonelik" },
+  egitim: { icon: "book", color: "#ffb224", ink: CATEGORY_INK_DARK, labelKey: "cat.egitim" },
+  saglik: { icon: "pulse", color: "#30a46c", ink: "#fff", labelKey: "cat.saglik" },
+  sigorta: { icon: "shield", color: "#05a2c2", ink: CATEGORY_INK_DARK, labelKey: "cat.sigorta" },
+  kredi: { icon: "bank", color: "#2563eb", ink: "#fff", labelKey: "cat.kredi" },
+  cek_senet: { icon: "scroll", color: "#7c3aed", ink: "#fff", labelKey: "cat.cek_senet" },
+  oyun: { icon: "gamepad", color: "#7d6ee0", ink: "#fff", labelKey: "cat.oyun" },
+  diger: { icon: "box", color: "#8d8d8d", ink: "#fff", labelKey: "cat.diger" },
 };
 
 export function formatMoney(
@@ -169,13 +213,13 @@ export function nextOccurrence(iso: string, cycle: BillingCycle): string {
   return toISO(date);
 }
 
-function addDays(date: Date, days: number): Date {
+export function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
 }
 
-function addMonths(date: Date, months: number): Date {
+export function addMonths(date: Date, months: number): Date {
   const d = new Date(date);
   const day = d.getDate();
   d.setMonth(d.getMonth() + months);
@@ -183,7 +227,7 @@ function addMonths(date: Date, months: number): Date {
   return d;
 }
 
-function toISO(date: Date): string {
+export function toISO(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");

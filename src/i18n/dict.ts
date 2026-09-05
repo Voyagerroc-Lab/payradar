@@ -1,4 +1,12 @@
 const tr = {
+  "card.completed": "Tamamlandı",
+  "card.completedShort": "BİTTİ",
+  "card.complete": "Tamamlandı olarak işaretle",
+  "card.reopen": "Arşivden çıkar",
+  "form.error.installment": "Ödenen taksit, toplam taksit sayısından büyük olamaz.",
+  "toast.completed": "Kalem tamamlandı olarak arşivlendi.",
+  "toast.reopened": "Kalem yeniden etkinleştirildi.",
+
   "tagline": "Düzenli ödemelerini takip et, gereksizleri iptal et",
 
   // Özet kartları
@@ -290,6 +298,14 @@ const tr = {
 export type TranslationKey = keyof typeof tr;
 
 const en: Record<TranslationKey, string> = {
+  "card.completed": "Completed",
+  "card.completedShort": "DONE",
+  "card.complete": "Mark as completed",
+  "card.reopen": "Restore from archive",
+  "form.error.installment": "The paid installment cannot exceed the total number of installments.",
+  "toast.completed": "Item archived as completed.",
+  "toast.reopened": "Item reactivated.",
+
   "tagline": "Track recurring payments, cancel what you don't need",
 
   "summary.monthly": "Monthly Total",
@@ -564,6 +580,14 @@ const en: Record<TranslationKey, string> = {
  * Kısmi sözlük: eksik anahtarlar Türkçeye düşer (Kotlin AppStrings.t ile aynı davranış).
  */
 const ms: Partial<Record<TranslationKey, string>> = {
+  "card.completed": "Selesai",
+  "card.completedShort": "SIAP",
+  "card.complete": "Tandakan sebagai selesai",
+  "card.reopen": "Pulihkan daripada arkib",
+  "form.error.installment": "Ansuran yang dibayar tidak boleh melebihi jumlah ansuran.",
+  "toast.completed": "Item diarkibkan sebagai selesai.",
+  "toast.reopened": "Item diaktifkan semula.",
+
   "tagline": "Jejak pembayaran berulang anda, batalkan apa yang tidak diperlukan",
 
   "summary.monthly": "Jumlah Bulanan",
@@ -836,6 +860,14 @@ const ms: Partial<Record<TranslationKey, string>> = {
 
 /** Español (Latinoamérica) — tono informal "tú", uygulamanın genel sesiyle uyumlu. */
 const es: Record<TranslationKey, string> = {
+  "card.completed": "Completado",
+  "card.completedShort": "LISTO",
+  "card.complete": "Marcar como completado",
+  "card.reopen": "Restaurar del archivo",
+  "form.error.installment": "La cuota pagada no puede superar el total de cuotas.",
+  "toast.completed": "Elemento archivado como completado.",
+  "toast.reopened": "Elemento reactivado.",
+
   "tagline": "Controla tus pagos recurrentes, cancela lo que no necesitas",
 
   "summary.monthly": "Total Mensual",
@@ -1105,6 +1137,14 @@ const es: Record<TranslationKey, string> = {
 
 /** العربية (فصحى حديثة) — RTL; App documentElement.dir'i "rtl" yapar. */
 const ar: Record<TranslationKey, string> = {
+  "card.completed": "مكتمل",
+  "card.completedShort": "تم",
+  "card.complete": "وضع علامة مكتمل",
+  "card.reopen": "استعادة من الأرشيف",
+  "form.error.installment": "لا يمكن أن يتجاوز القسط المدفوع إجمالي عدد الأقساط.",
+  "toast.completed": "تم أرشفة العنصر كمكتمل.",
+  "toast.reopened": "تمت إعادة تفعيل العنصر.",
+
   "tagline": "تتبّع مدفوعاتك المتكررة وألغِ ما لا تحتاجه",
 
   "summary.monthly": "الإجمالي الشهري",

@@ -1,4 +1,4 @@
-import { formatDateTR, localeFor, todayISO } from "../lib/format";
+import { formatDateTR, localeFor, todayISO, parseISO } from "../lib/format";
 import type { Payment } from "../types";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n/dict";
@@ -86,7 +86,7 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
                   {new Intl.DateTimeFormat(localeFor(lang), {
                     month: "short",
                     year: "2-digit",
-                  }).format(new Date(c.date))}
+                  }).format(parseISO(c.date))}
                 </text>
               )}
             </g>

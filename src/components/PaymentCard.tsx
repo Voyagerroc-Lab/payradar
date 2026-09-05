@@ -1,4 +1,12 @@
-import { CATEGORIES, daysUntil, formatDateTR, formatMoney, localeFor } from "../lib/format";
+import {
+  CATEGORIES,
+  completesOnAdvance,
+  daysUntil,
+  dueDateOf,
+  formatDateTR,
+  formatMoney,
+  localeFor,
+} from "../lib/format";
 import { convert, type FxTable, type LegacyRates } from "../lib/fx";
 import { findGuide } from "../data/guides";
 import type { Currency, Payment } from "../types";
@@ -17,7 +25,12 @@ interface PaymentCardProps {
   onShowGuide: () => void;
   onShowHistory?: () => void;
   onAdvance?: () => void;
+  onReopen?: () => void;
 }
+
+/** "Ödendi" düğmesinin vadeden kaç gün önce görünmeye başladığı.
+ *  Kirasını üç gün erken ödeyen kullanıcı da dönemi ilerletebilmeli. */
+const ADVANCE_WINDOW_DAYS = 5;
 
 const canShare = typeof navigator !== "undefined" && "share" in navigator;
 
@@ -31,6 +44,7 @@ export default function PaymentCard({
   onShowGuide,
   onShowHistory,
   onAdvance,
+  onReopen,
 }: PaymentCardProps) {
   const { t, lang } = useI18n();
   const shownPrice = formatMoney(
@@ -39,10 +53,29 @@ export default function PaymentCard({
     lang,
   );
   const category = CATEGORIES[payment.categoryId] ?? CATEGORIES.diger;
-  const days = daysUntil(payment.nextPaymentDate);
-  const badge = badgeFor(days, t);
-  // Aciliyet, kartın sahnedeki derinliğini belirler (styles.css > 3B DERİNLİK)
-  const urgency = days < 0 ? "overdue" : days === 0 ? "today" : days <= 7 ? "soon" : "later";
+  const completed = payment.isCompleted === true;
+  const days = daysUntil(dueDateOf(payment));
+  const badge = completed
+    ? {
+        short: t("card.completedShort"),
+        text: t("card.completed"),
+        className: "badge-done",
+      }
+    : badgeFor(days, t);
+  // Aciliyet, kartın sahnedeki derinliğini belirler (styles.css > 3B DERİNLİK).
+  // Arşivlenmiş kalem hiç aciliyet taşımaz: sahnenin en arkasına düşer.
+  const urgency = completed
+    ? "done"
+    : days < 0
+      ? "overdue"
+      : days === 0
+        ? "today"
+        : days <= 7
+          ? "soon"
+          : "later";
+  // Son taksit / çek-senet "Ödendi"si kalemi kapatır; bunu düğmenin adı söyler
+  const advanceCloses = completesOnAdvance(payment);
+  const advanceLabel = advanceCloses ? t("card.complete") : t("card.advance");
   // Rehber: bilinen bir servis eşleşmesi varsa ya da abonelik kategorisindeyse göster
   const hasGuide = Boolean(findGuide(payment.name)) || payment.categoryId === "abonelik";
 
@@ -60,11 +93,17 @@ export default function PaymentCard({
 
   return (
     <article
-      className="card sub-card"
+      className={`card sub-card${completed ? " is-completed" : ""}`}
       data-urgency={urgency}
-      style={{ borderLeft: `4px solid ${category.color}` }}
+      /* Mantıksal kenar: Arapça'da (dir=rtl) renk şeridi metnin başladığı
+         tarafta, yani sağda kalır */
+      style={{ borderInlineStart: `4px solid ${category.color}` }}
     >
-      <div className="sub-avatar" style={{ background: category.color }} aria-hidden="true">
+      <div
+        className="sub-avatar"
+        style={{ background: category.color, color: category.ink }}
+        aria-hidden="true"
+      >
         <span>{payment.name.charAt(0).toLocaleUpperCase(localeFor(lang))}</span>
         <small style={{ color: category.color }}>
           <Icon name={category.icon} size={12} />
@@ -166,20 +205,31 @@ export default function PaymentCard({
             <Icon name="share" />
           </button>
         )}
-        {onAdvance && days <= 0 && (
+        {onAdvance && !completed && days <= ADVANCE_WINDOW_DAYS && (
           <button
             className="icon-btn"
             onClick={onAdvance}
-            aria-label={t("card.advance")}
-            title={t("card.advance")}
+            aria-label={advanceLabel}
+            title={advanceLabel}
           >
             <Icon name="check" />
+          </button>
+        )}
+        {onReopen && completed && (
+          <button
+            className="icon-btn"
+            onClick={onReopen}
+            aria-label={t("card.reopen")}
+            title={t("card.reopen")}
+          >
+            <Icon name="refresh" />
           </button>
         )}
         <button
           className="icon-btn"
           onClick={onEdit}
           aria-label={t("aria.edit", { name: payment.name })}
+          title={t("aria.edit", { name: payment.name })}
         >
           <Icon name="pencil" />
         </button>
@@ -187,6 +237,7 @@ export default function PaymentCard({
           className="icon-btn danger"
           onClick={onDelete}
           aria-label={t("aria.delete", { name: payment.name })}
+          title={t("aria.delete", { name: payment.name })}
         >
           <Icon name="trash" />
         </button>

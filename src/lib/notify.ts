@@ -1,5 +1,5 @@
 import type { Currency, Language, Payment } from "../types";
-import { daysUntil, formatMoney } from "./format";
+import { activePayments, daysUntil, dueDateOf, formatMoney } from "./format";
 import { convert, homeCurrency, type FxTable } from "./fx";
 import { makeT } from "../i18n/t";
 
@@ -157,8 +157,9 @@ function checkUpcomingPaymentsUnsafe(
   const notified = loadNotified();
   const today = new Date().toISOString().slice(0, 10);
 
-  const urgent = payments
-    .map((p) => ({ payment: p, days: daysUntil(p.nextPaymentDate) }))
+  // Arşivlenmiş kalem (kapanmış kredi, tahsil edilmiş çek) hatırlatılmaz
+  const urgent = activePayments(payments)
+    .map((p) => ({ payment: p, days: daysUntil(dueDateOf(p)) }))
     .filter(
       ({ payment, days }) =>
         days >= -2 && days <= reminderDays && notified[payment.id] !== today,

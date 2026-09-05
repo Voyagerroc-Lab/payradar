@@ -774,7 +774,7 @@ button {
   content: "";
   position: absolute;
   top: -34px;
-  right: -34px;
+  inset-inline-end: -34px;
   width: 140px;
   height: 140px;
   pointer-events: none;
@@ -790,7 +790,9 @@ button {
 .summary-icon {
   position: absolute;
   top: 14px;
-  right: 14px;
+  /* Mantıksal kenar: Arapça'da ikon sola geçer, sağdan başlayan başlıkla
+     çakışmaz */
+  inset-inline-end: 14px;
   display: grid;
   place-items: center;
   width: 38px;
@@ -952,8 +954,12 @@ button {
   flex-wrap: nowrap;
   min-width: 0;
   overflow-x: auto;
-  padding: 2px;
   scrollbar-width: none;
+  /* Maske kenarı ile ilk/son çip arasına maske genişliği kadar iç boşluk
+     konur: ray başındayken "Tümü" solma bölgesinin dışında, tam okunur kalır;
+     kaydırıldığında araya giren çipler kenarda solarak "devamı var" der. */
+  padding: 2px 18px;
+  scroll-padding-inline: 18px;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
@@ -1086,6 +1092,8 @@ button {
   width: 52px;
   height: 52px;
   border-radius: 12px;
+  /* Yazı rengi kategoriye göre TSX'ten gelir (CATEGORIES[].ink): sarı "Eğitim"
+     zemininde beyaz harf 1.4:1 kontrastla okunmuyordu. */
   color: #fff;
 }
 
@@ -1096,7 +1104,7 @@ button {
 
 .sub-avatar small {
   position: absolute;
-  right: -6px;
+  inset-inline-end: -6px;
   bottom: -6px;
   display: grid;
   place-items: center;
@@ -1245,12 +1253,17 @@ button {
 @media (hover: hover) and (pointer: fine) {
   .sub-actions .icon-btn {
     opacity: 0;
+    /* opacity tek başına yetmiyordu: görünmeyen düğme tıklanabilir kalıyor,
+       kartın sağ boşluğuna denk gelen tıklama sessizce "sil"i çalıştırıyordu.
+       pointer-events ikisini birlikte kapatır. */
+    pointer-events: none;
     transition: opacity 0.15s ease;
   }
 
   .sub-card:hover .icon-btn,
   .sub-card:focus-within .icon-btn {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 
@@ -1593,6 +1606,33 @@ textarea.input {
   color: var(--text-soft);
 }
 
+/* Yıkıcı bir eylemin onayı ipucu değildir: silme uyarısı ana metin
+   ağırlığında ve renginde okunur (eskiden 12.5px soluk gri .field-hint idi). */
+.confirm-message {
+  margin-bottom: 4px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Arşivlenmiş kalem: listede kalır ama sahnenin arkasına çekilir ve
+   toplamlara girmediğini rengiyle de söyler. */
+.sub-card.is-completed {
+  opacity: 0.62;
+}
+
+.sub-card.is-completed .sub-price,
+.sub-card.is-completed .sub-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.badge-done {
+  color: var(--text-soft);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
 /* ---------- Tema seçici ---------- */
 .theme-group-label {
   margin-top: 6px;
@@ -1737,7 +1777,8 @@ textarea.input {
 
 .guide-steps li {
   position: relative;
-  padding: 12px 14px 12px 46px;
+  padding-block: 12px;
+  padding-inline: 46px 14px;
   font-size: 14.5px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -1748,7 +1789,7 @@ textarea.input {
 .guide-steps li::before {
   content: counter(step);
   position: absolute;
-  left: 12px;
+  inset-inline-start: 12px;
   top: 12px;
   display: grid;
   place-items: center;
@@ -2384,7 +2425,7 @@ textarea.input {
 
   .summary-icon {
     top: 12px;
-    right: 12px;
+    inset-inline-end: 12px;
     width: 32px;
     height: 32px;
     font-size: 16px;
@@ -2392,7 +2433,7 @@ textarea.input {
   }
 
   .summary-label {
-    padding-right: 38px;
+    padding-inline-end: 38px;
   }
 
   .summary {

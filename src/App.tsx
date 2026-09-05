@@ -35,7 +35,7 @@ import {
 } from "./lib/notify";
 import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
-import { advanceCycle, nextOccurrence, todayISO, toMonthlyIn } from "./lib/format";
+import { advanceCycle, completesOnAdvance, dueDateOf, todayISO, toMonthlyIn } from "./lib/format";
 import { ensureFx, loadFx, type FxTable } from "./lib/fx";
 import { Icon } from "./components/icons";
 import {
@@ -413,7 +413,7 @@ export default function App() {
     document.title = `PayRadar — ${t("tagline")}`;
     // Arapça sağdan sola akar; flex/grid düzeni dir ile kendiliğinden aynalanır
     document.documentElement.dir = prefs.language === "ar" ? "rtl" : "ltr";
-  }, [prefs]);
+  }, [prefs, t]);
 
   /* ---------- Canlı kurlar ---------- */
   useEffect(() => {
@@ -705,12 +705,24 @@ export default function App() {
     if (ok) setToast(t("toast.syncSuccess"));
   }
 
-  /** Ödendi/İleri Sar: vadeyi en az bir tam dönem ileri taşır; kredi taksit sayacını artırır. */
+  /**
+   * Ödendi/İleri Sar. İki farklı yaşam döngüsü vardır:
+   *  • Periyodik kalem (kira, abonelik, ara taksit): vade en az bir tam dönem
+   *    ileri taşınır, kredi taksit sayacı bir artar.
+   *  • Kapanan kalem (12/12. taksit ya da tek seferlik çek/senet): dönem
+   *    ilerletilmez, kalem arşive alınır. Böylece bitmiş bir kredi her ay
+   *    aylık ve yıllık toplamlara eklenmeye devam etmez.
+   */
   function handleAdvance(id: string) {
+    const target = vault.payments.find((p) => p.id === id);
+    const closes = target ? completesOnAdvance(target) : false;
     touchVault((v) => ({
       ...v,
       payments: v.payments.map((p) => {
         if (p.id !== id) return p;
+        if (completesOnAdvance(p)) {
+          return { ...p, isTrial: false, isCompleted: true, completedAt: Date.now() };
+        }
         const bumpedInstallment =
           p.categoryId === "kredi" && p.currentInstallment != null
             ? Math.min(
@@ -726,7 +738,18 @@ export default function App() {
         };
       }),
     }));
-    setToast(t("toast.saved"));
+    setToast(closes ? t("toast.completed") : t("toast.saved"));
+  }
+
+  /** Arşivden çıkar: yanlışlıkla kapatılan kalem yeniden aktif hale gelir. */
+  function handleReopen(id: string) {
+    touchVault((v) => ({
+      ...v,
+      payments: v.payments.map((p) =>
+        p.id === id ? { ...p, isCompleted: undefined, completedAt: undefined } : p,
+      ),
+    }));
+    setToast(t("toast.reopened"));
   }
 
   function handleTestNotifications() {
@@ -880,6 +903,7 @@ export default function App() {
                           : undefined
                       }
                       onAdvance={() => handleAdvance(payment.id)}
+                      onReopen={() => handleReopen(payment.id)}
                       />
                     ))}
                   </div>
@@ -1192,11 +1216,7 @@ function filterAndSort(
   const sorted = [...result];
   switch (sort) {
     case "date":
-      sorted.sort((a, b) =>
-        nextOccurrence(a.nextPaymentDate, a.billingCycle).localeCompare(
-          nextOccurrence(b.nextPaymentDate, b.billingCycle),
-        ),
-      );
+      sorted.sort((a, b) => dueDateOf(a).localeCompare(dueDateOf(b)));
       break;
     case "price-desc":
       sorted.sort(
@@ -1208,6 +1228,9 @@ function filterAndSort(
       sorted.sort((a, b) => a.name.localeCompare(b.name, "tr"));
       break;
   }
+  // Arşiv gürültü yapmasın: tamamlanan kalemler seçilen sıralamadan bağımsız
+  // olarak listenin sonuna düşer (silinmez — geçmiş kayıt olarak durur).
+  sorted.sort((a, b) => Number(a.isCompleted ?? false) - Number(b.isCompleted ?? false));
   return sorted;
 }
 

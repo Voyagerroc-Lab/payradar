@@ -1,5 +1,5 @@
 import type { CategoryId, Currency, Payment, VaultData } from "../types";
-import { CATEGORIES, daysUntil, formatMoney, toMonthlyIn } from "../lib/format";
+import { CATEGORIES, activePayments, daysUntil, dueDateOf, formatMoney, toMonthlyIn } from "../lib/format";
 import { type FxTable } from "../lib/fx";
 import { useI18n } from "../i18n";
 import { useTilt } from "../lib/tilt";
@@ -24,7 +24,10 @@ export default function SummaryCards({
   const sceneRef = useTilt<HTMLElement>(".summary-card");
   const home = displayCurrency;
   const legacy = { usdTry: vault.usdTry, eurTry: vault.eurTry };
-  const monthly = payments.reduce(
+  // Toplamlar yalnızca yürürlükteki kalemleri sayar: bitmiş bir kredi ya da
+  // tahsil edilmiş bir çek aylık/yıllık yükü artırmaz.
+  const active = activePayments(payments);
+  const monthly = active.reduce(
     (sum, p) => sum + toMonthlyIn(p, home, fx, legacy),
     0,
   );
@@ -33,7 +36,7 @@ export default function SummaryCards({
   // Kategori dağılımı: aylık toplamın hangi kalemlerden oluştuğu.
   // Kahraman kart tek bir sayı değil, o sayının hikâyesidir.
   const byCategory = new Map<CategoryId, number>();
-  for (const p of payments) {
+  for (const p of active) {
     const m = toMonthlyIn(p, home, fx, legacy);
     byCategory.set(p.categoryId, (byCategory.get(p.categoryId) ?? 0) + m);
   }
@@ -60,8 +63,8 @@ export default function SummaryCards({
     .reduce((s, b) => s + b.share, 0);
   const hasOther = otherShare > 0.0005;
 
-  const upcoming = [...payments]
-    .map((p) => ({ p, days: daysUntil(p.nextPaymentDate) }))
+  const upcoming = [...active]
+    .map((p) => ({ p, days: daysUntil(dueDateOf(p)) }))
     .filter((x) => x.days >= 0)
     .sort((a, b) => a.days - b.days)[0];
 
@@ -119,7 +122,7 @@ export default function SummaryCards({
           <Icon name="layers" size={17} />
         </span>
         <span className="summary-label">{t("summary.active")}</span>
-        <span className="summary-value">{payments.length}</span>
+        <span className="summary-value">{active.length}</span>
       </div>
       <div className="card summary-card summary-amber summary-card-next">
         <span className="summary-icon" aria-hidden="true">

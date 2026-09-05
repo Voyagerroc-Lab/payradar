@@ -66,7 +66,7 @@ export default function SettingsModal({
   onLoadDemo,
   onEraseData,
 }: SettingsModalProps) {
-  const { t, setLang } = useI18n();
+  const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [draftPrefs, setDraftPrefs] = useState<Prefs>(prefs);
   const [draftVault, setDraftVault] = useState<VaultData>(vault);
@@ -166,8 +166,9 @@ export default function SettingsModal({
             value={draftPrefs.language}
             onChange={(e) => {
               const lang = e.target.value as Language;
+              // Dil de tema gibi taslakta bekler: "Vazgeç"/✕ ile çıkıldığında
+              // kayıtlı dil korunur, yalnızca "Kaydet" ana state'e yazar.
               setDraftPrefs({ ...draftPrefs, language: lang });
-              setLang(lang);
             }}
           >
             <option value="tr">Türkçe</option>
