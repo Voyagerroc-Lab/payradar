@@ -1,5 +1,5 @@
 import type { Currency, Language, Payment } from "../types";
-import { activePayments, daysUntil, dueDateOf, formatMoney } from "./format";
+import { activePayments, daysUntil, dueDateOf, formatMoney, todayISO } from "./format";
 import { convert, homeCurrency, type FxTable } from "./fx";
 import { makeT } from "../i18n/t";
 
@@ -16,7 +16,9 @@ function loadNotified(): Record<string, string> {
 function saveNotified(map: Record<string, string>): void {
   try {
     // Yalnızca bugünün kayıtlarını tut; silinen/eski ödemelerin girdileri sonsuza dek birikmesin
-    const today = new Date().toISOString().slice(0, 10);
+    // Yerel todayISO: UTC günü kullanılırsa UTC+ bölgelerde gece yarısından
+    // sonra aynı ödeme ikinci kez bildiriliyordu
+    const today = todayISO();
     const pruned = Object.fromEntries(
       Object.entries(map).filter(([, date]) => date === today),
     );
@@ -155,7 +157,9 @@ function checkUpcomingPaymentsUnsafe(
   const lang = options.lang ?? "tr";
   const t = makeT(lang);
   const notified = loadNotified();
-  const today = new Date().toISOString().slice(0, 10);
+  // daysUntil yerel tarihle çalışıyor; "bugün" işareti de yerel olmalı ki
+  // UTC gece yarısı ile aynı ödeme tekrar bildirilmesin
+  const today = todayISO();
 
   // Arşivlenmiş kalem (kapanmış kredi, tahsil edilmiş çek) hatırlatılmaz
   const urgent = activePayments(payments)
@@ -196,7 +200,9 @@ function checkUpcomingPaymentsUnsafe(
     );
     const lines = shown.map(
       ({ payment, days }) =>
-        `${lineDayText(days, t)}: ${payment.isTrial && days >= 0 ? "🎁 " : ""}${payment.name} - ${formatMoney(dueIn(payment, home, fx, usdTry, eurTry), home, lang)}`,
+        `${lineDayText(days, t)}: ${payment.name}${
+          payment.isTrial && days >= 0 ? ` · ${t("card.trial")}` : ""
+        } - ${formatMoney(dueIn(payment, home, fx, usdTry, eurTry), home, lang)}`,
     );
     const body = [
       ...lines,

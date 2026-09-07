@@ -45,12 +45,18 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
           maxLength={8}
           value={pin}
           disabled={busy}
+          aria-invalid={error || undefined}
+          aria-describedby="lock-pin-hint"
           onChange={(e) => {
             setPin(e.target.value.replace(/\D/g, ""));
             setError(false);
           }}
           aria-label={t("lock.enterPin")}
         />
+
+        <p className="field-hint" id="lock-pin-hint">
+          {t("lock.pinHint")}
+        </p>
 
         <button className="btn btn-primary lock-btn" type="submit" disabled={busy}>
           {busy ? (
@@ -63,7 +69,7 @@ export default function LockScreen({ onUnlock, onWipe }: LockScreenProps) {
         </button>
 
         {error && (
-          <p className="form-error" role="alert">
+          <p className="form-error" role="alert" id="lock-error">
             {t("lock.wrongPin")}
           </p>
         )}

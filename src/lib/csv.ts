@@ -1,6 +1,6 @@
 import type { BillingCycle, CategoryId, Currency, Payment, PricePoint } from "../types";
 import { CURRENCIES } from "./fx";
-import { parseAmount, parseInstallment, sanitizeCategoryFields, todayISO } from "./format";
+import { parseAmount, parseInstallment, sanitizeCategoryFields, toISO, todayISO } from "./format";
 
 const HEADER =
   "name,price,currency,billingCycle,nextPaymentDate,categoryId,notes,priceHistory,bankName,currentInstallment,totalInstallments,checkNumber,payee,isTrial,isCompleted";
@@ -60,16 +60,32 @@ function csvEscape(value: unknown): string {
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+export type CsvSkipReason =
+  | "short"
+  | "name"
+  | "price"
+  | "currency"
+  | "cycle"
+  | "category"
+  | "date";
+
 export interface CsvImportResult {
   payments: Payment[];
   skipped: number;
+  /** Atlanan satırların neden başına sayısı — toast'ta özet olarak gösterilir */
+  skippedReasons: Record<CsvSkipReason, number>;
 }
 
-/** CSV metnini ayrıştırır; geçersiz satırları sayıp atlar. */
+function emptyReasons(): Record<CsvSkipReason, number> {
+  return { short: 0, name: 0, price: 0, currency: 0, cycle: 0, category: 0, date: 0 };
+}
+
+/** CSV metnini ayrıştırır; geçersiz satırları gerekçesiyle sayıp atlar. */
 export function parseCsv(text: string): CsvImportResult {
   const lines = splitCsvLines(text.replace(/^\uFEFF/, ""));
   const payments: Payment[] = [];
   let skipped = 0;
+  const skippedReasons = emptyReasons();
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -78,15 +94,22 @@ export function parseCsv(text: string): CsvImportResult {
     if (i === 0 && line.trim() === HEADER) continue;
     const fields = parseCsvLine(line);
     if (fields.length < 6) {
-      if (fields.some((f) => f.trim())) skipped++;
+      if (fields.some((f) => f.trim())) {
+        skipped++;
+        skippedReasons.short++;
+      }
       continue;
     }
-    const payment = toPayment(fields);
-    if (payment) payments.push(payment);
-    else skipped++;
+    const parsed = toPayment(fields);
+    if (parsed.payment) {
+      payments.push(parsed.payment);
+    } else {
+      skipped++;
+      skippedReasons[parsed.reason as CsvSkipReason]++;
+    }
   }
 
-  return { payments, skipped };
+  return { payments, skipped, skippedReasons };
 }
 
 /** Tırnaklı alanları ve gömülü virgülleri doğru işleyen satır bölücü. */
@@ -141,7 +164,9 @@ function parseCsvLine(line: string): string[] {
   return fields;
 }
 
-function toPayment(fields: string[]): Payment | null {
+function toPayment(
+  fields: string[],
+): { payment: Payment | null; reason: CsvSkipReason | null } {
   const [
     rawName,
     rawPrice,
@@ -167,14 +192,15 @@ function toPayment(fields: string[]): Payment | null {
   const categoryId = rawCategory.toLowerCase() as CategoryId;
   const nextPaymentDate = normalizeDate(rawDate);
 
-  if (!name) return null;
-  if (!Number.isFinite(price) || price <= 0) return null;
-  if (!CURRENCIES.includes(currency)) return null;
-  if (!CYCLES.includes(billingCycle)) return null;
-  if (!CATEGORY_IDS.includes(categoryId)) return null;
-  if (!nextPaymentDate) return null;
+  if (!name) return { payment: null, reason: "name" };
+  if (!Number.isFinite(price) || price <= 0) return { payment: null, reason: "price" };
+  if (!CURRENCIES.includes(currency)) return { payment: null, reason: "currency" };
+  if (!CYCLES.includes(billingCycle)) return { payment: null, reason: "cycle" };
+  if (!CATEGORY_IDS.includes(categoryId)) return { payment: null, reason: "category" };
+  if (!nextPaymentDate) return { payment: null, reason: "date" };
 
-  return sanitizeCategoryFields({
+  return {
+    payment: sanitizeCategoryFields({
     id: crypto.randomUUID(),
     name,
     price,
@@ -195,7 +221,9 @@ function toPayment(fields: string[]): Payment | null {
     // sonra yeniden aylık toplamlara sızmasın
     isCompleted:
       rawIsCompleted === "1" || rawIsCompleted?.toLowerCase() === "true" || undefined,
-  });
+    }),
+    reason: null,
+  };
 }
 
 function parsePriceHistory(raw: string | undefined): PricePoint[] | undefined {
@@ -227,6 +255,7 @@ function normalizeDate(input: string): string | null {
     return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
   }
   const parsed = new Date(input);
-  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  // toISOString yerine yerel toISO: gece yarısı UTC+ bölgelerde bir gün geri kayıyordu
+  if (!Number.isNaN(parsed.getTime())) return toISO(parsed);
   return null;
 }

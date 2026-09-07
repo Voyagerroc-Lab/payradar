@@ -50,6 +50,16 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
   const changePct =
     firstPrice > 0 ? Math.round(((payment.price - firstPrice) / firstPrice) * 100) : 0;
 
+  /* Grafik için metin alternatifi: başlık + kayıt sayısı + yüzde değişim.
+     Altındaki geçmiş listesiyle birlikte ekran okuyucu veriyi tam alır. */
+  const chartAria = `${t("chart.title", { name: payment.name })}${
+    points.length > 1 ? `, ${t("chart.ariaPoints", { n: points.length })}` : ""
+  }${
+    points.length > 1 && changePct !== 0
+      ? `, ${t("chart.change")}: ${changePct > 0 ? "+" : ""}${changePct}%`
+      : ""
+  }`;
+
   return (
     <Modal title={t("chart.title", { name: payment.name })} onClose={onClose} wide>
       <div className="chart-wrap">
@@ -57,7 +67,7 @@ export default function PriceChartModal({ payment, onClose }: PriceChartModalPro
           viewBox={`0 0 ${W} ${H}`}
           className="chart-svg"
           role="img"
-          aria-label={t("chart.title", { name: payment.name })}
+          aria-label={chartAria}
         >
           {/* yatay kılavuz çizgileri */}
           {[0, 0.5, 1].map((r) => (

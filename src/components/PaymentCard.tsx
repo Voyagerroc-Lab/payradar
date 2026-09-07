@@ -176,9 +176,11 @@ export default function PaymentCard({
         <span
           className={`badge ${badge.className}${days >= 0 && days <= 3 ? " badge-ping" : ""}`}
           title={badge.text}
-          aria-label={badge.text}
         >
-          {badge.short}
+          {/* aria-label role'siz span'de güvenilmez: tam anlam görsel-gizli
+              metinle, kısaltma dekoratif kopya olarak verilir */}
+          <span className="sr-only">{badge.text}</span>
+          <span aria-hidden="true">{badge.short}</span>
         </span>
         {hasGuide && (
           <button className="btn btn-secondary" onClick={onShowGuide}>

@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import {
   CATEGORIES,
   addMonths,
+  localeFor,
   parseAmount,
   parseInstallment,
   parseISO,
@@ -10,7 +11,7 @@ import {
   todayISO,
   toISO,
 } from "../lib/format";
-import { CURRENCIES } from "../lib/fx";
+import { CURRENCIES, currencyLabel } from "../lib/fx";
 import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
 import { useI18n } from "../i18n";
 
@@ -28,7 +29,7 @@ export default function PaymentFormModal({
   onClose,
   onSave,
 }: PaymentFormModalProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState(initial ? String(initial.price) : "");
   // Birim ödeme başına seçilir: yeni ödeme Ayarlar'daki gösterim biriminde
@@ -58,6 +59,9 @@ export default function PaymentFormModal({
   const [checkNumber, setCheckNumber] = useState(initial?.checkNumber ?? "");
   const [payee, setPayee] = useState(initial?.payee ?? "");
   const [error, setError] = useState("");
+  const [errorField, setErrorField] = useState<
+    "name" | "price" | "date" | "installment" | null
+  >(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
@@ -71,14 +75,17 @@ export default function PaymentFormModal({
     // Hata durumunda ilgili alana odaklan — ekran okuyucu ve klavye kullanıcısı için
     if (!trimmedName) {
       nameRef.current?.focus();
+      setErrorField("name");
       return setError(t("form.error.name"));
     }
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
       priceRef.current?.focus();
+      setErrorField("price");
       return setError(t("form.error.amount"));
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate)) {
       dateRef.current?.focus();
+      setErrorField("date");
       return setError(t("form.error.date"));
     }
 
@@ -87,6 +94,7 @@ export default function PaymentFormModal({
     const total = parseInstallment(totalInstallments);
     if (categoryId === "kredi" && current != null && total != null && current > total) {
       installmentRef.current?.focus();
+      setErrorField("installment");
       return setError(t("form.error.installment"));
     }
 
@@ -102,6 +110,11 @@ export default function PaymentFormModal({
         categoryId,
         notes: notes.trim() || undefined,
         createdAt: initial?.createdAt ?? Date.now(),
+        // Arşiv durumu düzenlemede kaybolmasın: formda görünmeyen bu alanları
+        // korumazsak, arşivlenmiş kalemi düzenlemek onu sessizce yeniden
+        // aktifleştirip aylık/yıllık toplamlara geri sokardı.
+        isCompleted: initial?.isCompleted,
+        completedAt: initial?.completedAt,
         isTrial,
         bankName: bankName.trim() || undefined,
         currentInstallment: parseInstallment(currentInstallment),
@@ -123,6 +136,8 @@ export default function PaymentFormModal({
             name="payment-name"
             autoComplete="off"
             value={name}
+            aria-invalid={errorField === "name" || undefined}
+            aria-describedby={error && errorField === "name" ? "payment-form-error" : undefined}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("form.namePlaceholder")}
             maxLength={60}
@@ -139,6 +154,8 @@ export default function PaymentFormModal({
               autoComplete="off"
               inputMode="decimal"
               value={price}
+              aria-invalid={errorField === "price" || undefined}
+              aria-describedby={error && errorField === "price" ? "payment-form-error" : undefined}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="149,99"
               maxLength={12}
@@ -157,7 +174,7 @@ export default function PaymentFormModal({
               {(CURRENCIES.includes(currency) ? CURRENCIES : [currency, ...CURRENCIES]).map(
                 (code) => (
                   <option key={code} value={code}>
-                    {code}
+                    {currencyLabel(code, localeFor(lang))}
                   </option>
                 ),
               )}
@@ -216,6 +233,8 @@ export default function PaymentFormModal({
                   className="input"
                   inputMode="numeric"
                   value={currentInstallment}
+                  aria-invalid={errorField === "installment" || undefined}
+                  aria-describedby={error && errorField === "installment" ? "payment-form-error" : undefined}
                   onChange={(e) => setCurrentInstallment(e.target.value.replace(/\D/g, ""))}
                   placeholder="12"
                   maxLength={4}
@@ -270,6 +289,8 @@ export default function PaymentFormModal({
             name="next-payment-date"
             autoComplete="off"
             value={nextPaymentDate}
+            aria-invalid={errorField === "date" || undefined}
+            aria-describedby={error && errorField === "date" ? "payment-form-error" : undefined}
             onChange={(e) => setNextPaymentDate(e.target.value)}
           />
         </label>
@@ -297,7 +318,7 @@ export default function PaymentFormModal({
         </label>
 
         {error && (
-          <p className="form-error" role="alert">
+          <p className="form-error" role="alert" id="payment-form-error">
             {error}
           </p>
         )}

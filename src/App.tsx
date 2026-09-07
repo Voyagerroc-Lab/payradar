@@ -35,7 +35,7 @@ import {
 } from "./lib/notify";
 import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
 import { exportCsv, parseCsv } from "./lib/csv";
-import { advanceCycle, completesOnAdvance, dueDateOf, todayISO, toMonthlyIn } from "./lib/format";
+import { advanceCycle, completesOnAdvance, dueDateOf, localeFor, todayISO, toMonthlyIn } from "./lib/format";
 import { ensureFx, loadFx, type FxTable } from "./lib/fx";
 import { Icon } from "./components/icons";
 import {
@@ -61,6 +61,7 @@ import { useTilt } from "./lib/tilt";
 import { getGuideOrGeneric, normalizeName } from "./data/guides";
 import { I18nProvider, useI18n } from "./i18n";
 import { makeT } from "./i18n/t";
+import type { TranslationKey } from "./i18n/dict";
 import Header from "./components/Header";
 import SummaryCards from "./components/SummaryCards";
 import Toolbar, { type SortKey } from "./components/Toolbar";
@@ -131,6 +132,14 @@ export default function App() {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState("");
+  /* "İleri Sar" geri alma: işlem öncesi payments anlık görüntüsü + sonrası
+     damga. Damga değiştiyse (başka işlem yapıldıysa) geri alma devre dışı
+     kalır — bayat anlık görüntü yeni veriyi ezemez. */
+  const [undo, setUndo] = useState<{
+    payments: Payment[];
+    postUpdatedAt: number;
+    toastText: string;
+  } | null>(null);
   /* Bildirim bandı bir kez kapatılınca bir daha çıkmaz: bildirimler her
      zaman Ayarlar'dan açılabilir, bant her açılışta içeriğin üstüne binmesin. */
   const [bannerDismissed, setBannerDismissed] = useState(() => {
@@ -186,6 +195,13 @@ export default function App() {
      erken dönüş tek başına yetmiyordu, 1,5 sn sonraki debounced push
      (ve elle "Şimdi Eşitle") satırı yine de ezerdi. */
   const syncBlockedRef = useRef(false);
+  /* Ref'in state yansıması: profil diyaloğu "eşitleme engelli" durumunu
+     canlı gösterebilsin (ref değişimi render tetiklemez). */
+  const [syncBlocked, setSyncBlocked] = useState(false);
+  function setSyncBlockedBoth(v: boolean) {
+    syncBlockedRef.current = v;
+    setSyncBlocked(v);
+  }
   /* Aynı hesap için "giriş yapıldı" bildirimi bir kez çıksın: supabase-js
      sekmeye her dönüşte SIGNED_IN yayıyor. */
   const lastSignedInUidRef = useRef<string | null>(null);
@@ -250,7 +266,7 @@ export default function App() {
   /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
    *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
   async function pullAndMerge(uid?: string) {
-    syncBlockedRef.current = false;
+    setSyncBlockedBoth(false);
     // Abonelik durumunu tazele; premium kapısı aktifken yetkisiz hesaplar senkron yapmaz
     const sub = await getSubscription();
     setSubscription(sub);
@@ -281,7 +297,7 @@ export default function App() {
       if (foreignLocal || current.payments.length === 0) {
         // Yazma yolunu kapat: yoksa ilk düzenlemede (tema değişimi bile yeter)
         // debounced push bu satırı sessizce ezerdi.
-        syncBlockedRef.current = true;
+        setSyncBlockedBoth(true);
         setToast(t("toast.cloudUnreadable"));
         return;
       }
@@ -305,7 +321,7 @@ export default function App() {
          alır): uzak satır ayrıştırılamadı ve yereldeki kasa BAŞKA hesaba ait.
          Yazma yolu kapatılmazsa debounce'lu push, yabancı kasayı bu hesabın
          satırına yazardı. */
-      syncBlockedRef.current = true;
+      setSyncBlockedBoth(true);
       return;
     }
     if (uid) saveVaultOwner(uid);
@@ -464,11 +480,15 @@ export default function App() {
   ]);
 
   /* ---------- Toast ---------- */
+  /* Süre metin uzunluğuyla ölçeklenir (üst sınır 8 sn); işaretçi toast'ın
+     üstündeyken sayaç durur — uzun geri bildirimler okunmadan kaybolmaz. */
+  const [toastPaused, setToastPaused] = useState(false);
   useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 2500);
+    if (!toast || toastPaused) return;
+    const duration = Math.min(8000, 2600 + toast.length * 45);
+    const timer = setTimeout(() => setToast(""), duration);
     return () => clearTimeout(timer);
-  }, [toast]);
+  }, [toast, toastPaused]);
 
   /* ---------- Otomatik kilit ---------- */
   const lockNow = useCallback(() => {
@@ -614,7 +634,7 @@ export default function App() {
 
   async function handleImportCsv(file: File) {
     const text = await file.text();
-    const { payments, skipped } = parseCsv(text);
+    const { payments, skipped, skippedReasons } = parseCsv(text);
     let added = 0;
 
     // Saf hesap: updater dışında; StrictMode çifte çağrısında sayaç bozulmasın
@@ -633,7 +653,11 @@ export default function App() {
       touchVault((v) => ({ ...v, payments: [...v.payments, ...fresh] }));
     }
 
-    setToast(t("toast.importDone", { added, skipped }));
+    const reasonBits = Object.entries(skippedReasons)
+      .filter(([, n]) => n > 0)
+      .map(([reason, n]) => `${t(`csv.reason.${reason}` as TranslationKey)}: ${n}`);
+    const reasonDetail = reasonBits.length ? ` (${reasonBits.join(", ")})` : "";
+    setToast(t("toast.importDone", { added, skipped }) + reasonDetail);
   }
 
   function handleExportCsv() {
@@ -653,7 +677,7 @@ export default function App() {
     setSubscription({ status: "none", currentPeriodEnd: null });
     setProfileOpen(false);
     lastPushedAtRef.current = 0;
-    syncBlockedRef.current = false;
+    setSyncBlockedBoth(false);
     lastSignedInUidRef.current = null;
     // Yereldeki kasa çıkış yapan hesaba aitti; bir sonraki hesaba taşınmasın
     saveVaultOwner(null);
@@ -714,31 +738,45 @@ export default function App() {
    *    aylık ve yıllık toplamlara eklenmeye devam etmez.
    */
   function handleAdvance(id: string) {
-    const target = vault.payments.find((p) => p.id === id);
-    const closes = target ? completesOnAdvance(target) : false;
-    touchVault((v) => ({
-      ...v,
-      payments: v.payments.map((p) => {
-        if (p.id !== id) return p;
-        if (completesOnAdvance(p)) {
-          return { ...p, isTrial: false, isCompleted: true, completedAt: Date.now() };
-        }
-        const bumpedInstallment =
-          p.categoryId === "kredi" && p.currentInstallment != null
-            ? Math.min(
-                p.currentInstallment + 1,
-                p.totalInstallments ?? p.currentInstallment + 1,
-              )
-            : p.currentInstallment;
-        return {
-          ...p,
-          nextPaymentDate: advanceCycle(p.nextPaymentDate, p.billingCycle),
-          isTrial: false,
-          currentInstallment: bumpedInstallment,
-        };
-      }),
-    }));
-    setToast(closes ? t("toast.completed") : t("toast.saved"));
+    const before = vaultRef.current;
+    const target = before.payments.find((p) => p.id === id);
+    if (!target) return;
+    const closes = completesOnAdvance(target);
+    const payments = before.payments.map((p) => {
+      if (p.id !== id) return p;
+      if (completesOnAdvance(p)) {
+        return { ...p, isTrial: false, isCompleted: true, completedAt: Date.now() };
+      }
+      const bumpedInstallment =
+        p.categoryId === "kredi" && p.currentInstallment != null
+          ? Math.min(
+              p.currentInstallment + 1,
+              p.totalInstallments ?? p.currentInstallment + 1,
+            )
+          : p.currentInstallment;
+      return {
+        ...p,
+        nextPaymentDate: advanceCycle(p.nextPaymentDate, p.billingCycle),
+        isTrial: false,
+        currentInstallment: bumpedInstallment,
+      };
+    });
+    const postUpdatedAt = Date.now();
+    setVault({ ...before, payments, updatedAt: postUpdatedAt });
+    const toastText = closes ? t("toast.completed") : t("toast.advanced");
+    setUndo({ payments: before.payments, postUpdatedAt, toastText });
+    setToast(toastText);
+  }
+
+  /** "İleri Sar"ı geri al — yalnızca o işlemden sonra başka değişiklik yoksa. */
+  function handleUndoAdvance() {
+    if (!undo || undo.postUpdatedAt !== vaultRef.current.updatedAt) {
+      setUndo(null);
+      return;
+    }
+    setVault((v) => ({ ...v, payments: undo.payments, updatedAt: Date.now() }));
+    setUndo(null);
+    setToast(t("toast.undoDone"));
   }
 
   /** Arşivden çıkar: yanlışlıkla kapatılan kalem yeniden aktif hale gelir. */
@@ -782,7 +820,8 @@ export default function App() {
   function handleEnableNotifications() {
     void requestNotificationPermission().then((granted) => {
       if (granted) {
-        setVault((v) => ({ ...v, notificationsEnabled: true }));
+        // touchVault ile aynı damga: tercihin değişimi buluta da yazılsın
+        setVault((v) => ({ ...v, notificationsEnabled: true, updatedAt: Date.now() }));
         checkUpcomingPayments(vault.payments, vault.reminderDays, {
           lang: prefs.language,
           usdTry: vault.usdTry,
@@ -804,9 +843,18 @@ export default function App() {
   const visiblePayments = useMemo(
     () =>
       mode === "ready"
-        ? filterAndSort(vault.payments, query, category, sort, vault, prefs.displayCurrency, fx)
+        ? filterAndSort(
+            vault.payments,
+            query,
+            category,
+            sort,
+            vault,
+            prefs.displayCurrency,
+            fx,
+            prefs.language,
+          )
         : [],
-    [vault, mode, query, category, sort, prefs.displayCurrency, fx],
+    [vault, mode, query, category, sort, prefs.displayCurrency, fx, prefs.language],
   );
 
   if (mode === "loading") return <div className="app" />;
@@ -883,8 +931,22 @@ export default function App() {
                   onAdd={() => setEditor("new")}
                 />
 
+                {/* Arama/filtre sonucu ekran okuyucu için sayısal duyurulur */}
+                <p className="sr-only" role="status">
+                  {visiblePayments.length > 0
+                    ? t("list.count", { n: visiblePayments.length })
+                    : ""}
+                </p>
+
                 {visiblePayments.length === 0 ? (
-                  <NoResults />
+                  <NoResults
+                    query={query}
+                    filtered={category !== "all"}
+                    onClear={() => {
+                      setQuery("");
+                      setCategory("all");
+                    }}
+                  />
                 ) : (
                   <div className="grid" ref={gridRef}>
                     {visiblePayments.map((payment) => (
@@ -1028,6 +1090,7 @@ export default function App() {
             <AccountProfileModal
               user={cloudUser}
               syncState={syncState}
+              syncBlocked={syncBlocked}
               lastSyncTime={lastSyncTime}
               subscription={subscription}
               onSyncNow={() => void handleSyncNow()}
@@ -1049,13 +1112,28 @@ export default function App() {
               />
             )}
 
-          {/* Kalıcı canlı bölge: ekran okuyucular metin değişimini duyurur */}
+          {/* Kalıcı canlı bölge: ekran okuyucular metin değişimini duyurur.
+              Üzerine gelince sayaç durur; geri alınabilir işlemlerde eylem
+              düğmesi mesajın yanında yaşar. */}
           <div
             className={`toast ${toast ? "" : "toast-hidden"}`}
             role="status"
             aria-live="polite"
+            onPointerEnter={() => setToastPaused(true)}
+            onPointerLeave={() => setToastPaused(false)}
           >
-            {toast}
+            <span className="toast-text">{toast}</span>
+            {undo !== null &&
+              toast === undo.toastText &&
+              undo.postUpdatedAt === vault.updatedAt && (
+                <button
+                  type="button"
+                  className="toast-action"
+                  onClick={handleUndoAdvance}
+                >
+                  {t("action.undo")}
+                </button>
+              )}
           </div>
 
           <Footer />
@@ -1071,23 +1149,20 @@ function Footer() {
     <footer className="footer">
       <p>{t("footer.free")}</p>
       <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
-        {/* GitLab tanuki markası: kendi renkleriyle, tanınır kalsın diye
-            currentColor ikon setinden ayrı tutuldu */}
+        {/* GitHub octocat işareti: marka rengiyle değil currentColor ile gider,
+            böylece açık/koyu temada ve kulüp temalarında okunur kalır */}
         <svg
-          className="gitlab-mark"
+          className="repo-mark"
           viewBox="0 0 24 24"
           width="14"
           height="14"
           aria-hidden="true"
           focusable="false"
         >
-          <path fill="#E24329" d="M12 22.09 15.53 11.2H8.47L12 22.09z" />
-          <path fill="#FC6D26" d="M12 22.09 8.47 11.2H3.52L12 22.09z" />
-          <path fill="#FCA326" d="M3.52 11.2 2.45 14.5a.73.73 0 0 0 .26.82L12 22.09 3.52 11.2z" />
-          <path fill="#E24329" d="M3.52 11.2h4.95L6.34 4.66a.365.365 0 0 0-.694 0L3.52 11.2z" />
-          <path fill="#FC6D26" d="M12 22.09 15.53 11.2h4.95L12 22.09z" />
-          <path fill="#FCA326" d="M20.48 11.2l1.07 3.3a.73.73 0 0 1-.26.82L12 22.09l8.48-10.89z" />
-          <path fill="#E24329" d="M20.48 11.2h-4.95l2.13-6.54a.365.365 0 0 1 .694 0l2.126 6.54z" />
+          <path
+            fill="currentColor"
+            d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+          />
         </svg>
         {t("footer.openSource")} · github.com/Voyagerroc-Code/payradar
       </a>
@@ -1130,9 +1205,32 @@ function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }
   );
 }
 
-function NoResults() {
+function NoResults({
+  query,
+  filtered,
+  onClear,
+}: {
+  query: string;
+  filtered: boolean;
+  onClear: () => void;
+}) {
   const { t } = useI18n();
-  return <p className="no-results">{t("list.noResults")}</p>;
+  return (
+    <div className="no-results" role="status">
+      <p>
+        {query
+          ? t("list.noResultsFor", { query })
+          : filtered
+            ? t("list.noResultsFiltered")
+            : t("list.noResults")}
+      </p>
+      {(query || filtered) && (
+        <button type="button" className="btn btn-secondary" onClick={onClear}>
+          {t("list.clearFilters")}
+        </button>
+      )}
+    </div>
+  );
 }
 
 function NotificationBanner({
@@ -1198,6 +1296,7 @@ function filterAndSort(
   vault: VaultData,
   displayCurrency: Currency,
   fx: FxTable | null,
+  lang: Language,
 ): Payment[] {
   const home = displayCurrency;
   const legacyRates = { usdTry: vault.usdTry, eurTry: vault.eurTry };
@@ -1225,7 +1324,8 @@ function filterAndSort(
       );
       break;
     case "name":
-      sorted.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+      // Alfabe sıralaması etkin dille: sabit "tr", ES/AR/MS'te yanlış sıralar
+      sorted.sort((a, b) => a.name.localeCompare(b.name, localeFor(lang)));
       break;
   }
   // Arşiv gürültü yapmasın: tamamlanan kalemler seçilen sıralamadan bağımsız

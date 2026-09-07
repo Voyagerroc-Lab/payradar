@@ -16,6 +16,8 @@ import { useI18n } from "../i18n";
 interface AccountProfileModalProps {
   user: CloudUser;
   syncState: SyncState;
+  /** Buluttaki satır bu cihazda açılamadı: yazım güvenlik nedeniyle duraklatıldı */
+  syncBlocked?: boolean;
   lastSyncTime: number;
   subscription: Subscription;
   onSyncNow: () => void;
@@ -28,6 +30,7 @@ interface AccountProfileModalProps {
 export default function AccountProfileModal({
   user,
   syncState,
+  syncBlocked,
   lastSyncTime,
   subscription,
   onSyncNow,
@@ -109,14 +112,22 @@ export default function AccountProfileModal({
         </div>
       )}
 
-      {(!premiumGateEnabled || isEntitled(subscription)) && (
-        <p className="profile-synced"><Icon name="check" size={13} /> {t("auth.profile.synced")}</p>
+      {syncBlocked ? (
+        <p className="profile-synced sync-blocked" role="status">
+          <Icon name="warn" size={13} /> {t("auth.profile.syncBlocked")}
+        </p>
+      ) : (
+        (!premiumGateEnabled || isEntitled(subscription)) && (
+          <p className="profile-synced">
+            <Icon name="check" size={13} /> {t("auth.profile.synced")}
+          </p>
+        )
       )}
       <p className="field-hint">{t("auth.profile.lastSync", { time: lastSyncText })}</p>
 
       <button
         className="btn btn-secondary profile-sync-btn"
-        disabled={syncState === "syncing"}
+        disabled={syncState === "syncing" || syncBlocked}
         onClick={onSyncNow}
       >
         <span className={`sync-icon ${syncState === "syncing" ? "spinning" : ""}`}><Icon name="refresh" size={13} /></span>{" "}
