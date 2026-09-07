@@ -44,3 +44,6 @@ local.properties
 # Local Netlify folder
 .netlify
 android-dist/
+
+.video_agent/
+graphify-out/

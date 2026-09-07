@@ -107,7 +107,11 @@ export function loadPrefs(): Prefs {
 }
 
 export function savePrefs(prefs: Prefs): void {
-  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* depolama dolu/kapalı olabilir; tercihler bu oturumda bellekte yaşar */
+  }
 }
 
 /* ---------------- Vault ---------------- */
@@ -140,7 +144,11 @@ export function saveUnlockedVault(data: VaultData): void {
   // updatedAt'e DOKUNMA: yalnızca gerçek içerik değişikliği (touchVault) damgalamalı,
   // yoksa uygulamayı açmak bile saati ilerletip senkron çakışmasını yanlış çözer.
   const file: VaultFile = { v: 1, locked: false, data };
-  localStorage.setItem(VAULT_KEY, JSON.stringify(file));
+  try {
+    localStorage.setItem(VAULT_KEY, JSON.stringify(file));
+  } catch {
+    /* depolama dolu/kapalı olabilir; veri bellekte yaşamaya devam eder */
+  }
 }
 
 export async function enableLock(
@@ -258,7 +266,12 @@ function isValidPayment(value: unknown): value is Payment {
     typeof p.id === "string" &&
     typeof p.name === "string" &&
     typeof p.price === "number" &&
+    Number.isFinite(p.price) &&
+    p.price > 0 &&
     typeof p.nextPaymentDate === "string" &&
+    // tüm üreticiler (form, CSV, demo) yyyy-mm-dd yazar; NaN vadeli bozuk
+    // satır sanitize kapısından geçmesin
+    /^\d{4}-\d{2}-\d{2}$/.test(p.nextPaymentDate) &&
     typeof p.categoryId === "string"
   );
 }
@@ -282,7 +295,12 @@ function migrateLegacy(): VaultData {
     };
 
     const payments = legacy
-      .filter((s) => typeof s.id === "string")
+      .filter(
+        (s) =>
+          typeof s.id === "string" &&
+          typeof s.nextPaymentDate === "string" &&
+          s.nextPaymentDate !== "",
+      )
       .map((s) => ({
         id: s.id as string,
         name: String(s.name ?? ""),
@@ -299,7 +317,9 @@ function migrateLegacy(): VaultData {
         createdAt: Number(s.createdAt ?? Date.now()),
       }));
 
-    const data: VaultData = { ...DEFAULT_VAULT, payments };
+    // sanitize: geçersiz kayıtları ve kategori-dışı alanları ele alır — eski
+    // verinin bozuk bir satırı "NaN" vadeli kart üretmesin
+    const data = sanitize({ ...DEFAULT_VAULT, payments });
     saveUnlockedVault(data);
     return data;
   } catch {

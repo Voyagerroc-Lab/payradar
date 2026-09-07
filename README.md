@@ -76,9 +76,9 @@ npm run preview  # derlemeyi önizle
 
 <div align="center">
 
-<a href="https://github.com/Voyagerroc-Code-Code/payradar">
-  <img src="docs/img/gitlab-logo.svg" alt="GitLab" width="56"><br>
-  <sub><b>Hosted on GitHub</b> · github.com/Voyagerroc-Code-Code/payradar</sub>
+<a href="https://github.com/Voyagerroc-Code/payradar">
+  <img src="docs/img/github-logo.svg" alt="GitHub" width="56"><br>
+  <sub><b>Hosted on GitHub</b> · github.com/Voyagerroc-Code/payradar</sub>
 </a>
 
 </div>

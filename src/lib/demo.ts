@@ -1,6 +1,7 @@
 import type { CategoryId, Currency, Language, Payment } from "../types";
 import type { TranslationKey } from "../i18n/dict";
 import { makeT } from "../i18n/t";
+import { toISO } from "../lib/format";
 
 /**
  * Örnek ("demo") ödemeler.
@@ -79,7 +80,7 @@ const SPECS: DemoSpec[] = [
   { name: "Canva Pro", price: 449.99, priceUSD: 14.99, daysFromNow: 4, categoryId: "diger", isTrial: true },
 ];
 
-const ALL_LANGS: Language[] = ["tr", "en", "ms"];
+const ALL_LANGS: Language[] = ["tr", "en", "ms", "es", "ar"];
 
 export function buildDemoPayments(lang: Language): Payment[] {
   const t = makeT(lang);
@@ -97,7 +98,9 @@ export function buildDemoPayments(lang: Language): Payment[] {
       price: useUSD ? (spec.priceUSD as number) : spec.price,
       currency: spec.currency ?? (useUSD ? "USD" : "TRY"),
       billingCycle: spec.billingCycle ?? "monthly",
-      nextPaymentDate: date.toISOString().slice(0, 10),
+      // toISOString yerine yerel toISO: gece yarısı seanslarında tarih bir gün
+      // geri kayıyordu (bkz. format.ts toISO)
+      nextPaymentDate: toISO(date),
       categoryId: spec.categoryId,
       createdAt: now + index,
       isTrial: spec.isTrial,
