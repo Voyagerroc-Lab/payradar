@@ -75,7 +75,7 @@ import ConfirmModal from "./components/ConfirmModal";
 import AuthModal from "./components/AuthModal";
 import AccountProfileModal from "./components/AccountProfileModal";
 
-const REPO_URL = "https://github.com/Voyagerroc-Code/payradar";
+const REPO_URL = "https://gitlab.com/Voyagerroc/payradar";
 
 export type SyncState = "idle" | "syncing" | "success" | "error";
 
@@ -1149,8 +1149,8 @@ function Footer() {
     <footer className="footer">
       <p>{t("footer.free")}</p>
       <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
-        {/* GitHub octocat işareti: marka rengiyle değil currentColor ile gider,
-            böylece açık/koyu temada ve kulüp temalarında okunur kalır */}
+        {/* GitLab tanuki markası: kendi renkleriyle, tanınır kalsın diye
+            currentColor ikon setinden ayrı tutuldu */}
         <svg
           className="repo-mark"
           viewBox="0 0 24 24"
@@ -1159,12 +1159,15 @@ function Footer() {
           aria-hidden="true"
           focusable="false"
         >
-          <path
-            fill="currentColor"
-            d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
-          />
+          <path fill="#E24329" d="M12 22.09 15.53 11.2H8.47L12 22.09z" />
+          <path fill="#FC6D26" d="M12 22.09 8.47 11.2H3.52L12 22.09z" />
+          <path fill="#FCA326" d="M3.52 11.2 2.45 14.5a.73.73 0 0 0 .26.82L12 22.09 3.52 11.2z" />
+          <path fill="#E24329" d="M3.52 11.2h4.95L6.34 4.66a.365.365 0 0 0-.694 0L3.52 11.2z" />
+          <path fill="#FC6D26" d="M12 22.09 15.53 11.2h4.95L12 22.09z" />
+          <path fill="#FCA326" d="M20.48 11.2l1.07 3.3a.73.73 0 0 1-.26.82L12 22.09l8.48-10.89z" />
+          <path fill="#E24329" d="M20.48 11.2h-4.95l2.13-6.54a.365.365 0 0 1 .694 0l2.126 6.54z" />
         </svg>
-        {t("footer.openSource")} · github.com/Voyagerroc-Code/payradar
+        {t("footer.openSource")} · gitlab.com/Voyagerroc/payradar
       </a>
     </footer>
   );

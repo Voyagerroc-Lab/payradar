@@ -4,8 +4,8 @@
 // için cihaz kalıcı boş ekranda kalıyordu. v3 hem bunu düzeltir hem de
 // sürüm terfisiyle zehirlenmiş eski önbellekleri her cihazda temizler.
 // v3 → v4: 1 Eyl 2026 arayüz düzeltmeleri; ad değişince her cihazda eski
-// hash'li varlık önbelleği activate'te temizlenir (deploy sonrası tortu kalmaz).
-const CACHE = "payradar-v4";
+// v4 → v5: Alt bilgi (footer) repo bağlantısı GitLab güncellemesi ve önbellek yenileme.
+const CACHE = "payradar-v5";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
