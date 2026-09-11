@@ -1,0 +1,2 @@
+IBM Plex Mono — Copyright IBM Corp. 2017. SIL Open Font License 1.1 (https://scripts.sil.org/OFL)
+Kaynak: https://github.com/IBM/plex

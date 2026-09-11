@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="PayRadar — Track recurring payments (rent, bills, subscriptions) privately. Verileriniz cihazınızda şifreli kalır. / Your data stays encrypted on your device."
+    />
+    <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#07080c" media="(prefers-color-scheme: dark)" />
+    <!-- Yerel form denetimleri ve kaydırma çubukları temayla uyumlu çizilsin -->
+    <meta name="color-scheme" content="light dark" />
+    <!-- Ana ekrana eklenince tam ekran açılsın (iOS hâlâ bu etiketi istiyor;
+         Android karşılığı mobile-web-app-capable). Durum çubuğu rengini
+         bilerek black-translucent'a çekmedik: o beyaz metni zorlar ve açık
+         temada okunmaz olurdu; varsayılan hâlde iOS yukarıdaki theme-color'ı
+         kullanır, yani iki temada da doğru kontrast çıkar. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PayRadar" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <script src="./boot-lang.js"></script>
+    <title>PayRadar — Düzenli Ödeme Takibi</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

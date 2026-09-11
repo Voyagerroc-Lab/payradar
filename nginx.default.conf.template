@@ -1,0 +1,41 @@
+server {
+    listen ${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_types text/css application/javascript application/json application/manifest+json image/svg+xml text/plain;
+
+    # Nginx'te location içindeki add_header üst bloktakileri sıfırlar;
+    # bu yüzden güvenlik seti tekrar gereken her blokta include ediliyor.
+    include /etc/nginx/security-headers.conf;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Service worker ve index her zaman taze kalmalı, yoksa PWA eski sürümde takılır
+    location = /sw.js {
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "no-cache";
+    }
+    location = /index.html {
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "no-cache";
+    }
+
+    location /assets/ {
+        include /etc/nginx/security-headers.conf;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location ~* \.(jpg|jpeg|png|webp|svg|woff2)$ {
+        include /etc/nginx/security-headers.conf;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+}

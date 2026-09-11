@@ -1,0 +1,160 @@
+import { useMemo, useState } from "react";
+import Modal from "./Modal";
+import type { CloudUser } from "../lib/cloud";
+import type { SyncState } from "../App";
+import { localeFor } from "../lib/format";
+import { Icon } from "./icons";
+import {
+  canShowCheckout,
+  checkoutUrl,
+  isEntitled,
+  premiumGateEnabled,
+  type Subscription,
+} from "../lib/premium";
+import { useI18n } from "../i18n";
+
+interface AccountProfileModalProps {
+  user: CloudUser;
+  syncState: SyncState;
+  /** Buluttaki satır bu cihazda açılamadı: yazım güvenlik nedeniyle duraklatıldı */
+  syncBlocked?: boolean;
+  lastSyncTime: number;
+  subscription: Subscription;
+  onSyncNow: () => void;
+  onDeleteAccount: () => void;
+  onSignOut: () => void;
+  onSwitchAccount: () => void;
+  onClose: () => void;
+}
+
+export default function AccountProfileModal({
+  user,
+  syncState,
+  syncBlocked,
+  lastSyncTime,
+  subscription,
+  onSyncNow,
+  onDeleteAccount,
+  onSignOut,
+  onSwitchAccount,
+  onClose,
+}: AccountProfileModalProps) {
+  const { t, lang } = useI18n();
+
+  const identity = user.email ?? "";
+  const displayName = user.displayName ?? (user.email ? user.email.split("@")[0] : identity);
+  const initial = (displayName || identity || "U").charAt(0).toLocaleUpperCase(localeFor(lang));
+
+  // Modal açıldığı andaki zaman; render sırasında Date.now() çağırmamak için lazy init
+  const [openedAt] = useState(() => Date.now());
+  const lastSyncText = useMemo(
+    () =>
+      lastSyncTime <= 0 || openedAt - lastSyncTime < 60_000
+        ? t("auth.profile.justNow")
+        : new Intl.DateTimeFormat(localeFor(lang), {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "numeric",
+            month: "short",
+          }).format(new Date(lastSyncTime)),
+    [lastSyncTime, openedAt, lang, t],
+  );
+
+  return (
+    <Modal title={t("auth.profile.title")} onClose={onClose}>
+      <div className="profile-head">
+        <div className="profile-avatar">{initial}</div>
+        <div className="profile-identity">
+          <strong>{displayName}</strong>
+          {user.email && <span>{user.email}</span>}
+        </div>
+      </div>
+
+      {premiumGateEnabled && (
+        <div className="premium-box">
+          {isEntitled(subscription) ? (
+            <>
+              <strong>
+                {subscription.status === "on_trial"
+                  ? t("premium.statusTrial")
+                  : t("premium.statusActive")}
+              </strong>
+              {subscription.currentPeriodEnd && (
+                <p>
+                  {t("premium.periodEnd", {
+                    date: new Intl.DateTimeFormat(localeFor(lang), {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date(subscription.currentPeriodEnd)),
+                  })}
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <strong><Icon name="star" size={13} /> {t("premium.title")}</strong>
+              <p>{t("premium.locked")}</p>
+              {canShowCheckout() && checkoutUrl(user) ? (
+                <a
+                  className="btn btn-primary premium-cta"
+                  href={checkoutUrl(user)!}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {t("premium.upgrade")}
+                </a>
+              ) : (
+                <p className="field-hint">{t("premium.webOnlyHint")}</p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {syncBlocked ? (
+        <p className="profile-synced sync-blocked" role="status">
+          <Icon name="warn" size={13} /> {t("auth.profile.syncBlocked")}
+        </p>
+      ) : (
+        (!premiumGateEnabled || isEntitled(subscription)) && (
+          <p className="profile-synced">
+            <Icon name="check" size={13} /> {t("auth.profile.synced")}
+          </p>
+        )
+      )}
+      <p className="field-hint">{t("auth.profile.lastSync", { time: lastSyncText })}</p>
+
+      <button
+        className="btn btn-secondary profile-sync-btn"
+        disabled={syncState === "syncing" || syncBlocked}
+        onClick={onSyncNow}
+      >
+        <span className={`sync-icon ${syncState === "syncing" ? "spinning" : ""}`}><Icon name="refresh" size={13} /></span>{" "}
+        {syncState === "syncing" ? t("auth.profile.syncing") : t("auth.profile.syncNow")}
+      </button>
+
+      <div className="profile-webaccess">
+        <strong><Icon name="globe" size={13} /> {t("auth.profile.webAccess")}</strong>
+        <p>{t("auth.profile.webAccessDesc", { email: identity })}</p>
+      </div>
+
+      <p className="field-hint">
+        <Icon name="lock" size={13} /> {t("account.cloudKeyHint")}
+      </p>
+
+      <div className="form-actions security-actions">
+        <button className="btn btn-secondary" onClick={onSwitchAccount}>
+          {t("auth.profile.switchAccount")}
+        </button>
+        <button className="btn btn-secondary" onClick={onSignOut}>
+          {t("auth.profile.signOut")}
+        </button>
+      </div>
+
+      <button className="btn btn-danger full-width-btn delete-account-btn" onClick={onDeleteAccount}>
+        {t("account.deleteTitle")}
+      </button>
+    </Modal>
+  );
+}

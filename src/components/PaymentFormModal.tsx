@@ -1,0 +1,343 @@
+import { useRef, useState } from "react";
+import Modal from "./Modal";
+import {
+  CATEGORIES,
+  addMonths,
+  localeFor,
+  parseAmount,
+  parseInstallment,
+  parseISO,
+  sanitizeCategoryFields,
+  todayISO,
+  toISO,
+} from "../lib/format";
+import { CURRENCIES, currencyLabel } from "../lib/fx";
+import type { BillingCycle, CategoryId, Currency, Payment } from "../types";
+import { useI18n } from "../i18n";
+
+interface PaymentFormModalProps {
+  initial: Payment | null;
+  /** Ayarlar'daki gösterim para birimi: yeni ödemeler bu birimde girilir */
+  displayCurrency: Currency;
+  onClose: () => void;
+  onSave: (payment: Payment) => void;
+}
+
+export default function PaymentFormModal({
+  initial,
+  displayCurrency,
+  onClose,
+  onSave,
+}: PaymentFormModalProps) {
+  const { t, lang } = useI18n();
+  const [name, setName] = useState(initial?.name ?? "");
+  const [price, setPrice] = useState(initial ? String(initial.price) : "");
+  // Birim ödeme başına seçilir: yeni ödeme Ayarlar'daki gösterim biriminde
+  // açılır ama kullanıcı dövizli bir kalemi (USD abonelik, EUR kira) kendi
+  // biriminde girebilir; düzenlemede ödemenin GİRİLDİĞİ birim korunur.
+  const [currency, setCurrency] = useState<Currency>(
+    initial?.currency ?? displayCurrency,
+  );
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>(
+    initial?.billingCycle ?? "monthly",
+  );
+  const [nextPaymentDate, setNextPaymentDate] = useState(
+    initial?.nextPaymentDate ?? defaultNextMonth(),
+  );
+  const [categoryId, setCategoryId] = useState<CategoryId>(
+    initial?.categoryId ?? "abonelik",
+  );
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [isTrial, setIsTrial] = useState(initial?.isTrial ?? false);
+  const [bankName, setBankName] = useState(initial?.bankName ?? "");
+  const [currentInstallment, setCurrentInstallment] = useState(
+    initial?.currentInstallment != null ? String(initial.currentInstallment) : "",
+  );
+  const [totalInstallments, setTotalInstallments] = useState(
+    initial?.totalInstallments != null ? String(initial.totalInstallments) : "",
+  );
+  const [checkNumber, setCheckNumber] = useState(initial?.checkNumber ?? "");
+  const [payee, setPayee] = useState(initial?.payee ?? "");
+  const [error, setError] = useState("");
+  const [errorField, setErrorField] = useState<
+    "name" | "price" | "date" | "installment" | null
+  >(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const installmentRef = useRef<HTMLInputElement>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmedName = name.trim();
+    const parsedPrice = parseAmount(price);
+
+    // Hata durumunda ilgili alana odaklan — ekran okuyucu ve klavye kullanıcısı için
+    if (!trimmedName) {
+      nameRef.current?.focus();
+      setErrorField("name");
+      return setError(t("form.error.name"));
+    }
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      priceRef.current?.focus();
+      setErrorField("price");
+      return setError(t("form.error.amount"));
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextPaymentDate)) {
+      dateRef.current?.focus();
+      setErrorField("date");
+      return setError(t("form.error.date"));
+    }
+
+    // 15/12 gibi imkânsız bir taksit durumu kaydedilemez: sayaç toplamı aşamaz
+    const current = parseInstallment(currentInstallment);
+    const total = parseInstallment(totalInstallments);
+    if (categoryId === "kredi" && current != null && total != null && current > total) {
+      installmentRef.current?.focus();
+      setErrorField("installment");
+      return setError(t("form.error.installment"));
+    }
+
+    // sanitizeCategoryFields kategoriye ait olmayan alanları düşürür
+    onSave(
+      sanitizeCategoryFields({
+        id: initial?.id ?? crypto.randomUUID(),
+        name: trimmedName,
+        price: parsedPrice,
+        currency,
+        billingCycle,
+        nextPaymentDate,
+        categoryId,
+        notes: notes.trim() || undefined,
+        createdAt: initial?.createdAt ?? Date.now(),
+        // Arşiv durumu düzenlemede kaybolmasın: formda görünmeyen bu alanları
+        // korumazsak, arşivlenmiş kalemi düzenlemek onu sessizce yeniden
+        // aktifleştirip aylık/yıllık toplamlara geri sokardı.
+        isCompleted: initial?.isCompleted,
+        completedAt: initial?.completedAt,
+        isTrial,
+        bankName: bankName.trim() || undefined,
+        currentInstallment: parseInstallment(currentInstallment),
+        totalInstallments: parseInstallment(totalInstallments),
+        checkNumber: checkNumber.trim() || undefined,
+        payee: payee.trim() || undefined,
+      }),
+    );
+  }
+
+  return (
+    <Modal title={initial ? t("form.editTitle") : t("form.newTitle")} onClose={onClose}>
+      <form className="form" onSubmit={handleSubmit}>
+        <label className="field">
+          <span>{t("form.name")}</span>
+          <input
+            ref={nameRef}
+            className="input"
+            name="payment-name"
+            autoComplete="off"
+            value={name}
+            aria-invalid={errorField === "name" || undefined}
+            aria-describedby={error && errorField === "name" ? "payment-form-error" : undefined}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t("form.namePlaceholder")}
+            maxLength={60}
+          />
+        </label>
+
+        <div className="form-row">
+          <label className="field">
+            <span>{t("form.amount")}</span>
+            <input
+              ref={priceRef}
+              className="input"
+              name="amount"
+              autoComplete="off"
+              inputMode="decimal"
+              value={price}
+              aria-invalid={errorField === "price" || undefined}
+              aria-describedby={error && errorField === "price" ? "payment-form-error" : undefined}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="149,99"
+              maxLength={12}
+            />
+          </label>
+
+          <label className="field">
+            <span>{t("form.currency")}</span>
+            <select
+              className="input"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            >
+              {/* Kullanıcının kendi birimi listede yoksa (eski kayıt) yine de
+                  seçili kalsın — düzenleme tutarın birimini sessizce değiştiremez */}
+              {(CURRENCIES.includes(currency) ? CURRENCIES : [currency, ...CURRENCIES]).map(
+                (code) => (
+                  <option key={code} value={code}>
+                    {currencyLabel(code, localeFor(lang))}
+                  </option>
+                ),
+              )}
+            </select>
+          </label>
+        </div>
+
+        <div className="form-row">
+          <label className="field">
+            <span>{t("form.cycle")}</span>
+            <select
+              className="input"
+              value={billingCycle}
+              onChange={(e) => setBillingCycle(e.target.value as BillingCycle)}
+            >
+              <option value="weekly">{t("cycle.weekly")}</option>
+              <option value="monthly">{t("cycle.monthly")}</option>
+              <option value="quarterly">{t("cycle.quarterly")}</option>
+              <option value="yearly">{t("cycle.yearly")}</option>
+            </select>
+          </label>
+
+          <label className="field">
+            <span>{t("form.category")}</span>
+            <select
+              className="input"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value as CategoryId)}
+            >
+              {(Object.keys(CATEGORIES) as CategoryId[]).map((id) => (
+                <option key={id} value={id}>
+                  {t(CATEGORIES[id].labelKey)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {categoryId === "kredi" && (
+          <>
+            <label className="field">
+              <span>{t("form.bankName")}</span>
+              <input
+                className="input"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder={t("form.bankNamePlaceholder")}
+                maxLength={60}
+              />
+            </label>
+            <div className="form-row">
+              <label className="field">
+                <span>{t("form.currentInstallment")}</span>
+                <input
+                  ref={installmentRef}
+                  className="input"
+                  inputMode="numeric"
+                  value={currentInstallment}
+                  aria-invalid={errorField === "installment" || undefined}
+                  aria-describedby={error && errorField === "installment" ? "payment-form-error" : undefined}
+                  onChange={(e) => setCurrentInstallment(e.target.value.replace(/\D/g, ""))}
+                  placeholder="12"
+                  maxLength={4}
+                />
+              </label>
+              <label className="field">
+                <span>{t("form.totalInstallments")}</span>
+                <input
+                  className="input"
+                  inputMode="numeric"
+                  value={totalInstallments}
+                  onChange={(e) => setTotalInstallments(e.target.value.replace(/\D/g, ""))}
+                  placeholder="36"
+                  maxLength={4}
+                />
+              </label>
+            </div>
+          </>
+        )}
+
+        {categoryId === "cek_senet" && (
+          <>
+            <label className="field">
+              <span>{t("form.checkNumber")}</span>
+              <input
+                className="input"
+                value={checkNumber}
+                onChange={(e) => setCheckNumber(e.target.value)}
+                placeholder={t("form.checkNumberPlaceholder")}
+                maxLength={40}
+              />
+            </label>
+            <label className="field">
+              <span>{t("form.payee")}</span>
+              <input
+                className="input"
+                value={payee}
+                onChange={(e) => setPayee(e.target.value)}
+                placeholder={t("form.payeePlaceholder")}
+                maxLength={80}
+              />
+            </label>
+          </>
+        )}
+
+        <label className="field">
+          <span>{isTrial ? t("form.trialEndDate") : t("form.nextDate")}</span>
+          <input
+            ref={dateRef}
+            className="input"
+            type="date"
+            name="next-payment-date"
+            autoComplete="off"
+            value={nextPaymentDate}
+            aria-invalid={errorField === "date" || undefined}
+            aria-describedby={error && errorField === "date" ? "payment-form-error" : undefined}
+            onChange={(e) => setNextPaymentDate(e.target.value)}
+          />
+        </label>
+
+        <label className="toggle-row">
+          <input
+            type="checkbox"
+            checked={isTrial}
+            onChange={(e) => setIsTrial(e.target.checked)}
+          />
+          <span>{t("form.isTrial")}</span>
+        </label>
+        {isTrial && <p className="field-hint">{t("form.isTrialHint")}</p>}
+
+        <label className="field">
+          <span>{t("form.notes")}</span>
+          <textarea
+            className="input"
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={t("form.notesPlaceholder")}
+            maxLength={200}
+          />
+        </label>
+
+        {error && (
+          <p className="form-error" role="alert" id="payment-form-error">
+            {error}
+          </p>
+        )}
+
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
+            {t("action.cancel")}
+          </button>
+          <button type="submit" className="btn btn-primary">
+            {t("action.save")}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/** Bir ay sonrası — yerel saatle. toISOString() UTC'ye kaydırıp UTC+3'te gece
+ *  yarısı bir gün geri atıyordu; addMonths 31 Mart'ta 1 Mayıs'a taşmayı önler. */
+function defaultNextMonth(): string {
+  return toISO(addMonths(parseISO(todayISO()), 1));
+}

@@ -1,0 +1,1339 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isThemeId } from "./types";
+import type {
+  CategoryId,
+  Currency,
+  Language,
+  Payment,
+  Prefs,
+  VaultData,
+} from "./types";
+import {
+  DEFAULT_PREFS,
+  DEFAULT_VAULT,
+  changePin,
+  disableLock,
+  enableLock,
+  isVaultLocked,
+  loadLastSync,
+  loadPrefs,
+  loadUnlockedVault,
+  loadVaultOwner,
+  sanitize,
+  saveLastSync,
+  saveVaultOwner,
+  saveLockedVault,
+  savePrefs,
+  saveUnlockedVault,
+  unlockVault,
+  wipeAllData,
+} from "./lib/storage";
+import {
+  checkUpcomingPayments,
+  clearNotifiedToday,
+  requestNotificationPermission,
+} from "./lib/notify";
+import { buildDemoPayments, relocalizeDemoPayments } from "./lib/demo";
+import { exportCsv, parseCsv } from "./lib/csv";
+import { advanceCycle, completesOnAdvance, dueDateOf, localeFor, todayISO, toMonthlyIn } from "./lib/format";
+import { ensureFx, loadFx, type FxTable } from "./lib/fx";
+import { Icon } from "./components/icons";
+import {
+  cloudEnabled,
+  deleteCloudAccount,
+  getCloudUser,
+  onAuthChange,
+  pullVaultData,
+  pushVaultData,
+  signInGoogle,
+  signOutCloud,
+  type CloudUser,
+} from "./lib/cloud";
+import {
+  getSubscription,
+  isEntitled,
+  premiumGateEnabled,
+  type Subscription,
+} from "./lib/premium";
+import { clearSyncKey } from "./lib/syncCrypto";
+import { applyTheme } from "./lib/theme";
+import { useTilt } from "./lib/tilt";
+import { getGuideOrGeneric, normalizeName } from "./data/guides";
+import { I18nProvider, useI18n } from "./i18n";
+import { makeT } from "./i18n/t";
+import type { TranslationKey } from "./i18n/dict";
+import Header from "./components/Header";
+import SummaryCards from "./components/SummaryCards";
+import Toolbar, { type SortKey } from "./components/Toolbar";
+import PaymentCard from "./components/PaymentCard";
+import PaymentFormModal from "./components/PaymentFormModal";
+import GuideModal from "./components/GuideModal";
+import PriceChartModal from "./components/PriceChartModal";
+import SettingsModal from "./components/SettingsModal";
+import LockScreen from "./components/LockScreen";
+import ConfirmModal from "./components/ConfirmModal";
+import AuthModal from "./components/AuthModal";
+import AccountProfileModal from "./components/AccountProfileModal";
+
+const REPO_URL = "https://gitlab.com/Voyagerroc/payradar";
+
+export type SyncState = "idle" | "syncing" | "success" | "error";
+
+type EditorState = Payment | "new" | null;
+type Mode = "loading" | "locked" | "ready";
+
+interface BootState {
+  prefs: Prefs;
+  vault: VaultData;
+  mode: Mode;
+}
+
+/** localStorage'dan bir kez okunur; kilitliyken vault verisi belleğe alınmaz. */
+function readBoot(): BootState {
+  const prefs = loadPrefs();
+  if (prefs.lockEnabled && isVaultLocked()) {
+    return { prefs, vault: DEFAULT_VAULT, mode: "locked" };
+  }
+  return { prefs, vault: loadUnlockedVault(), mode: "ready" };
+}
+
+export default function App() {
+  const [boot] = useState(readBoot);
+  const [mode, setMode] = useState<Mode>(boot.mode);
+  const [prefs, setPrefs] = useState<Prefs>(boot.prefs);
+  const [vault, setVault] = useState<VaultData>(boot.vault);
+  /* Canlı kurlar: açılışta son bilinen tablo, arkada güncel veri denenir.
+     Tablo USD tabanlı ve dilden bağımsızdır; ana para birimi dilden türetilir. */
+  const [fx, setFx] = useState<FxTable | null>(() => loadFx());
+  const sessionKeyRef = useRef<CryptoKey | null>(null);
+
+  // Ödeme ızgarası: işaretçi takipli 3B eğim (tek dinleyici, olay delegasyonu)
+  const gridRef = useTilt<HTMLDivElement>(".sub-card");
+
+  // Dil değişince demo kayıtları da yeni dile döner. relocalize yalnızca
+  // dokunulmamış demo alanlarını çevirir; kullanıcının düzenlediği bir ad
+  // asla ezilmez ve değişiklik yoksa kasa "değişti" diye işaretlenmez.
+  useEffect(() => {
+    setVault((v) => {
+      const payments = relocalizeDemoPayments(v.payments, prefs.language);
+      return payments === v.payments ? v : { ...v, payments, updatedAt: Date.now() };
+    });
+  }, [prefs.language]);
+
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<CategoryId | "all">("all");
+  const [sort, setSort] = useState<SortKey>("date");
+  const [editor, setEditor] = useState<EditorState>(null);
+  const [guideFor, setGuideFor] = useState<Payment | null>(null);
+  const [chartFor, setChartFor] = useState<Payment | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const [demoConfirmOpen, setDemoConfirmOpen] = useState(false);
+  const [eraseConfirmOpen, setEraseConfirmOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toast, setToast] = useState("");
+  /* "İleri Sar" geri alma: işlem öncesi payments anlık görüntüsü + sonrası
+     damga. Damga değiştiyse (başka işlem yapıldıysa) geri alma devre dışı
+     kalır — bayat anlık görüntü yeni veriyi ezemez. */
+  const [undo, setUndo] = useState<{
+    payments: Payment[];
+    postUpdatedAt: number;
+    toastText: string;
+  } | null>(null);
+  /* Bildirim bandı bir kez kapatılınca bir daha çıkmaz: bildirimler her
+     zaman Ayarlar'dan açılabilir, bant her açılışta içeriğin üstüne binmesin. */
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("payradar:notifBannerDismissed:v1") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismissNotifBanner() {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem("payradar:notifBannerDismissed:v1", "1");
+    } catch {
+      /* depolama kapalıysa yalnızca bu oturumda gizli kalır */
+    }
+  }
+  /* Giriş şeridi kapatılınca bir daha çıkmaz (giriş her zaman başlıktan ve
+     Ayarlar'dan erişilebilir kalır); tercih cihazda kalıcıdır. */
+  const [cloudBannerDismissed, setCloudBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("payradar:cloudBannerDismissed:v1") === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  function dismissCloudBanner() {
+    setCloudBannerDismissed(true);
+    try {
+      localStorage.setItem("payradar:cloudBannerDismissed:v1", "1");
+    } catch {
+      /* depolama kapalıysa yalnızca bu oturumda gizli kalır */
+    }
+  }
+  const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [syncState, setSyncState] = useState<SyncState>("idle");
+  const [lastSyncTime, setLastSyncTime] = useState<number>(loadLastSync);
+  const [subscription, setSubscription] = useState<Subscription>({
+    status: "none",
+    currentPeriodEnd: null,
+  });
+  const entitled = isEntitled(subscription);
+  const entitledRef = useRef(entitled);
+  useEffect(() => {
+    entitledRef.current = entitled;
+  }, [entitled]);
+  const lastPushedAtRef = useRef(0);
+  /* Buluttaki satır bu cihazda çözülemedi ve yerel veri onu ezmemeli:
+     erken dönüş tek başına yetmiyordu, 1,5 sn sonraki debounced push
+     (ve elle "Şimdi Eşitle") satırı yine de ezerdi. */
+  const syncBlockedRef = useRef(false);
+  /* Ref'in state yansıması: profil diyaloğu "eşitleme engelli" durumunu
+     canlı gösterebilsin (ref değişimi render tetiklemez). */
+  const [syncBlocked, setSyncBlocked] = useState(false);
+  function setSyncBlockedBoth(v: boolean) {
+    syncBlockedRef.current = v;
+    setSyncBlocked(v);
+  }
+  /* Aynı hesap için "giriş yapıldı" bildirimi bir kez çıksın: supabase-js
+     sekmeye her dönüşte SIGNED_IN yayıyor. */
+  const lastSignedInUidRef = useRef<string | null>(null);
+  // Güncel state'e updater dışında erişim için (pullAndMerge yan etkisiz kalsın)
+  const vaultRef = useRef(vault);
+  const prefsRef = useRef(prefs);
+  useEffect(() => {
+    vaultRef.current = vault;
+  }, [vault]);
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
+  // Buluttan uygulanan pref değişikliği geri-push tetiklemesin
+  const prefsFromCloudRef = useRef(false);
+  const syncResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const t = useMemo(() => makeT(prefs.language), [prefs.language]);
+
+  /** Buluta yazarken senkron durumunu ve son eşitleme zamanını da günceller. */
+  const syncedPush = useCallback(
+    async (data: VaultData, theme: Prefs["theme"], language: Language) => {
+      setSyncState("syncing");
+      const ok = await pushVaultData({ ...data, appTheme: theme, appLanguage: language });
+      if (ok) {
+        const now = Date.now();
+        setLastSyncTime(now);
+        saveLastSync(now);
+        setSyncState("success");
+        if (syncResetTimerRef.current) clearTimeout(syncResetTimerRef.current);
+        syncResetTimerRef.current = setTimeout(() => setSyncState("idle"), 1200);
+      } else {
+        setSyncState("error");
+      }
+      return ok;
+    },
+    [],
+  );
+
+  useEffect(
+    () => () => {
+      if (syncResetTimerRef.current) clearTimeout(syncResetTimerRef.current);
+    },
+    [],
+  );
+
+  /* ---------- Bulut oturumu ---------- */
+  useEffect(() => {
+    if (!cloudEnabled || mode !== "ready") return;
+    let cancelled = false;
+    void (async () => {
+      const user = await getCloudUser();
+      if (cancelled || !user) return;
+      setCloudUser(user);
+      await pullAndMerge(user.uid);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudEnabled, mode]);
+
+  /** Giriş sonrası: uzak daha yeniyse indir, değilse yereli yükle.
+   *  Yan etkiler updater DIŞINDA — StrictMode/concurrent render çifte push yapmasın. */
+  async function pullAndMerge(uid?: string) {
+    setSyncBlockedBoth(false);
+    // Abonelik durumunu tazele; premium kapısı aktifken yetkisiz hesaplar senkron yapmaz
+    const sub = await getSubscription();
+    setSubscription(sub);
+    if (premiumGateEnabled && !isEntitled(sub)) return;
+
+    const remote = await pullVaultData();
+    if (!remote) {
+      // Bu hesapta bulut kaydı yok: yerel veri BAŞKA hesaba aitse yükleme
+      const owner = loadVaultOwner();
+      if (uid && owner && owner !== uid) {
+        setVault({ ...DEFAULT_VAULT, updatedAt: 0 });
+        saveVaultOwner(uid);
+      } else if (uid) {
+        saveVaultOwner(uid);
+      }
+      return;
+    }
+
+    const current = vaultRef.current;
+    const owner = loadVaultOwner();
+    // Yereldeki veri farklı bir hesaba aitse ASLA yukarı gönderme (hesap değiştirme koruması)
+    const foreignLocal = Boolean(uid && owner && owner !== uid);
+
+    /* Eski sürümün cihaz anahtarıyla yazılmış, bu cihazda çözülemeyen satır.
+       Yerelde ödeme varsa o kazanır ve satır yeniden yazılır; yerel boşken
+       buluttaki kaydı ezmek veri kaybı olurdu — dokunmadan haber veririz. */
+    if (remote.unreadable) {
+      if (foreignLocal || current.payments.length === 0) {
+        // Yazma yolunu kapat: yoksa ilk düzenlemede (tema değişimi bile yeter)
+        // debounced push bu satırı sessizce ezerdi.
+        setSyncBlockedBoth(true);
+        setToast(t("toast.cloudUnreadable"));
+        return;
+      }
+      lastPushedAtRef.current = Date.now();
+      if (uid) saveVaultOwner(uid);
+      void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
+      return;
+    }
+
+    const remoteData = asVaultData(remote.data, remote.updatedAt);
+
+    if (!foreignLocal && (!remoteData || (remoteData.updatedAt ?? 0) <= (current.updatedAt ?? 0))) {
+      // Yerel daha güncel -> buluta yaz
+      lastPushedAtRef.current = Date.now();
+      if (uid) saveVaultOwner(uid);
+      void syncedPush(current, prefsRef.current.theme, prefsRef.current.language);
+      return;
+    }
+    if (!remoteData) {
+      /* Buraya yalnızca foreignLocal iken düşülür (yukarıdaki dal diğer hâli
+         alır): uzak satır ayrıştırılamadı ve yereldeki kasa BAŞKA hesaba ait.
+         Yazma yolu kapatılmazsa debounce'lu push, yabancı kasayı bu hesabın
+         satırına yazardı. */
+      setSyncBlockedBoth(true);
+      return;
+    }
+    if (uid) saveVaultOwner(uid);
+
+    lastPushedAtRef.current = Date.now();
+    setToast(t("toast.cloudPulled"));
+    // Tema/dil buluttan geliyorsa cihazlar arası taşı (geri-push tetiklemeden)
+    if (remoteData.appTheme || remoteData.appLanguage) {
+      prefsFromCloudRef.current = true;
+      setPrefs((p) => ({
+        ...p,
+        theme: remoteData.appTheme ?? p.theme,
+        language: remoteData.appLanguage ?? p.language,
+      }));
+    }
+    // appTheme/appLanguage prefs'e uygulandı; vault state'inde bayat kopya tutma
+    const { appTheme: _theme, appLanguage: _lang, ...vaultOnly } = remoteData;
+    setVault((v) => ({ ...v, ...vaultOnly }));
+
+    /* Satır eski (cihaz anahtarlı) biçimdeyse hemen yeni anahtarla yeniden
+       yazılır; yoksa kullanıcı bir şey düzenleyene dek diğer cihazları
+       buluttaki kaydı açamazdı. */
+    if (remote.legacy) {
+      lastPushedAtRef.current = Date.now();
+      void syncedPush(
+        { ...current, ...vaultOnly },
+        remoteData.appTheme ?? prefsRef.current.theme,
+        remoteData.appLanguage ?? prefsRef.current.language,
+      );
+    }
+  }
+
+  /* ---------- Dış oturum değişikliği (Google OAuth dönüşü, başka sekme) ---------- */
+  useEffect(() => {
+    if (!cloudEnabled || mode !== "ready") return;
+    return onAuthChange(() => {
+      void (async () => {
+        const user = await getCloudUser();
+        if (!user) return;
+        setCloudUser(user);
+        /* SIGNED_IN olayı sekmeye her dönüşte de geliyor; bildirim yalnızca
+           hesap gerçekten değiştiğinde ve pull'dan ÖNCE çıkar ki pull'un
+           kendi bildirimi (buluttan yüklendi / okunamadı) üstte kalsın. */
+        if (user.uid && lastSignedInUidRef.current !== user.uid) {
+          lastSignedInUidRef.current = user.uid;
+          if (user.email) setToast(t("toast.signedIn", { email: user.email }));
+        }
+        await pullAndMerge(user.uid);
+      })();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  /* ---------- Buluta otomatik kaydetme (1.5 sn debounced) ---------- */
+  useEffect(() => {
+    if (mode !== "ready" || !cloudUser) return;
+    if (premiumGateEnabled && !entitled) return;
+    if (syncBlockedRef.current) return;
+    if (vault.updatedAt <= lastPushedAtRef.current) return;
+    const timer = setTimeout(() => {
+      /* Bayrak timer kurulduktan SONRA da kalkabilir: pullAndMerge hâlâ
+         sürüyorsa ve satırın çözülemediğini 300 ms sonra anlıyorsa, efektin
+         bağımlılıkları değişmediği için cleanup çalışmaz ve timer iptal
+         olmaz. Kararı gönderme anında yeniden ver. */
+      if (syncBlockedRef.current) return;
+      lastPushedAtRef.current = Date.now();
+      void syncedPush(vault, prefsRef.current.theme, prefsRef.current.language);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [vault, cloudUser, mode, entitled, syncedPush]);
+
+  /* ---------- Tema/dil değişince de buluta yaz (vault'a dokunulmasa bile) ---------- */
+  const prefsSyncMountedRef = useRef(false);
+  useEffect(() => {
+    if (!prefsSyncMountedRef.current) {
+      prefsSyncMountedRef.current = true;
+      return;
+    }
+    if (prefsFromCloudRef.current) {
+      prefsFromCloudRef.current = false;
+      return;
+    }
+    if (mode !== "ready" || !cloudUser) return;
+    // Vault'u "kirli" işaretle; debounced push güncel tema/dili de taşır
+    setVault((v) => ({ ...v, updatedAt: Date.now() }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefs.theme, prefs.language]);
+
+  /* ---------- Kalıcılık ---------- */
+  useEffect(() => {
+    if (mode !== "ready") return;
+    if (prefs.lockEnabled && sessionKeyRef.current) {
+      void saveLockedVault(sessionKeyRef.current, vault);
+    } else {
+      saveUnlockedVault(vault);
+    }
+  }, [vault, prefs.lockEnabled, mode]);
+
+  useEffect(() => {
+    savePrefs(prefs);
+    applyTheme(prefs.theme);
+    document.documentElement.lang = prefs.language;
+    // Sekme başlığı arayüzle aynı dilde konuşsun (index.html'deki statik
+    // Türkçe başlık yalnızca ilk boyamada görünür)
+    document.title = `PayRadar — ${t("tagline")}`;
+    // Arapça sağdan sola akar; flex/grid düzeni dir ile kendiliğinden aynalanır
+    document.documentElement.dir = prefs.language === "ar" ? "rtl" : "ltr";
+  }, [prefs, t]);
+
+  /* ---------- Canlı kurlar ---------- */
+  useEffect(() => {
+    if (mode !== "ready") return;
+    let cancelled = false;
+    void ensureFx().then((table) => {
+      if (!cancelled && table) setFx(table);
+    });
+    // Uygulama günlerce açık kalabilir (kurulu PWA/TWA); tabloyu tazele.
+    const interval = setInterval(
+      () => void ensureFx().then((table) => !cancelled && table && setFx(table)),
+      6 * 60 * 60_000,
+    );
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [mode]);
+
+  /* ---------- Bildirimler ---------- */
+  useEffect(() => {
+    if (mode !== "ready" || !vault.notificationsEnabled) return;
+    const opts = {
+      lang: prefs.language,
+      usdTry: vault.usdTry,
+      eurTry: vault.eurTry,
+      fx,
+      home: prefs.displayCurrency,
+    };
+    checkUpcomingPayments(vault.payments, vault.reminderDays, opts);
+    // Uygulama uzun süre açık kalırsa (kurulu PWA/TWA) bir ödeme hatırlatma
+    // aralığına saatler sonra girebilir; periyodik olarak yeniden kontrol et.
+    const interval = setInterval(
+      () => checkUpcomingPayments(vault.payments, vault.reminderDays, opts),
+      30 * 60_000,
+    );
+    return () => clearInterval(interval);
+  }, [
+    vault.payments,
+    vault.notificationsEnabled,
+    vault.reminderDays,
+    vault.usdTry,
+    vault.eurTry,
+    prefs.language,
+    prefs.displayCurrency,
+    fx,
+    mode,
+  ]);
+
+  /* ---------- Toast ---------- */
+  /* Süre metin uzunluğuyla ölçeklenir (üst sınır 8 sn); işaretçi toast'ın
+     üstündeyken sayaç durur — uzun geri bildirimler okunmadan kaybolmaz. */
+  const [toastPaused, setToastPaused] = useState(false);
+  useEffect(() => {
+    if (!toast || toastPaused) return;
+    const duration = Math.min(8000, 2600 + toast.length * 45);
+    const timer = setTimeout(() => setToast(""), duration);
+    return () => clearTimeout(timer);
+  }, [toast, toastPaused]);
+
+  /* ---------- Otomatik kilit ---------- */
+  const lockNow = useCallback(() => {
+    if (!prefs.lockEnabled) return;
+    sessionKeyRef.current = null;
+    setEditor(null);
+    setGuideFor(null);
+    setSettingsOpen(false);
+    setToast("");
+    setMode("locked");
+  }, [prefs.lockEnabled]);
+
+  useEffect(() => {
+    if (mode !== "ready" || !prefs.lockEnabled || prefs.autoLockMinutes === 0) return;
+
+    let lastActivity = Date.now();
+    const bump = () => {
+      lastActivity = Date.now();
+    };
+    const events: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "scroll"];
+    events.forEach((ev) => window.addEventListener(ev, bump, { passive: true }));
+
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > prefs.autoLockMinutes * 60_000) lockNow();
+    }, 15_000);
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, bump));
+      clearInterval(interval);
+    };
+  }, [mode, prefs.lockEnabled, prefs.autoLockMinutes, lockNow]);
+
+  /* ---------- Kilit işlemleri ---------- */
+  async function handleUnlock(pin: string): Promise<boolean> {
+    const opened = await unlockVault(pin);
+    if (!opened) return false;
+    sessionKeyRef.current = opened.key;
+    setVault(opened.data);
+    setMode("ready");
+    return true;
+  }
+
+  function handleLock() {
+    lockNow();
+  }
+
+  async function handleEnableLock(pin: string): Promise<boolean> {
+    await enableLock(vault, pin);
+    const opened = await unlockVault(pin);
+    if (opened) sessionKeyRef.current = opened.key;
+    setPrefs((p) => ({ ...p, lockEnabled: true }));
+    setToast(t("toast.lockEnabled"));
+    return true;
+  }
+
+  async function handleChangePin(oldPin: string, newPin: string): Promise<boolean> {
+    const ok = await changePin(oldPin, newPin);
+    if (ok) {
+      const opened = await unlockVault(newPin);
+      if (opened) sessionKeyRef.current = opened.key;
+      setToast(t("toast.pinChanged"));
+    }
+    return ok;
+  }
+
+  async function handleDisableLock(pin: string): Promise<boolean> {
+    const data = await disableLock(pin);
+    if (!data) return false;
+    sessionKeyRef.current = null;
+    setVault(data);
+    setPrefs((p) => ({ ...p, lockEnabled: false }));
+    setToast(t("toast.lockDisabled"));
+    return true;
+  }
+
+  function handleWipe() {
+    wipeAllData();
+    /* Bulut oturumu da gitmeli: yerel kasa silinip token cihazda kalırsa,
+       cihazı sonradan eline alan kişi uygulamayı açtığında hesap AÇIK olur
+       ve kasa buluttan geri iner — "her şeyi sildim" tam tersine döner. */
+    clearSyncKey();
+    void signOutCloud();
+    setCloudUser(null);
+    sessionKeyRef.current = null;
+    setPrefs({ ...DEFAULT_PREFS });
+    const wiped: VaultData = { ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() };
+    setVault(wiped);
+    setMode("ready");
+    // Bulutta hâlâ eski veri kalmasın; oturum açıksa boş vault'u hemen üzerine yaz.
+    if (cloudUser) {
+      lastPushedAtRef.current = Date.now();
+      void syncedPush(wiped, DEFAULT_PREFS.theme, DEFAULT_PREFS.language);
+    }
+  }
+
+  /* ---------- Ödeme işlemleri ---------- */
+  function touchVault(updater: (v: VaultData) => VaultData) {
+    setVault((v) => ({ ...updater(v), updatedAt: Date.now() }));
+  }
+
+  function handleSave(payment: Payment) {
+    touchVault((v) => {
+      const index = v.payments.findIndex((x) => x.id === payment.id);
+      const payments =
+        index === -1
+          ? [...v.payments, payment]
+          : v.payments.map((x, i) =>
+              i === index ? withPriceHistory(v.payments[i], payment) : x,
+            );
+      return { ...v, payments };
+    });
+    setEditor(null);
+    setToast(t("toast.saved"));
+  }
+
+  function handleDelete(id: string) {
+    const payment = vault.payments.find((p) => p.id === id);
+    if (!payment) return;
+    setDeleteTarget(payment);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
+    touchVault((v) => ({ ...v, payments: v.payments.filter((p) => p.id !== id) }));
+    setDeleteTarget(null);
+    setToast(t("toast.deleted"));
+  }
+
+  /** Fiyat/para birimi değiştiyse eski fiyatı geçmişe işler. */
+  function withPriceHistory(prev: Payment, next: Payment): Payment {
+    if (prev.price === next.price && prev.currency === next.currency) {
+      return next.priceHistory ? next : { ...next, priceHistory: prev.priceHistory };
+    }
+    return {
+      ...next,
+      priceHistory: [
+        ...(prev.priceHistory ?? []),
+        { date: todayISO(), price: prev.price },
+      ],
+    };
+  }
+
+  async function handleImportCsv(file: File) {
+    const text = await file.text();
+    const { payments, skipped, skippedReasons } = parseCsv(text);
+    let added = 0;
+
+    // Saf hesap: updater dışında; StrictMode çifte çağrısında sayaç bozulmasın
+    const dupeKey = (p: Payment) =>
+      `${normalizeName(p.name)}|${p.nextPaymentDate}|${p.price}`;
+    const existing = new Set(vaultRef.current.payments.map(dupeKey));
+    const fresh: Payment[] = [];
+    for (const p of payments) {
+      const key = dupeKey(p);
+      if (existing.has(key)) continue;
+      existing.add(key);
+      fresh.push(p);
+    }
+    added = fresh.length;
+    if (fresh.length > 0) {
+      touchVault((v) => ({ ...v, payments: [...v.payments, ...fresh] }));
+    }
+
+    const reasonBits = Object.entries(skippedReasons)
+      .filter(([, n]) => n > 0)
+      .map(([reason, n]) => `${t(`csv.reason.${reason}` as TranslationKey)}: ${n}`);
+    const reasonDetail = reasonBits.length ? ` (${reasonBits.join(", ")})` : "";
+    setToast(t("toast.importDone", { added, skipped }) + reasonDetail);
+  }
+
+  function handleExportCsv() {
+    exportCsv(vault.payments);
+  }
+
+  /* ---------- Bulut hesap işlemleri ---------- */
+  async function handleCloudGoogle(): Promise<string | null> {
+    const result = await signInGoogle();
+    // Başarıda sayfa Google'a yönlenir; dönüşte oturum efekti devralır
+    return result.ok ? null : (result.error ?? "error");
+  }
+
+  async function handleCloudSignOut(): Promise<void> {
+    await signOutCloud();
+    setCloudUser(null);
+    setSubscription({ status: "none", currentPeriodEnd: null });
+    setProfileOpen(false);
+    lastPushedAtRef.current = 0;
+    setSyncBlockedBoth(false);
+    lastSignedInUidRef.current = null;
+    // Yereldeki kasa çıkış yapan hesaba aitti; bir sonraki hesaba taşınmasın
+    saveVaultOwner(null);
+    setVault({ ...DEFAULT_VAULT, updatedAt: 0 });
+    setToast(t("toast.signedOut"));
+  }
+
+  /** Uygulama içi hesap silme: bulut verisi + kimlik silinir, yerel sıfırlanır. */
+  async function handleDeleteAccount(): Promise<void> {
+    const result = await deleteCloudAccount();
+    if (!result.ok) {
+      setToast(t("account.error.generic", { msg: result.error ?? "error" }));
+      return;
+    }
+    setCloudUser(null);
+    setSubscription({ status: "none", currentPeriodEnd: null });
+    setProfileOpen(false);
+    setDeleteAccountOpen(false);
+    saveVaultOwner(null);
+    clearSyncKey();
+    lastPushedAtRef.current = 0;
+    setToast(t("account.deleted"));
+  }
+
+  /** Ayarlar > tüm yerel verileri sil (PIN kilidi olmasa da erişilebilir). */
+  function handleEraseLocal() {
+    wipeAllData();
+    clearSyncKey();
+    // Aynı gerekçe (bkz. handleWipe): oturum artığı bırakma
+    void signOutCloud();
+    setCloudUser(null);
+    sessionKeyRef.current = null;
+    setPrefs({ ...DEFAULT_PREFS });
+    setVault({ ...DEFAULT_VAULT, payments: [], updatedAt: Date.now() });
+    setEraseConfirmOpen(false);
+    setSettingsOpen(false);
+    setToast(t("toast.erased"));
+  }
+
+  async function handleSyncNow(): Promise<void> {
+    if (!cloudUser) return;
+    if (premiumGateEnabled && !entitledRef.current) return;
+    if (syncBlockedRef.current) {
+      setToast(t("toast.cloudUnreadable"));
+      return;
+    }
+    lastPushedAtRef.current = Date.now();
+    const ok = await syncedPush(vault, prefs.theme, prefs.language);
+    if (ok) setToast(t("toast.syncSuccess"));
+  }
+
+  /**
+   * Ödendi/İleri Sar. İki farklı yaşam döngüsü vardır:
+   *  • Periyodik kalem (kira, abonelik, ara taksit): vade en az bir tam dönem
+   *    ileri taşınır, kredi taksit sayacı bir artar.
+   *  • Kapanan kalem (12/12. taksit ya da tek seferlik çek/senet): dönem
+   *    ilerletilmez, kalem arşive alınır. Böylece bitmiş bir kredi her ay
+   *    aylık ve yıllık toplamlara eklenmeye devam etmez.
+   */
+  function handleAdvance(id: string) {
+    const before = vaultRef.current;
+    const target = before.payments.find((p) => p.id === id);
+    if (!target) return;
+    const closes = completesOnAdvance(target);
+    const payments = before.payments.map((p) => {
+      if (p.id !== id) return p;
+      if (completesOnAdvance(p)) {
+        return { ...p, isTrial: false, isCompleted: true, completedAt: Date.now() };
+      }
+      const bumpedInstallment =
+        p.categoryId === "kredi" && p.currentInstallment != null
+          ? Math.min(
+              p.currentInstallment + 1,
+              p.totalInstallments ?? p.currentInstallment + 1,
+            )
+          : p.currentInstallment;
+      return {
+        ...p,
+        nextPaymentDate: advanceCycle(p.nextPaymentDate, p.billingCycle),
+        isTrial: false,
+        currentInstallment: bumpedInstallment,
+      };
+    });
+    const postUpdatedAt = Date.now();
+    setVault({ ...before, payments, updatedAt: postUpdatedAt });
+    const toastText = closes ? t("toast.completed") : t("toast.advanced");
+    setUndo({ payments: before.payments, postUpdatedAt, toastText });
+    setToast(toastText);
+  }
+
+  /** "İleri Sar"ı geri al — yalnızca o işlemden sonra başka değişiklik yoksa. */
+  function handleUndoAdvance() {
+    if (!undo || undo.postUpdatedAt !== vaultRef.current.updatedAt) {
+      setUndo(null);
+      return;
+    }
+    setVault((v) => ({ ...v, payments: undo.payments, updatedAt: Date.now() }));
+    setUndo(null);
+    setToast(t("toast.undoDone"));
+  }
+
+  /** Arşivden çıkar: yanlışlıkla kapatılan kalem yeniden aktif hale gelir. */
+  function handleReopen(id: string) {
+    touchVault((v) => ({
+      ...v,
+      payments: v.payments.map((p) =>
+        p.id === id ? { ...p, isCompleted: undefined, completedAt: undefined } : p,
+      ),
+    }));
+    setToast(t("toast.reopened"));
+  }
+
+  function handleTestNotifications() {
+    // Bugünün "gönderildi" kaydını temizle ki test bildirimi gerçekten görünsün
+    clearNotifiedToday();
+    checkUpcomingPayments(vault.payments, vault.reminderDays, {
+      lang: prefs.language,
+      usdTry: vault.usdTry,
+      eurTry: vault.eurTry,
+      fx,
+      home: prefs.displayCurrency,
+    });
+  }
+
+  function handleDemo() {
+    // Gerçek veri varken örnek veriler onaysız üzerine yazılmasın
+    if (vault.payments.length > 0) {
+      setDemoConfirmOpen(true);
+      return;
+    }
+    loadDemoData();
+  }
+
+  function loadDemoData() {
+    touchVault((v) => ({ ...v, payments: buildDemoPayments(prefs.language) }));
+    setDemoConfirmOpen(false);
+    setToast(t("toast.demoLoaded"));
+  }
+
+  function handleEnableNotifications() {
+    void requestNotificationPermission().then((granted) => {
+      if (granted) {
+        // touchVault ile aynı damga: tercihin değişimi buluta da yazılsın
+        setVault((v) => ({ ...v, notificationsEnabled: true, updatedAt: Date.now() }));
+        checkUpcomingPayments(vault.payments, vault.reminderDays, {
+          lang: prefs.language,
+          usdTry: vault.usdTry,
+          eurTry: vault.eurTry,
+          fx,
+          home: prefs.displayCurrency,
+        });
+        setToast(t("toast.notifEnabled"));
+      } else {
+        setToast(t("toast.notifDenied"));
+      }
+    });
+  }
+
+  function setLang(lang: Language) {
+    setPrefs((p) => ({ ...p, language: lang }));
+  }
+
+  const visiblePayments = useMemo(
+    () =>
+      mode === "ready"
+        ? filterAndSort(
+            vault.payments,
+            query,
+            category,
+            sort,
+            vault,
+            prefs.displayCurrency,
+            fx,
+            prefs.language,
+          )
+        : [],
+    [vault, mode, query, category, sort, prefs.displayCurrency, fx, prefs.language],
+  );
+
+  if (mode === "loading") return <div className="app" />;
+
+  return (
+    <I18nProvider lang={prefs.language} onChange={setLang}>
+      {mode === "locked" ? (
+        <LockScreen onUnlock={handleUnlock} onWipe={handleWipe} />
+      ) : (
+        <div
+          className={`app ${
+            vault.payments.length > 0 && !vault.notificationsEnabled && !bannerDismissed
+              ? "has-banner"
+              : ""
+          }`}
+        >
+          <a className="skip-link" href="#main">
+            {t("a11y.skipToContent")}
+          </a>
+          <Header
+            onOpenSettings={() => setSettingsOpen(true)}
+            onLock={prefs.lockEnabled ? handleLock : undefined}
+            cloudEnabled={cloudEnabled}
+            cloudUser={cloudUser}
+            onOpenAccount={() => (cloudUser ? setProfileOpen(true) : setAuthOpen(true))}
+          />
+
+          <main className="container" id="main" tabIndex={-1}>
+            {cloudEnabled &&
+              !cloudUser &&
+              !cloudBannerDismissed &&
+              vault.payments.length > 0 && (
+                <div className="cloud-banner">
+                  <span className="cloud-banner-icon" aria-hidden="true">
+                    <Icon name="cloud" size={15} />
+                  </span>
+                  <span className="cloud-banner-text">{t("auth.banner.text")}</span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary cloud-banner-cta"
+                    onClick={() => setAuthOpen(true)}
+                  >
+                    {t("auth.banner.btn")}
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn cloud-banner-dismiss"
+                    onClick={dismissCloudBanner}
+                    aria-label={t("action.close")}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+            <SummaryCards
+              payments={vault.payments}
+              vault={vault}
+              fx={fx}
+              displayCurrency={prefs.displayCurrency}
+            />
+
+            {vault.payments.length === 0 ? (
+              <EmptyState onAdd={() => setEditor("new")} onDemo={handleDemo} />
+            ) : (
+              <>
+                <Toolbar
+                  query={query}
+                  onQueryChange={setQuery}
+                  category={category}
+                  onCategoryChange={setCategory}
+                  sort={sort}
+                  onSortChange={setSort}
+                  onAdd={() => setEditor("new")}
+                />
+
+                {/* Arama/filtre sonucu ekran okuyucu için sayısal duyurulur */}
+                <p className="sr-only" role="status">
+                  {visiblePayments.length > 0
+                    ? t("list.count", { n: visiblePayments.length })
+                    : ""}
+                </p>
+
+                {visiblePayments.length === 0 ? (
+                  <NoResults
+                    query={query}
+                    filtered={category !== "all"}
+                    onClear={() => {
+                      setQuery("");
+                      setCategory("all");
+                    }}
+                  />
+                ) : (
+                  <div className="grid" ref={gridRef}>
+                    {visiblePayments.map((payment) => (
+                      <PaymentCard
+                        key={payment.id}
+                        payment={payment}
+                        displayCurrency={prefs.displayCurrency}
+                        fx={fx}
+                        legacyRates={{ usdTry: vault.usdTry, eurTry: vault.eurTry }}
+                      onEdit={() => setEditor(payment)}
+                      onDelete={() => handleDelete(payment.id)}
+                      onShowGuide={() => setGuideFor(payment)}
+                      onShowHistory={
+                        payment.priceHistory?.length
+                          ? () => setChartFor(payment)
+                          : undefined
+                      }
+                      onAdvance={() => handleAdvance(payment.id)}
+                      onReopen={() => handleReopen(payment.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+
+          {editor && (
+            <PaymentFormModal
+              key={editor === "new" ? "new" : editor.id}
+              initial={editor === "new" ? null : editor}
+              displayCurrency={prefs.displayCurrency}
+              onClose={() => setEditor(null)}
+              onSave={handleSave}
+            />
+          )}
+
+          {guideFor && (
+            <GuideModal
+              guide={getGuideOrGeneric(guideFor.name, prefs.language)}
+              serviceName={guideFor.name}
+              onClose={() => setGuideFor(null)}
+            />
+          )}
+
+          {chartFor && (
+            <PriceChartModal payment={chartFor} onClose={() => setChartFor(null)} />
+          )}
+
+          {deleteTarget && (
+            <ConfirmModal
+              message={t("confirm.deletePayment", { name: deleteTarget.name })}
+              confirmLabel={t("action.delete")}
+              onCancel={() => setDeleteTarget(null)}
+              onConfirm={confirmDelete}
+            />
+          )}
+
+          {demoConfirmOpen && (
+            <ConfirmModal
+              message={t("confirm.demoReplace")}
+              onCancel={() => setDemoConfirmOpen(false)}
+              onConfirm={loadDemoData}
+            />
+          )}
+
+          {eraseConfirmOpen && (
+            <ConfirmModal
+              message={t("confirm.eraseLocal")}
+              confirmLabel={t("action.delete")}
+              onCancel={() => setEraseConfirmOpen(false)}
+              onConfirm={handleEraseLocal}
+            />
+          )}
+
+          {deleteAccountOpen && (
+            <ConfirmModal
+              message={t("account.deleteWarn")}
+              confirmLabel={t("account.deleteTitle")}
+              onCancel={() => setDeleteAccountOpen(false)}
+              onConfirm={() => void handleDeleteAccount()}
+            />
+          )}
+
+          {settingsOpen && (
+            <SettingsModal
+              prefs={prefs}
+              vault={vault}
+              fx={fx}
+              onRefreshFx={async () => {
+                const table = await ensureFx(true);
+                if (table) setFx(table);
+                return Boolean(table);
+              }}
+              onClose={() => setSettingsOpen(false)}
+              onSavePrefs={(p) => {
+                setPrefs(p);
+                setSettingsOpen(false);
+                setToast(t("toast.settingsSaved"));
+              }}
+              onSaveVault={(v) =>
+                setVault((cur) => ({
+                  ...cur,
+                  // Ayarlar yalnızca bu dört alanın sahibi. Kasanın tamamını
+                  // modalin açılış kopyasıyla ezmek, modal açıkken gelen her
+                  // değişikliği (bulut senkronu, vade ilerletme, demo
+                  // yeniden çevirisi) sessizce geri alıyordu.
+                  reminderDays: v.reminderDays,
+                  notificationsEnabled: v.notificationsEnabled,
+                  usdTry: v.usdTry,
+                  eurTry: v.eurTry,
+                  updatedAt: Date.now(),
+                }))
+              }
+              onEnableLock={handleEnableLock}
+              onChangePin={handleChangePin}
+              onDisableLock={handleDisableLock}
+              onExportCsv={handleExportCsv}
+              onImportCsv={(file) => void handleImportCsv(file)}
+              cloudEnabled={cloudEnabled}
+              cloudUser={cloudUser}
+              onOpenAuth={() => {
+                setSettingsOpen(false);
+                setAuthOpen(true);
+              }}
+              onOpenProfile={() => {
+                setSettingsOpen(false);
+                setProfileOpen(true);
+              }}
+              onTestNotifications={handleTestNotifications}
+              onLoadDemo={handleDemo}
+              onEraseData={() => setEraseConfirmOpen(true)}
+            />
+          )}
+
+          {authOpen && (
+            <AuthModal onClose={() => setAuthOpen(false)} onGoogle={handleCloudGoogle} />
+          )}
+
+          {profileOpen && cloudUser && (
+            <AccountProfileModal
+              user={cloudUser}
+              syncState={syncState}
+              syncBlocked={syncBlocked}
+              lastSyncTime={lastSyncTime}
+              subscription={subscription}
+              onSyncNow={() => void handleSyncNow()}
+              onDeleteAccount={() => setDeleteAccountOpen(true)}
+              onSignOut={() => void handleCloudSignOut()}
+              onSwitchAccount={() => {
+                void handleCloudSignOut().then(() => setAuthOpen(true));
+              }}
+              onClose={() => setProfileOpen(false)}
+            />
+          )}
+
+          {vault.payments.length > 0 &&
+            !vault.notificationsEnabled &&
+            !bannerDismissed && (
+              <NotificationBanner
+                onEnable={handleEnableNotifications}
+                onDismiss={dismissNotifBanner}
+              />
+            )}
+
+          {/* Kalıcı canlı bölge: ekran okuyucular metin değişimini duyurur.
+              Üzerine gelince sayaç durur; geri alınabilir işlemlerde eylem
+              düğmesi mesajın yanında yaşar. */}
+          <div
+            className={`toast ${toast ? "" : "toast-hidden"}`}
+            role="status"
+            aria-live="polite"
+            onPointerEnter={() => setToastPaused(true)}
+            onPointerLeave={() => setToastPaused(false)}
+          >
+            <span className="toast-text">{toast}</span>
+            {undo !== null &&
+              toast === undo.toastText &&
+              undo.postUpdatedAt === vault.updatedAt && (
+                <button
+                  type="button"
+                  className="toast-action"
+                  onClick={handleUndoAdvance}
+                >
+                  {t("action.undo")}
+                </button>
+              )}
+          </div>
+
+          <Footer />
+        </div>
+      )}
+    </I18nProvider>
+  );
+}
+
+function Footer() {
+  const { t } = useI18n();
+  return (
+    <footer className="footer">
+      <p>{t("footer.free")}</p>
+      <a href={REPO_URL} target="_blank" rel="noreferrer noopener">
+        {/* GitLab tanuki markası: kendi renkleriyle, tanınır kalsın diye
+            currentColor ikon setinden ayrı tutuldu */}
+        <svg
+          className="repo-mark"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="#E24329" d="M12 22.09 15.53 11.2H8.47L12 22.09z" />
+          <path fill="#FC6D26" d="M12 22.09 8.47 11.2H3.52L12 22.09z" />
+          <path fill="#FCA326" d="M3.52 11.2 2.45 14.5a.73.73 0 0 0 .26.82L12 22.09 3.52 11.2z" />
+          <path fill="#E24329" d="M3.52 11.2h4.95L6.34 4.66a.365.365 0 0 0-.694 0L3.52 11.2z" />
+          <path fill="#FC6D26" d="M12 22.09 15.53 11.2h4.95L12 22.09z" />
+          <path fill="#FCA326" d="M20.48 11.2l1.07 3.3a.73.73 0 0 1-.26.82L12 22.09l8.48-10.89z" />
+          <path fill="#E24329" d="M20.48 11.2h-4.95l2.13-6.54a.365.365 0 0 1 .694 0l2.126 6.54z" />
+        </svg>
+        {t("footer.openSource")} · gitlab.com/Voyagerroc/payradar
+      </a>
+    </footer>
+  );
+}
+
+/* ---------- Küçük yardımcı bileşenler ---------- */
+
+function EmptyState({ onAdd, onDemo }: { onAdd: () => void; onDemo: () => void }) {
+  const { t } = useI18n();
+  return (
+    <section className="card empty-state">
+      <div className="empty-hero" aria-hidden="true">
+        <span className="empty-hero-icon">
+          <Icon name="radar" size={42} />
+        </span>
+      </div>
+      <h2>{t("empty.title")}</h2>
+      <p>{t("empty.body")}</p>
+      <div className="empty-actions">
+        <button className="btn btn-primary" onClick={onAdd}>
+          {t("empty.addFirst")}
+        </button>
+        <button className="btn btn-secondary" onClick={onDemo}>
+          <Icon name="sparkle" size={14} /> {t("empty.tryDemo")}
+        </button>
+      </div>
+      <div className="empty-badges" aria-hidden="true">
+        <span><Icon name="home" size={17} /></span>
+        <span><Icon name="car" size={17} /></span>
+        <span><Icon name="receipt" size={17} /></span>
+        <span><Icon name="screen" size={17} /></span>
+        <span><Icon name="bank" size={17} /></span>
+        <span><Icon name="scroll" size={17} /></span>
+        <span><Icon name="gamepad" size={17} /></span>
+        <span><Icon name="shield" size={17} /></span>
+      </div>
+    </section>
+  );
+}
+
+function NoResults({
+  query,
+  filtered,
+  onClear,
+}: {
+  query: string;
+  filtered: boolean;
+  onClear: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="no-results" role="status">
+      <p>
+        {query
+          ? t("list.noResultsFor", { query })
+          : filtered
+            ? t("list.noResultsFiltered")
+            : t("list.noResults")}
+      </p>
+      {(query || filtered) && (
+        <button type="button" className="btn btn-secondary" onClick={onClear}>
+          {t("list.clearFilters")}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function NotificationBanner({
+  onEnable,
+  onDismiss,
+}: {
+  onEnable: () => void;
+  onDismiss: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="notif-banner">
+      <span>
+        <Icon name="bell" size={15} /> {t("banner.notif")}
+      </span>
+      <div className="notif-banner-actions">
+        <button className="btn btn-primary" onClick={onEnable}>
+          {t("banner.open")}
+        </button>
+        <button
+          className="icon-btn"
+          onClick={onDismiss}
+          aria-label={t("action.close")}
+          title={t("action.close")}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+/** Buluttan gelen ham veriyi VaultData'ya çevirir; bozuksa null döner. */
+function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  if (!Array.isArray(r.payments)) return null;
+  const theme = r.appTheme;
+  const language = r.appLanguage;
+  // sanitize: geçersiz ödeme kayıtlarını eler, kategori-dışı alanları temizler
+  return sanitize({
+    payments: r.payments as Payment[],
+    reminderDays: Number(r.reminderDays ?? 3),
+    notificationsEnabled: Boolean(r.notificationsEnabled ?? false),
+    usdTry: Number(r.usdTry ?? 42),
+    eurTry: Number(r.eurTry ?? 48),
+    updatedAt: Number(r.updatedAt ?? fallbackUpdatedAt),
+    appTheme: isThemeId(theme) ? theme : undefined,
+    appLanguage:
+      language === "tr" || language === "en" || language === "ms" ||
+      language === "es" || language === "ar"
+        ? language
+        : undefined,
+  });
+}
+
+function filterAndSort(
+  payments: Payment[],
+  query: string,
+  category: CategoryId | "all",
+  sort: SortKey,
+  vault: VaultData,
+  displayCurrency: Currency,
+  fx: FxTable | null,
+  lang: Language,
+): Payment[] {
+  const home = displayCurrency;
+  const legacyRates = { usdTry: vault.usdTry, eurTry: vault.eurTry };
+  // normalizeName ı→i katlar; "IPTV" araması Türkçe küçük harf tuzağına düşmez
+  const q = normalizeName(query);
+  let result = payments;
+
+  if (category !== "all") result = result.filter((p) => p.categoryId === category);
+  if (q)
+    result = result.filter(
+      (p) =>
+        normalizeName(p.name).includes(q) ||
+        normalizeName(p.notes ?? "").includes(q),
+    );
+
+  const sorted = [...result];
+  switch (sort) {
+    case "date":
+      sorted.sort((a, b) => dueDateOf(a).localeCompare(dueDateOf(b)));
+      break;
+    case "price-desc":
+      sorted.sort(
+        (a, b) =>
+          toMonthlyIn(b, home, fx, legacyRates) - toMonthlyIn(a, home, fx, legacyRates),
+      );
+      break;
+    case "name":
+      // Alfabe sıralaması etkin dille: sabit "tr", ES/AR/MS'te yanlış sıralar
+      sorted.sort((a, b) => a.name.localeCompare(b.name, localeFor(lang)));
+      break;
+  }
+  // Arşiv gürültü yapmasın: tamamlanan kalemler seçilen sıralamadan bağımsız
+  // olarak listenin sonuna düşer (silinmez — geçmiş kayıt olarak durur).
+  sorted.sort((a, b) => Number(a.isCompleted ?? false) - Number(b.isCompleted ?? false));
+  return sorted;
+}
+

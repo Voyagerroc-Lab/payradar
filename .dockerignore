@@ -1,0 +1,5 @@
+*
+!dist
+!Dockerfile
+!nginx.default.conf.template
+!nginx.security-headers.conf

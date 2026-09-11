@@ -1,0 +1,2881 @@
+/* ---------- Tasarım değişkenleri ---------- */
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --text: #1a1c1e;
+  --text-soft: #5c6066;
+  --border: #e3e5e8;
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --accent-soft: #f1ebfe;
+  /* Vurgu zemininin üstüne düşen mürekkep. Kulüp temalarında vurgu açık bir
+     renk oluyor (altın, sarı, beyaz) ve orada beyaz yazı okunmaz; her tema
+     kendi mürekkebini seçer. */
+  --accent-ink: #fff;
+  /* --accent-soft yüzeyinde okunaklı kalan vurgu tonu */
+  --accent-ink-soft: var(--accent-strong);
+  /* Elektrik vurgusu: markanın "canlı sinyal" rengi (radar vuruşu) */
+  --pulse: #d946ef;
+  /* Marka glifindeki temas noktası — kulüp temalarında ikinci forma rengi */
+  --brand-blip: #f0abfc;
+  --toast-bg: #23252b;
+  --toast-ink: #fff;
+  /* Kulüp madalyonu: yalnızca kulüp temalarında dolar */
+  --club-motif: none;
+  /* Özet kartı etiketleri: koyu zeminde açık tonlara döner (WCAG AA) */
+  --sum-label-indigo: #6d28d9;
+  --sum-label-violet: #a21caf;
+  --sum-label-teal: #0f766e;
+  --sum-label-amber: #b45309;
+  /* Fosfor sinyali: gerçek radar ekranının yeşili. Yalnızca "canlı temas"
+     anlarında konuşur (tarama huzmesi, yaklaşan ödeme, canlı kur) —
+     anlamsal --ok yeşilinden bilinçli olarak ayrı tutulur. */
+  --signal: #0e9f6e;
+  --signal-soft: rgb(14 159 110 / 0.12);
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 2px 6px rgb(16 24 40 / 0.05);
+  --shadow-lift: 0 4px 10px rgb(16 24 40 / 0.08), 0 10px 28px rgb(16 24 40 / 0.1);
+  /* 3B derinlik: yuzeyde gezen isik ve kartin zemine dusen golgesi */
+  --sheen: rgb(124 58 237 / 0.18);
+  /* Ortam katmanı: tepeden düşen ışık huzmesi + nokta-matris zemin
+     (radar ekranı metaforu: çizgi ızgara değil, tarama noktaları).
+     Noktalar huzmenin altında doğar, kenarlara doğru maske ile sönümlenir —
+     tekdüze "noktalı kağıt" değil, kaynağı olan bir tarama alanı. */
+  --beam: rgb(124 58 237 / 0.16);
+  --beam-core: rgb(124 58 237 / 0.07);
+  --grid-line: rgb(30 27 75 / 0.085);
+  --grid-size: 24px;
+  /* Işık alanı: zemin tek düz gri değil, huzmeyle aynı sıcaklıkta
+     yukarıdan aydınlanıp aşağıda serinleyen bir sahne */
+  --field-top: #f8f7fc;
+  --field-mid: #f3f4f8;
+  --field-bottom: #edeff5;
+  --vignette: rgb(30 27 75 / 0.055);
+  /* Açılış süpürmesi: fosfor sinyali yalnızca "canlı temas" anlarında
+     konuşur — tarama da bir temastır. Tek geçiş, sonra sessizlik. */
+  --sweep: rgb(14 159 110 / 0.10);
+  /* Cam yüzey: üst kenardaki ışık çizgisi ve yüzey aydınlanması */
+  --glass-edge: rgb(255 255 255 / 0.95);
+  --surface-lit: rgb(255 255 255 / 0);
+  --cast-rgb: 30 27 75;
+  --cast-a: 0.07;
+  --cast-a-lift: 0.13;
+  --radius: 12px;
+  /* Teknik ses: self-host IBM Plex Mono, gerisi sistem yığını yedeği */
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #07080c;
+  --card: #0f111a;
+  --text: #eef0f4;
+  --text-soft: #949cad;
+  --border: #1d212c;
+  --accent: #a78bfa;
+  --accent-strong: #8b5cf6;
+  --accent-soft: #2a2342;
+  --accent-ink: #fff;
+  --accent-ink-soft: var(--accent);
+  --pulse: #e879f9;
+  --brand-blip: #f0abfc;
+  --toast-bg: var(--accent-strong);
+  --toast-ink: #fff;
+  --sum-label-indigo: #c4b5fd;
+  --sum-label-violet: #f0abfc;
+  --sum-label-teal: #5eead4;
+  --sum-label-amber: #fcd34d;
+  --signal: #45f0ae;
+  --signal-soft: rgb(69 240 174 / 0.13);
+  --danger: #f87171;
+  --danger-soft: #3d1f22;
+  --warn: #fbbf24;
+  --warn-soft: #3a2f14;
+  --ok: #4ade80;
+  --ok-soft: #14321f;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
+  --sheen: rgb(255 255 255 / 0.09);
+  --beam: rgb(139 92 246 / 0.20);
+  --beam-core: rgb(167 139 250 / 0.08);
+  --grid-line: rgb(148 163 216 / 0.075);
+  --grid-size: 24px;
+  --field-top: #0a0b13;
+  --field-mid: #07080c;
+  --field-bottom: #05060a;
+  --vignette: rgb(0 0 0 / 0.42);
+  --sweep: rgb(69 240 174 / 0.12);
+  --glass-edge: rgb(255 255 255 / 0.10);
+  --surface-lit: rgb(255 255 255 / 0.024);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
+  color-scheme: dark;
+}
+
+/* "Sistemle aynı" + sistem koyu. Kulüp kimlikleri de dışlanmalı: bu seçici
+   :not() zinciri yüzünden [data-theme="gs"] gibi tek nitelikli bloklardan
+   daha özgül; dışlanmasalardı sistemi koyu olan cihazlarda kulüp temaları
+   hiç görünmezdi (tema seçilir, ekran koyu temada kalırdı). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="paper"]):not([data-theme="gs"]):not([data-theme="fb"]):not([data-theme="bjk"]):not([data-theme="ts"]) {
+    --bg: #07080c;
+    --card: #0f111a;
+    --text: #eef0f4;
+    --text-soft: #949cad;
+    --border: #1d212c;
+    --accent: #a78bfa;
+    --accent-strong: #8b5cf6;
+    --accent-soft: #2a2342;
+    --accent-ink: #fff;
+    --accent-ink-soft: var(--accent);
+    --pulse: #e879f9;
+    --brand-blip: #f0abfc;
+    --toast-bg: var(--accent-strong);
+    --toast-ink: #fff;
+    --sum-label-indigo: #c4b5fd;
+    --sum-label-violet: #f0abfc;
+    --sum-label-teal: #5eead4;
+    --sum-label-amber: #fcd34d;
+    --signal: #45f0ae;
+    --signal-soft: rgb(69 240 174 / 0.13);
+    --danger: #f87171;
+    --danger-soft: #3d1f22;
+    --warn: #fbbf24;
+    --warn-soft: #3a2f14;
+    --ok: #4ade80;
+    --ok-soft: #14321f;
+    --shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+    --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.5);
+  --sheen: rgb(255 255 255 / 0.09);
+  --beam: rgb(139 92 246 / 0.20);
+  --beam-core: rgb(167 139 250 / 0.08);
+  --grid-line: rgb(148 163 216 / 0.075);
+  --grid-size: 24px;
+  --field-top: #0a0b13;
+  --field-mid: #07080c;
+  --field-bottom: #05060a;
+  --vignette: rgb(0 0 0 / 0.42);
+  --sweep: rgb(69 240 174 / 0.12);
+  --glass-edge: rgb(255 255 255 / 0.10);
+  --surface-lit: rgb(255 255 255 / 0.024);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
+    color-scheme: dark;
+  }
+}
+
+/* ---------- Kâğıt teması ----------
+   Basılı enstrüman havası: sıcak kâğıt zemin, koyu kahve-siyah mürekkep,
+   tek vurgu olarak derin turkuaz. Menekşe-fuşya marka ekseni bu temada
+   tamamen susar; radar sinyali de turkuazın kendisidir — kâğıt üstünde
+   ikinci bir fosfor yeşili gürültü olurdu. Işık sahnesi (huzme, noktalar,
+   süpürme) kalır ama mürekkep tonlarına çekilir: ekran değil, iyi
+   basılmış bir sayfa gibi. */
+[data-theme="paper"] {
+  --bg: #faf8f5;
+  --card: #fffefb;
+  --text: #27251e;
+  --text-soft: #7d7566;
+  --border: #e7e1d6;
+  --accent: #016a71;
+  --accent-strong: #01565c;
+  --accent-soft: #e2edeb;
+  --accent-ink: #faf8f5;
+  --accent-ink-soft: var(--accent-strong);
+  --pulse: #0e8f97;
+  --brand-blip: #8fc7c9;
+  --toast-bg: #27251e;
+  --toast-ink: #faf8f5;
+  --sum-label-indigo: #01565c;
+  --sum-label-violet: #01565c;
+  --sum-label-teal: #01565c;
+  --sum-label-amber: #01565c;
+  --signal: #016a71;
+  --signal-soft: rgb(1 106 113 / 0.1);
+  --danger: #b3403a;
+  --danger-soft: #f6e3e0;
+  --warn: #8a6116;
+  --warn-soft: #f3ead4;
+  --ok: #2c6e49;
+  --ok-soft: #e2ede4;
+  --shadow: 0 1px 2px rgb(60 50 30 / 0.06), 0 2px 6px rgb(60 50 30 / 0.05);
+  --shadow-lift: 0 4px 10px rgb(60 50 30 / 0.09), 0 10px 28px rgb(60 50 30 / 0.1);
+  --sheen: rgb(1 106 113 / 0.1);
+  --beam: rgb(1 106 113 / 0.09);
+  --beam-core: rgb(1 106 113 / 0.045);
+  --grid-line: rgb(39 26 0 / 0.09);
+  --grid-size: 24px;
+  --field-top: #fbf9f5;
+  --field-mid: #f8f5f0;
+  --field-bottom: #f2eee6;
+  --vignette: rgb(60 45 15 / 0.05);
+  --sweep: rgb(1 106 113 / 0.07);
+  --glass-edge: rgb(255 255 255 / 0.9);
+  --surface-lit: rgb(255 255 255 / 0);
+  --cast-rgb: 60 50 30;
+  --cast-a: 0.06;
+  --cast-a-lift: 0.11;
+  color-scheme: light;
+}
+
+/* ---------- Kulüp temaları ----------
+   Dört tema ortak koyu iskeleti paylaşır; her kulüp bloğu yalnızca kendi
+   forma renklerini ezer. Zemin nötr siyah değil, kulübün renginden gelen
+   çok koyu bir ton: tema tek bir vurgu rengi değil, sahnenin tamamıdır.
+   Vurgular açık (altın, sarı, beyaz) olduğu için üzerlerine düşen metin
+   --accent-ink ile koyuya çevrilir.
+   ------------------------------------------------------------------ */
+[data-theme="gs"],
+[data-theme="fb"],
+[data-theme="bjk"],
+[data-theme="ts"] {
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.55);
+  --sheen: rgb(255 255 255 / 0.09);
+  --grid-size: 24px;
+  --signal: #45f0ae;
+  --signal-soft: rgb(69 240 174 / 0.13);
+  --danger: #f87171;
+  --danger-soft: #3d1f22;
+  --warn: #fbbf24;
+  --warn-soft: #3a2f14;
+  --ok: #4ade80;
+  --ok-soft: #14321f;
+  --sum-label-indigo: #c4b5fd;
+  --sum-label-violet: #f0abfc;
+  --sum-label-teal: #5eead4;
+  --sum-label-amber: #fcd34d;
+  --accent-ink-soft: var(--accent);
+  --toast-bg: var(--accent-strong);
+  --toast-ink: var(--accent-ink);
+  --vignette: rgb(0 0 0 / 0.45);
+  --glass-edge: rgb(255 255 255 / 0.1);
+  --surface-lit: rgb(255 255 255 / 0.03);
+  --cast-rgb: 0 0 0;
+  --cast-a: 0.34;
+  --cast-a-lift: 0.26;
+  color-scheme: dark;
+}
+
+/* Galatasaray — altın sarısı, kırmızı temas */
+[data-theme="gs"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.32'><g clip-path='url(%23c)'><path d='M0 0H240V240Z' fill='%23FDB913'/><path d='M0 0H240L0 240Z' fill='%23E01A2B'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FDB913' stroke-width='2.4'/><g fill='none' stroke='%23FDB913' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FDB913'/></g></svg>");
+  --bg: #14070a;
+  --card: #1e0d11;
+  --text: #fdf4e3;
+  --text-soft: #b79a86;
+  --border: #341820;
+  --accent: #fdb913;
+  --accent-strong: #f5a300;
+  --accent-soft: #3a2409;
+  --accent-ink: #1a0d05;
+  --pulse: #ff5b6b;
+  --brand-blip: #e01a2b;
+  --beam: rgb(253 185 19 / 0.17);
+  --beam-core: rgb(224 26 43 / 0.09);
+  --grid-line: rgb(253 185 19 / 0.075);
+  --field-top: #1c0a0e;
+  --field-mid: #14070a;
+  --field-bottom: #0c0406;
+  --sweep: rgb(253 185 19 / 0.11);
+}
+
+/* Fenerbahçe — lacivert saha, sarı vurgu */
+[data-theme="fb"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.3'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%230B2A63'/><rect x='24' width='24' height='240' fill='%23FFE000'/><rect x='72' width='24' height='240' fill='%23FFE000'/><rect x='120' width='24' height='240' fill='%23FFE000'/><rect x='168' width='24' height='240' fill='%23FFE000'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FFE000' stroke-width='2.4'/><g fill='none' stroke='%23FFE000' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FFE000'/></g></svg>");
+  --bg: #061024;
+  --card: #0c1b3d;
+  --text: #eef3fd;
+  --text-soft: #93a6cc;
+  --border: #17295a;
+  --accent: #ffe000;
+  --accent-strong: #f0ce00;
+  --accent-soft: #1b2c5c;
+  --accent-ink: #101d3f;
+  --pulse: #6ea0ff;
+  --brand-blip: #1b458f;
+  --beam: rgb(255 224 0 / 0.15);
+  --beam-core: rgb(42 95 192 / 0.1);
+  --grid-line: rgb(147 168 216 / 0.09);
+  --field-top: #08152e;
+  --field-mid: #061024;
+  --field-bottom: #040b1a;
+  --sweep: rgb(255 224 0 / 0.1);
+}
+
+/* Beşiktaş — tek renk yok: siyahın üstünde beyaz */
+[data-theme="bjk"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.28'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%23F4F4F5'/><rect x='24' width='24' height='240' fill='%230A0A0B'/><rect x='72' width='24' height='240' fill='%230A0A0B'/><rect x='120' width='24' height='240' fill='%230A0A0B'/><rect x='168' width='24' height='240' fill='%230A0A0B'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%23FFFFFF' stroke-width='2.4'/><g fill='none' stroke='%23FFFFFF' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%23FFFFFF'/></g></svg>");
+  --bg: #050506;
+  --card: #111113;
+  --text: #f4f4f5;
+  --text-soft: #9b9ba1;
+  --border: #26262a;
+  --accent: #f4f4f5;
+  --accent-strong: #ffffff;
+  --accent-soft: #212125;
+  --accent-ink: #0a0a0b;
+  --pulse: #b9b9c0;
+  --brand-blip: #0a0a0b;
+  --beam: rgb(255 255 255 / 0.13);
+  --beam-core: rgb(255 255 255 / 0.05);
+  --grid-line: rgb(255 255 255 / 0.07);
+  --field-top: #0b0b0d;
+  --field-mid: #050506;
+  --field-bottom: #000000;
+  --sweep: rgb(255 255 255 / 0.09);
+}
+
+/* Trabzonspor — bordo saha, mavi vurgu */
+[data-theme="ts"] {
+  --club-motif:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><defs><radialGradient id='f'><stop offset='42%' stop-color='%23fff'/><stop offset='100%' stop-color='%23000'/></radialGradient><mask id='m'><rect width='240' height='240' fill='url(%23f)'/></mask><clipPath id='c'><circle cx='120' cy='120' r='104'/></clipPath></defs><g mask='url(%23m)' opacity='.3'><g clip-path='url(%23c)'><rect width='240' height='240' fill='%238A1538'/><rect x='24' width='24' height='240' fill='%234FA8E8'/><rect x='72' width='24' height='240' fill='%234FA8E8'/><rect x='120' width='24' height='240' fill='%234FA8E8'/><rect x='168' width='24' height='240' fill='%234FA8E8'/></g><circle cx='120' cy='120' r='104' fill='none' stroke='%234FA8E8' stroke-width='2.4'/><g fill='none' stroke='%234FA8E8' stroke-width='1.2' opacity='.7'><circle cx='120' cy='120' r='70'/><circle cx='120' cy='120' r='36'/></g><circle cx='120' cy='120' r='3.5' fill='%234FA8E8'/></g></svg>");
+  --bg: #10060b;
+  --card: #1d0b13;
+  --text: #f9eef2;
+  --text-soft: #b99daa;
+  --border: #351421;
+  --accent: #4fa8e8;
+  --accent-strong: #2e90d8;
+  --accent-soft: #10263c;
+  --accent-ink: #04121f;
+  --pulse: #e0527a;
+  --brand-blip: #8a1538;
+  --beam: rgb(79 168 232 / 0.16);
+  --beam-core: rgb(138 21 56 / 0.11);
+  --grid-line: rgb(185 157 170 / 0.08);
+  --field-top: #180912;
+  --field-mid: #10060b;
+  --field-bottom: #0a0308;
+  --sweep: rgb(79 168 232 / 0.1);
+}
+
+/* ---------- Yerel fontlar ----------
+   IBM Plex Mono (OFL) yalnızca latin altkümesiyle self-host edilir: para
+   tutarları ve mikro etiketler her platformda AYNI karakterle konuşur —
+   sistem monosuna göre kimlik tutarlılığı. Ağ isteği yok (CSP: font-src
+   'self'), yüklenene dek sistem monosu gösterilir (font-display: swap). */
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
+/* Türkçe ₺ (U+20BA), Ş/ş, Ğ/ğ, İ/ı bu altkümede */
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latinext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C0;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-mono-latinext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C0;
+}
+
+/* ---------- Temel ---------- */
+* {
+  box-sizing: border-box;
+}
+
+/* Çizgi ikonlar metinle aynı satırda oturur */
+.icon {
+  vertical-align: -0.18em;
+  flex-shrink: 0;
+}
+
+/* Görsel-gizli, ekran okuyucuya açık metin */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  /* Sahnenin ışığı tek bir kaynaktan gelir: tepeden düşen dar bir huzme,
+     halesi, yukarıdan aydınlanıp aşağıda serinleyen ışık alanı ve kenarları
+     karartan vinyet. Nokta-matris body::before katmanında yaşar; orada
+     radyal maske ile huzmenin altında yoğun, kenarlara doğru sessizdir —
+     arka plan bir kağıt değil, derinliği olan bir tarama sahnesi. */
+  background:
+    radial-gradient(120% 90% at 50% 0%, transparent 58%, var(--vignette) 100%),
+    radial-gradient(46% 32% at 50% -6%, var(--beam), transparent 72%),
+    radial-gradient(92% 55% at 50% -20%, var(--beam-core), transparent 70%),
+    /* Kulüp madalyonu sahnenin İÇİNDE yaşar: huzme ve vinyet onun üstünden de
+       geçer, nokta matrisi (body::before) üzerine düşer — ekrana yapıştırılmış
+       bir logo değil, radar ekranındaki bir temas gibi durur. Tema değişince
+       yalnızca bu custom property değiştiği için aynı karede döner. */
+    var(--club-motif) 50% 42% / min(152vmin, 1180px) no-repeat,
+    linear-gradient(180deg, var(--field-top), var(--field-mid) 55%, var(--field-bottom)),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  /* Kurulu uygulamada sayfanın lastik gibi esnemesi "web sitesi" hissi verir */
+  overscroll-behavior-y: none;
+  /* iOS yatay modda metni kendiliğinden büyütmesin */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Tarama noktaları: huzmenin aydınlattığı alanda görünür, kenarlara doğru
+   radyal maske ile sönümlenir. Tekdüze nokta kağıdı yerine kaynağı olan
+   bir doku — radar ekranındaki gibi ışık nereye düşerse iz oradadır. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(var(--grid-line) 1px, transparent 1.4px) 0 0 /
+    var(--grid-size) var(--grid-size);
+  -webkit-mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
+  mask-image: radial-gradient(95% 78% at 50% 0%, #000 26%, transparent 76%);
+}
+
+/* Açılış süpürmesi: huzme kaynağına (üst-orta) sabitlenmiş ince bir ışık
+   dilimi alanı soldan sağa BİR KEZ tarar ve söner — enstrümanın açılışı.
+   Salt CSS ve GPU dostu (yalnızca transform + opacity animasyonu); kol
+   uzunluğu radyal maskeyle sınırlanır ki süpürme yalnızca noktaların
+   yaşadığı tarama alanını yalasın. */
+@keyframes radar-sweep {
+  0% {
+    transform: translate(-50%, -50%) rotate(-72deg);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(72deg);
+    opacity: 0;
+  }
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 0;
+  width: 220vmax;
+  height: 220vmax;
+  z-index: -1;
+  pointer-events: none;
+  /* Aşağıya bakan ~10 derecelik dilim; gövde döndükçe alan taranır */
+  background: conic-gradient(
+    from 175deg at 50% 50%,
+    transparent 0deg,
+    var(--sweep) 5deg,
+    transparent 12deg
+  );
+  -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, #000 14%, transparent 38%);
+  mask-image: radial-gradient(50% 50% at 50% 50%, #000 14%, transparent 38%);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-72deg);
+  animation: radar-sweep 2.6s cubic-bezier(0.45, 0, 0.35, 1) 0.4s 1 both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* Klavye kullanıcısı için içeriğe atlama linki: yalnızca odaklanınca görünür */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent-strong);
+  border-radius: 10px;
+  text-decoration: none;
+  transform: translateY(-160%);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Klavye odağı her etkileşimli öğede görünür bir halka bırakır */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+/* Hareket azaltma tercihine saygı: tüm animasyon/geçişler tek karede biter */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  /* Yatay moddaki çentik/oyuk içeriği kesmesin */
+  padding-left: calc(20px + env(safe-area-inset-left, 0px));
+  padding-right: calc(20px + env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Üst bar ---------- */
+.header {
+  /* Çentikli cihazlarda üst bar durum çubuğunun altına girmesin.
+     env() desteklenmeyen yerde 0px'e düşer, yani zararsızdır. */
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Buzlu cam yoksa yarı saydamlık kalamaz: altından içerik okunur */
+@supports not (backdrop-filter: blur(1px)) {
+  .header {
+    background: var(--card);
+  }
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Marka bloğu büzülebilir olmalı: uzun tagline, sağdaki kontrolleri
+     (Ayarlar dahil) ekran dışına itmesin. */
+  min-width: 0;
+  flex: 1;
+}
+
+.brand > div {
+  min-width: 0;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  /* Glif currentColor ile çizilir: altın/beyaz zeminde beyaz radar kaybolurdu */
+  color: var(--accent-ink);
+  font-size: 22px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-strong) 40%, transparent);
+}
+
+.brand-icon svg {
+  display: block;
+}
+
+.brand h1 {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  background: linear-gradient(120deg, var(--accent-strong), var(--accent) 55%, var(--pulse));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-strong);
+}
+
+.brand p {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-soft);
+}
+
+/* Telefonda (≤480px) tagline'ı gizle: 390–430px'te üç satıra sarıp header'ı
+   95px'e şişiriyordu; ≤380'de Ayarlar dişlisini ekran dışına itiyordu. Marka adı kalır. */
+@media (max-width: 480px) {
+  .brand p {
+    display: none;
+  }
+
+  .header-actions {
+    flex-shrink: 0;
+  }
+}
+
+/* En dar telefonda (≤380px) marka adı hiçbir dilde düğmelerin altına girmez:
+   Arapça "Giriş" pili genişleyince h1 kutusundan taşıyor ve RTL'de sağdan sola
+   akan taşma düğmelerin üstüne biniyordu. Pilin metni ikona indirgenir. */
+@media (max-width: 380px) {
+  .brand h1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .account-chip-label {
+    display: none;
+  }
+}
+
+/* ---------- Kartlar ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.summary {
+  display: grid;
+  /* Kahraman + üç destek: aylık toplam tam satır, gerisi eşit üçlü. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.summary-hero {
+  grid-column: 1 / -1;
+}
+
+.summary-hero .summary-value {
+  font-size: clamp(26px, 8vw, 40px);
+}
+
+.summary-card {
+  --sum-color: var(--accent-strong);
+  --sum-soft: var(--accent-soft);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 18px 18px 16px;
+}
+
+/* Üç destek kartı eşit yükseklikte bir sıradır; kısa olanların değeri boşlukta
+   yüzmesin diye etiket üste, tutar ortak bir alt hizaya sabitlenir — üç rakam
+   tek çizgide okunur, bir gösterge paneli gibi. Kahraman kart hariç. */
+.summary-card:not(.summary-hero) {
+  justify-content: space-between;
+  min-height: 104px;
+}
+
+/* Renk disiplini: kategori renkleri VERİ kodlamasıdır ve yalnızca kartlarda/
+   dağılım çubuğunda konuşur. İstatistik kartlarının dekoratif dörtlü paleti
+   (menekşe/fuşya/petrol/amber) sayfadaki renk sayısını şişiriyordu — kahraman
+   marka vurgusuyla, üç destek kartı tek sessiz tonla konuşur. Sınıf adları
+   TSX'te sabit kaldı; yalnızca değerleri sadeleşti. */
+.summary-indigo {
+  --sum-color: var(--accent-strong);
+  --sum-label: var(--accent-ink-soft);
+  --sum-soft: var(--accent-soft);
+}
+
+.summary-violet,
+.summary-teal,
+.summary-amber {
+  --sum-color: var(--text-soft);
+  --sum-label: var(--text-soft);
+  --sum-soft: color-mix(in srgb, var(--text-soft) 11%, transparent);
+}
+
+/* Sıradaki ödeme "canlı temas"tır: yalnızca bu kart fosfor sinyaliyle konuşur */
+.summary-card-next {
+  --sum-color: var(--signal);
+  --sum-label: var(--signal);
+  --sum-soft: var(--signal-soft);
+  /* Halkalar (::before) kart köşesinden taşar; kart camının içinde kalsın */
+  overflow: hidden;
+}
+
+/* İmza öğesi — radar halkaları: sıradaki ödeme kartının sağ üst köşesinde,
+   ikon kutusunun arkasından taşan eşmerkezli fosfor halkalar. Ürünün adı
+   ekranda tek bir yerde görselleşir; süs değil, "radar bir temas yakaladı"
+   bilgisinin kendisidir. Ödeme yoksa (TSX '—' basar) halkalar da anlamsız
+   kalmaz: kart yine tarama alanıdır. */
+.summary-card-next::before {
+  content: "";
+  position: absolute;
+  top: -34px;
+  inset-inline-end: -34px;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 30px, var(--signal-soft) 31px, transparent 33px),
+    radial-gradient(circle, transparent 48px, var(--signal-soft) 49px, transparent 51px),
+    radial-gradient(circle, transparent 66px, var(--signal-soft) 67px, transparent 69px);
+  -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 40%, transparent 72%);
+}
+
+.summary-icon {
+  position: absolute;
+  top: 14px;
+  /* Mantıksal kenar: Arapça'da ikon sola geçer, sağdan başlayan başlıkla
+     çakışmaz */
+  inset-inline-end: 14px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: var(--sum-label, var(--sum-color));
+  background: var(--sum-soft);
+  border-radius: 12px;
+}
+
+.summary-label {
+  /* İkon kutusunun altına girmesin */
+  padding-right: 46px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sum-label, var(--sum-color));
+}
+
+.summary-value {
+  min-width: 0;
+  overflow: hidden;
+  /* Kolon daraldıkça tutar da küçülür: dar ekranda "₺545.175,64" 24px'te
+     kolona sığmıyor ve ucu kırpılıyordu. Kırpmak yerine ölçekle. */
+  font-size: clamp(13px, 4.2vw, 24px);
+  /* Para, uygulamanın başrolüdür: teknik mono sesle, her platformda aynı */
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary-next small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kahraman kartın hikâyesi: aylık toplamın kategori dağılımı. Renkler
+   kartlardaki sol şeritlerle AYNI veri kodudur — dekor değil, açıklama. */
+.summary-breakdown {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-top: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.summary-breakdown i {
+  min-width: 3px;
+  border-radius: 999px;
+}
+
+/* Katlanan "diğer" dilimi ve efsane noktası: renk kodu taşımaz, bilinçli
+   olarak sessiz kalır — kategori renkleri veri, bu ise "gerisi" demektir. */
+.summary-breakdown i.is-other {
+  background: var(--text-soft);
+  opacity: 0.3;
+}
+
+.summary-breakdown-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-breakdown-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.summary-breakdown-legend li span {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.summary-breakdown-legend .tag-dot-other {
+  background: var(--text-soft);
+  opacity: 0.55;
+}
+
+.summary-next {
+  font-size: 17px;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-next small {
+  font-size: 12.5px;
+  font-weight: 500;
+  /* Canlı temas satırı: radar bir sonraki ödemeyi yakaladı */
+  color: var(--signal);
+}
+
+.muted {
+  color: var(--text-soft);
+}
+
+/* ---------- Araç çubuğu ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Doğrulama hatası: renk, role="alert" metniyle birlikte gelir — salt renk değil */
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.search {
+  max-width: 260px;
+}
+
+.select {
+  width: auto;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Kategori rayı — YALNIZCA araç çubuğunda: telefonda 4 satır kaplayan
+   sarma yerine tek satırlık yatay kaydırma. Kenarlardaki simetrik solma
+   "devamı var" der; simetri sayesinde RTL'de de aynı çalışır.
+   (AuthModal'daki iki sekmeli .chips seçicisi bilinçli olarak dışarıda:
+   orada kaydırma da solma da istenmez.) */
+.toolbar .chips {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Maske kenarı ile ilk/son çip arasına maske genişliği kadar iç boşluk
+     konur: ray başındayken "Tümü" solma bölgesinin dışında, tam okunur kalır;
+     kaydırıldığında araya giren çipler kenarda solarak "devamı var" der. */
+  padding: 2px 18px;
+  scroll-padding-inline: 18px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+
+.toolbar .chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.chip-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* Soft yüzeyde okunaklı kalan vurgu tonu temaya göre değişir */
+.chip-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink-soft);
+  font-weight: 600;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ---------- Butonlar ---------- */
+.btn {
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s,
+    background-color 0.15s, filter 0.15s;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  /* Üst kenardaki 1px iç ışık düğmeyi cam yüzey diline bağlar */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 2px 8px color-mix(in srgb, var(--accent-strong) 38%, transparent);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 4px 14px color-mix(in srgb, var(--accent-strong) 48%, transparent);
+}
+
+.btn-secondary {
+  color: var(--text);
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 16px;
+  background: transparent;
+  color: var(--text-soft);
+  border: none;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.icon-btn:hover {
+  background: var(--accent-soft);
+}
+
+.icon-btn.danger:hover {
+  background: var(--danger-soft);
+}
+
+/* ---------- Abonelik kartı ---------- */
+.grid {
+  display: grid;
+  /* min(): dar ekranda parça konteyner genişliğine kırpılır, yatay taşma olmaz */
+  grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
+  gap: 14px;
+}
+
+.sub-card {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.sub-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  /* Yazı rengi kategoriye göre TSX'ten gelir (CATEGORIES[].ink): sarı "Eğitim"
+     zemininde beyaz harf 1.4:1 kontrastla okunmuyordu. */
+  color: #fff;
+}
+
+.sub-avatar span {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.sub-avatar small {
+  position: absolute;
+  inset-inline-end: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  background: var(--card);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+}
+
+.sub-info {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+/* Dar telefonda 180px taban avatarın yanına sığmayıp bilgi bloğunu alt satıra
+   düşürüyordu (avatar tek başına, yarım kart boşluk). Kalan alanı alsın. */
+@media (max-width: 380px) {
+  .sub-card {
+    gap: 12px;
+  }
+
+  .sub-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .sub-avatar span {
+    font-size: 19px;
+  }
+
+  .sub-info {
+    flex-basis: 0;
+  }
+}
+
+/* Ad satırın tamamını alır. Kategori ve deneme etiketleri eskiden adın
+   yanında duruyordu ve "Netflix" gibi kısa adları bile kırpıyordu; artık
+   tutarın yanında, mikro ölçekte. İki satıra kadar tam görünür. */
+.sub-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* Tutar ve etiketler ortak taban çizgisinde: tutar yüksek sesle,
+   kategori ile deneme fısıltıyla konuşur. */
+.sub-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1px 9px;
+  margin-top: 4px;
+}
+
+/* Etiketler her kartta aynı satırda: kimi kartta tutarın yanına sığıp
+   kimindeyse alta düşseydi ızgaranın ritmi bozulurdu. */
+.sub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 3px 8px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-soft);
+}
+
+/* Kategori rozet yerine tek nokta: rengi kartın sol şeridiyle aynı */
+.tag-dot {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.tag-trial {
+  gap: 3px;
+  color: var(--accent-ink-soft);
+}
+
+.sub-price {
+  font-size: 14px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sub-price span {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.sub-date {
+  margin-top: 3px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-soft);
+}
+
+/* Tipografi sözleşmesi: VERİ (rakam, tarih, kod) mono sesle, DİL sans ile
+   konuşur. Cümle içindeki tarih bu sınıfla işaretlenir. */
+.mono-data {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  letter-spacing: -0.01em;
+}
+
+.sub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Eylem gürültüsü: imleçli cihazlarda ikincil ikonlar (paylaş/düzenle/sil)
+   kart üzerine gelinceye ya da klavye odağı içine girinceye dek susar —
+   satırda yalnızca rozet ve "İptal Rehberi" konuşur. Silme gibi yıkıcı bir
+   eylemin 13 kartta sürekli bağırması hem risk hem gürültüydü. Dokunmatikte
+   (hover yok) her şey görünür kalır; opacity kullanıldığı için ikonlar
+   Tab sırasında yerini korur ve odaklanınca kendiliğinden belirir. */
+@media (hover: hover) and (pointer: fine) {
+  .sub-actions .icon-btn {
+    opacity: 0;
+    /* opacity tek başına yetmiyordu: görünmeyen düğme tıklanabilir kalıyor,
+       kartın sağ boşluğuna denk gelen tıklama sessizce "sil"i çalıştırıyordu.
+       pointer-events ikisini birlikte kapatır. */
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .sub-card:hover .icon-btn,
+  .sub-card:focus-within .icon-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.badge {
+  display: inline-block;
+  min-width: 46px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border: none;
+  border-radius: 999px;
+}
+
+.badge-ok {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.badge-warn {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.badge-danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Radar teması ana ekranda: yaklaşan ödemenin rozeti "temas" sinyali verir.
+   Halka rozetin kendi renginde genişleyip söner (currentColor) — aciliyet
+   rengiyle çelişmez. prefers-reduced-motion global kuralı animasyonu keser. */
+.badge-ping {
+  position: relative;
+}
+
+.badge-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid currentColor;
+  border-radius: inherit;
+  opacity: 0;
+  animation: radar-ping 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 0;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* ---------- Boş durum ---------- */
+.empty-state {
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 40px 32px 32px;
+  text-align: center;
+}
+
+.empty-hero {
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+
+/* Tarama açısı tiplenmeli, yoksa conic-gradient animasyonu çalışmaz.
+   Adı --sweep OLAMAZ: o ad temaların renk token'ı; <angle> olarak kaydedilince
+   sekiz temanın rgb() değeri geçersiz sayılıp 0deg'e düşüyor ve body::after'daki
+   açılış süpürmesi hiç çizilmiyordu. */
+@property --hero-sweep {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* İkon bir radar ekranıdır: koyu cam, nokta matris ve dönen tarama huzmesi.
+   Her iki temada da koyu kalır — radar ekranı gündüz de karanlıktır. */
+.empty-hero-icon {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  color: var(--signal);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 24px;
+  box-shadow:
+    0 12px 30px color-mix(in srgb, var(--accent-strong) 32%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.empty-hero-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Gerçek radar ekranı: koyu cam üstünde fosfor yeşili tarama ve izler */
+  background:
+    conic-gradient(from var(--hero-sweep), color-mix(in srgb, var(--signal) 50%, transparent), transparent 28%),
+    radial-gradient(color-mix(in srgb, var(--signal) 28%, transparent) 1px, transparent 1.5px),
+    radial-gradient(120% 120% at 30% 20%, #0e2018, #0b0d16 70%);
+  background-size: auto, 9px 9px, auto;
+  animation: hero-sweep 3.6s linear infinite;
+}
+
+/* Ayrı ad şart: ikinci bir "radar-sweep" tanımı body::after'ın
+   transform/opacity keyframe'ini eziyordu. */
+@keyframes hero-sweep {
+  to {
+    --hero-sweep: 360deg;
+  }
+}
+
+.empty-state h2 {
+  margin-bottom: 10px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.empty-state p {
+  margin-bottom: 22px;
+  color: var(--text-soft);
+}
+
+.empty-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+
+.empty-badges span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  font-size: 19px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(3px);
+  perspective: 1200px;
+  animation: fade-in 0.15s ease-out;
+}
+
+/* Başka bir modalın üzerine açılan onay/anahtar diyalogları: DOM sırası ne
+   olursa olsun her zaman üstte boyanır. Aynı z-index'te sonra gelen kardeşin
+   kazanması yüzünden onay penceresi Ayarlar'ın ARKASINDA kalıyordu. */
+.modal-backdrop-top {
+  z-index: 60;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  /* iOS'ta 100vh gizlenebilir araç çubuğunu da sayar; dvh gerçek görünür
+     yüksekliktir. vh satırı desteklemeyen tarayıcı için yedek kalır. */
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
+  animation: pop-in 0.18s ease-out;
+}
+
+.modal-wide {
+  max-width: 580px;
+}
+
+.modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  font-size: 17px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) rotateX(12deg) scale(0.94);
+  }
+}
+
+/* ---------- Form ---------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row .input {
+  width: 100%;
+}
+
+/* ≤400px'te modal içi ~240px kalıyor; iki sabit kolon "Dışa Aktar / İçe Aktar"
+   düğmelerini ve kulüp adlarını taşırıyordu (yatay kaydırma çubuğu). */
+@media (max-width: 400px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+textarea.input {
+  resize: vertical;
+}
+
+/* Formda salt-okunur para birimi rozeti: birim Ayarlar'dan seçilir */
+.currency-static {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  background: var(--bg);
+  cursor: default;
+}
+
+.form-error {
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-radius: 10px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-strong);
+}
+
+.field-hint {
+  margin-top: -6px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+
+/* Yıkıcı bir eylemin onayı ipucu değildir: silme uyarısı ana metin
+   ağırlığında ve renginde okunur (eskiden 12.5px soluk gri .field-hint idi). */
+.confirm-message {
+  margin-bottom: 4px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Arşivlenmiş kalem: listede kalır ama sahnenin arkasına çekilir ve
+   toplamlara girmediğini rengiyle de söyler. */
+.sub-card.is-completed {
+  opacity: 0.62;
+}
+
+.sub-card.is-completed .sub-price,
+.sub-card.is-completed .sub-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.badge-done {
+  color: var(--text-soft);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+/* ---------- Tema seçici ---------- */
+.theme-group-label {
+  margin-top: 6px;
+}
+
+.team-grid {
+  display: grid;
+  /* Dört kulüp 2x2 durur: üçlü+tek satır dizilimi rastgele görünüyordu */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-tile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px 10px;
+  text-align: start;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.team-tile:hover {
+  border-color: var(--accent);
+}
+
+.team-tile.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Kulübün iki forma rengi yan yana: tema seçilmeden ne olduğu görülür */
+.team-swatch {
+  display: flex;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgb(125 125 125 / 0.35);
+}
+
+.team-swatch i {
+  flex: 1;
+}
+
+.team-name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.team-tile.active .team-name {
+  color: var(--accent-ink-soft);
+}
+
+/* ---------- Canlı döviz kurları ---------- */
+.fx-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px 15px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.fx-box .field-hint {
+  margin-top: 0;
+}
+
+.fx-box-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* .section-title dosyada daha sonra geldiği için özgüllük artırılır */
+.fx-box .fx-title {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.fx-refresh {
+  padding: 5px 12px;
+  font-size: 12.5px;
+}
+
+.fx-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fx-rates li {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-rates li span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+}
+
+.fx-rates li strong {
+  font-size: 14.5px;
+}
+
+/* ---------- İptal rehberi ---------- */
+.guide-intro {
+  margin-bottom: 14px;
+  font-size: 13.5px;
+  color: var(--text-soft);
+}
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.guide-steps li {
+  position: relative;
+  padding-block: 12px;
+  padding-inline: 46px 14px;
+  font-size: 14.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  counter-increment: step;
+}
+
+.guide-steps li::before {
+  content: counter(step);
+  position: absolute;
+  inset-inline-start: 12px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent-strong);
+  border-radius: 50%;
+}
+
+.guide-tip {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  background: var(--warn-soft);
+  border-radius: 12px;
+}
+
+.guide-link {
+  display: inline-block;
+  text-decoration: none;
+}
+
+/* ---------- Bildirim bandı & toast ---------- */
+.notif-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Gerçek genişlik şart: içerik kadar büzülen kutu, uzun dillerde metni
+     dar bir sütuna sıkıştırıp 5 satıra kırıyordu. */
+  width: calc(100vw - 32px);
+  max-width: 560px;
+  padding: 12px 16px;
+  font-size: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.2);
+  transform: translateX(-50%);
+  animation: rise-in 0.25s ease-out;
+}
+
+.notif-banner > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  /* Bildirim bandı açıkken toast onun üstüne çıkar (App .has-banner ekler) */
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Uzun içe aktarma özetleri dar ekranda taşmasın: sınırla, sarmala */
+  max-width: calc(100vw - 32px);
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--toast-ink);
+  background: var(--toast-bg);
+  border-radius: 12px;
+  transform: translateX(-50%);
+  animation: rise-in 0.25s ease-out;
+}
+
+.toast .toast-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Geri al gibi eylem düğmeleri: toast zemininde cam pill */
+.toast-action {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--toast-ink);
+  background: rgb(255 255 255 / 0.16);
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 8px;
+}
+
+.toast-action:hover {
+  background: rgb(255 255 255 / 0.26);
+}
+
+.app.has-banner .toast {
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ekran okuyucu canlı bölgesi DOM'da kalıcı; boşken görünmez */
+.toast-hidden {
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+/* ---------- Alt bilgi ---------- */
+.footer {
+  margin-top: 36px;
+  padding: 20px 20px 28px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.footer p {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+.repo-mark {
+  flex-shrink: 0;
+}
+
+/* ---------- Fiyat geçmişi grafiği ---------- */
+.chart-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-dot {
+  fill: var(--accent-strong);
+}
+
+.chart-label {
+  font-size: 10px;
+  fill: var(--text-soft);
+}
+
+.chart-summary {
+  display: flex;
+  justify-content: space-around;
+  gap: 14px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.chart-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chart-summary strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-summary strong.up {
+  color: var(--danger);
+}
+
+.chart-summary strong.down {
+  color: var(--ok);
+}
+
+.chart-summary small {
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+/* ---------- Kilit ekranı ---------- */
+.lock-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 20px;
+}
+
+.lock-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 360px;
+  padding: 36px 28px;
+  text-align: center;
+}
+
+.lock-icon {
+  width: 56px;
+  height: 56px;
+  font-size: 26px;
+}
+
+.lock-box h1 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.lock-subtitle {
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.lock-input {
+  max-width: 200px;
+  text-align: center;
+  font-size: 22px;
+  letter-spacing: 0.35em;
+  padding: 12px;
+}
+
+.lock-input:focus-visible {
+  border-color: var(--accent);
+}
+
+.lock-btn {
+  width: 100%;
+  max-width: 200px;
+}
+
+.lock-wipe {
+  margin-top: 6px;
+  padding: 0;
+  font-size: 13px;
+  color: var(--text-soft);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lock-wipe:hover {
+  color: var(--danger);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+.lock-error {
+  border-color: var(--danger) !important;
+  animation: shake 0.25s ease-out;
+}
+
+/* ---------- Ayarlar: güvenlik bölümü ---------- */
+.section-title {
+  margin-top: 10px;
+  padding-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  border-top: 1px solid var(--border);
+}
+
+.strong-hint {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.btn-danger {
+  color: var(--danger);
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.btn-danger:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.security-actions {
+  justify-content: space-between;
+}
+
+.main-actions {
+  margin-top: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* Kontroller (Giriş, kilit, Ayarlar) hiçbir ekranda büzülüp taşmaz */
+  flex-shrink: 0;
+}
+
+/* ---------- Kart detay rozetleri & notlar ---------- */
+.sub-detail-chip {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 7px;
+}
+
+.detail-kredi {
+  color: #2563eb;
+  background: rgb(37 99 235 / 0.12);
+}
+
+.detail-cek {
+  color: #7c3aed;
+  background: rgb(124 58 237 / 0.12);
+}
+
+.sub-notes {
+  margin-top: 5px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  background: rgb(125 125 125 / 0.08);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Hesap diyaloğu ---------- */
+.auth-sync-hint {
+  padding: 9px 12px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+}
+
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
+}
+
+/* ---------- Profil diyaloğu ---------- */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-radius: 50%;
+}
+
+.profile-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-identity strong {
+  font-size: 16px;
+}
+
+.profile-identity span {
+  font-size: 13px;
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-synced {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ok);
+}
+
+/* Eşitleme engelli durumu: yeşil onay yerine amber uyarı */
+.profile-synced.sync-blocked {
+  color: var(--warn);
+}
+
+.profile-sync-btn {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.sync-icon {
+  display: inline-block;
+}
+
+.sync-icon.spinning {
+  animation: sync-spin 1s linear infinite;
+}
+
+@keyframes sync-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.premium-box {
+  margin: 10px 0;
+  padding: 13px 15px;
+  font-size: 13.5px;
+  /* Vurgu→nabız eğimi + LED nokta dokusu: premium yüzey "ekran" gibi durur.
+     Renkler temadan gelir; sabit menekşe kâğıt ve kulüp temalarında yabancıydı. */
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), color-mix(in srgb, var(--pulse) 10%, transparent)),
+    radial-gradient(color-mix(in srgb, var(--accent) 14%, transparent) 1px, transparent 1.4px) 0 0 / 10px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 12px;
+}
+
+.premium-box p {
+  margin-top: 5px;
+  color: var(--text-soft);
+}
+
+.premium-cta {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: none;
+}
+
+.delete-account-btn {
+  margin-top: 10px;
+}
+
+.profile-webaccess {
+  margin: 10px 0 14px;
+  padding: 11px 13px;
+  font-size: 12.5px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+}
+
+.profile-webaccess p {
+  margin-top: 4px;
+  color: var(--text-soft);
+}
+
+/* ---------- Header hesap rozeti & konuk banner ---------- */
+.account-chip {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  /* Metin asla sarmamalı: sarınca hap daireye dönüp bozuluyordu */
+  white-space: nowrap;
+  color: var(--accent-ink-soft);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px;
+  transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.account-chip:hover {
+  background: color-mix(in srgb, var(--accent-soft) 75%, var(--accent));
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.account-chip-avatar {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-radius: 50%;
+}
+
+/* Giriş şeridi: sessiz bir hatırlatma — ince, kapatılabilir, tek satır.
+   Uygulama hesapsız da tam çalıştığı için bu bir duvar değil davetiyedir. */
+.cloud-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 7px 8px 7px 13px;
+  font-size: 13px;
+  text-align: start;
+  color: var(--text);
+  /* Vurgu token'ından türer: kâğıt (turkuaz) ve kulüp temalarında mor kalmasın */
+  background:
+    linear-gradient(to right, color-mix(in srgb, var(--accent) 7%, transparent), color-mix(in srgb, var(--accent) 3%, transparent)),
+    radial-gradient(color-mix(in srgb, var(--accent) 9%, transparent) 1px, transparent 1.4px) 0 0 / 10px 10px;
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--radius);
+}
+
+.cloud-banner-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.cloud-banner-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-soft);
+}
+
+.cloud-banner-cta {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.cloud-banner-dismiss {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  /* Dar ekranda metin iki satıra sarabilir; düğmeler sıkışmasın */
+  .cloud-banner {
+    flex-wrap: wrap;
+    padding: 8px 10px 8px 13px;
+  }
+
+  .cloud-banner-text {
+    flex-basis: calc(100% - 60px);
+  }
+
+  .cloud-banner-cta {
+    margin-left: auto;
+  }
+}
+
+/* ---------- Ayarlar hesap kartı & tam genişlik butonlar ---------- */
+.settings-account-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+}
+
+.settings-account-card .btn {
+  flex-shrink: 0;
+}
+
+.full-width-btn {
+  width: 100%;
+}
+
+/* ---------- Fiyat geçmişi listesi ---------- */
+.chart-history-list {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  list-style: none;
+  padding: 0;
+}
+
+.chart-history-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 2px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border);
+}
+
+.chart-history-list li span {
+  color: var(--text-soft);
+}
+
+/* ---------- Duyarlılık ---------- */
+@media (max-width: 900px) {
+  /* İki kolonda tutara ~123px kalıyor; ikonu ve dolguyu daraltmazsak
+     yedi haneli bir yıllık tahmin kolona sığmayıp kırpılıyor. */
+  .summary-card {
+    padding: 13px 13px 12px;
+  }
+
+  .summary-value {
+    /* Sabit genişlikli rakamlar burada ~%7 yer israfı; dar ekranda
+       orantılı rakamlara geçmek yedi haneli tutarı kırpılmaktan kurtarıyor.
+       Kolon hizası iki kolonlu düzende zaten görsel olarak önemsiz. */
+    font-variant-numeric: proportional-nums;
+  }
+
+  .summary-icon {
+    top: 12px;
+    inset-inline-end: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .summary-label {
+    padding-inline-end: 38px;
+  }
+
+  .summary {
+    /* minmax(0, ...) şart: 1fr'nin örtük asgarisi min-content olduğu için
+       bölünemeyen uzun bir tutar kolonu şişirip yatay taşma yaratıyor */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* İki kolonda tek başına yarım kalmasın: en yakın ödeme de tam satır */
+  .summary-card-next {
+    grid-column: 1 / -1;
+  }
+}
+
+/* En dar telefonlarda özet kutusuna son birkaç pikseli de ver: yedi haneli
+   bir yıllık tahmin burada kırpılmadan sığmalı, çünkü eksik gösterilen bir
+   tutar yanlış bilgidir. */
+@media (max-width: 400px) {
+  .summary-card {
+    padding: 11px 11px 10px;
+  }
+
+  .summary-label {
+    padding-right: 34px;
+  }
+}
+
+@media (max-width: 640px) {
+  .search {
+    max-width: none;
+    width: 100%;
+  }
+
+  .toolbar-right {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .toolbar-right .select {
+    flex: 1;
+    /* min-width:auto flex ogesinin min-content'in altina inmesini engeller;
+       select'in en uzun secenegi "+ Ödeme Ekle" butonunu ekrandan tasiriyordu */
+    min-width: 0;
+  }
+
+  .sub-actions {
+    width: 100%;
+  }
+}
+
+/* =============================================================
+   3B DERİNLİK SİSTEMİ
+   -------------------------------------------------------------
+   İlke: derinlik dekor değil, hiyerarşidir. Bir ödeme ne kadar
+   acilse kartı kullanıcıya o kadar yakın durur — ızgaraya bakan
+   göz tutarları okumadan önce hangisinin yaklaştığını gölgenin
+   ağırlığından anlar.
+
+   Üç katman:
+     1) Sahne  — .grid ve .summary ortak bir kaçış noktası paylaşır,
+                 böylece soldaki kart sahnenin içine doğru eğilir.
+     2) Yüzey  — kart işaretçiye doğru eğilir, üstünde ışık gezer.
+     3) İçerik — avatar ve rozet yüzeyin üstünde yüzer; eğim
+                 sırasında gerçek parallax oluşur.
+
+   Eğim motoru dokunmatikte ve prefers-reduced-motion'da hiç
+   bağlanmaz (src/lib/tilt.ts). Geriye yalnızca dingin derinlik
+   kalır: hareket yok, hiyerarşi duruyor.
+   ============================================================= */
+
+/* Özellikleri tiplemek şart: tipsiz bir custom property'den beslenen
+   transform, üzerinde transition varken Chrome'da güncellenmiyor — değer
+   eski karede takılı kalıyor ve eğim hiç görünmüyor. @property hem bunu
+   çözer hem de açıların kendisinin yumuşatılabilmesini sağlar. */
+@property --rx {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --ry {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --lift {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: false;
+}
+@property --rest-z {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
+}
+@property --hover-z {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
+}
+@property --mx {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: false;
+}
+@property --my {
+  syntax: "<percentage>";
+  initial-value: 50%;
+  inherits: false;
+}
+
+/* --- 1) Sahne --- */
+.summary,
+.grid {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+  /* 3B sahne asla sayfa düzenine taşmamalı: Z ekseninde yükselen kart
+     perspektif yüzünden bir tık büyür ve dar ekranda yatay kaydırma
+     yaratabilir. clip kaydırma üretmez; clip-margin gölgelerin ve eğimin
+     dışarı taşmasına izin verir. Desteği olmayan tarayıcı görünüre
+     döner, yani en fazla eski davranışa geri gider. */
+  overflow-x: clip;
+  overflow-y: visible;
+  overflow-clip-margin: 60px;
+}
+
+/* --- 2) Yüzey --- */
+.sub-card,
+.summary-card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  /* --lift (0..1) aciliyetin tek kadranı: hem kartı ne kadar yükselttiğini
+     hem gölgesinin ne kadar koyulaştığını buradan türetiyoruz. İkisi birlikte
+     hareket etmezse derinlik göz tarafından okunmuyor. */
+  --lift: 0;
+  --rest-z: calc(var(--lift) * 24px);
+  --hover-z: 0px;
+  --z: calc(var(--rest-z) + var(--hover-z));
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--z));
+  /* Gölge doğrudan yükseklikten türetilir: yükseldikçe uzar ve dağılır */
+  /* Cam yüzey: üst kenarda 1px ışık çizgisi, ardından gölge katmanları.
+     Koyu zeminde gölge neredeyse okunmaz; oradaki işi aşağıdaki
+     parlaklık farkı devralır. */
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 calc(1px + var(--z) * 0.35) calc(4px + var(--z) * 0.6) rgb(16 24 40 / 0.05),
+    0 calc(3px + var(--z) * 0.7) calc(10px + var(--z) * 1.7)
+      rgb(var(--cast-rgb) / calc(var(--cast-a) + var(--lift) * var(--cast-a-lift)));
+  /* Aciliyet arttıkça yüzey aydınlanır ve kenarı accent'e döner. Referans
+     tasarımın yaptığı da bu: yakın olan net ve parlak, uzak olan karanlığa
+     gömülü. Gölgenin zayıf kaldığı koyu temada derinliği taşıyan budur. */
+  background:
+    linear-gradient(to bottom, var(--surface-lit), transparent 44%),
+    color-mix(in srgb, #ffffff calc(var(--lift) * 4%), var(--card));
+  border-color: color-mix(in srgb, var(--accent) calc(var(--lift) * 20%), var(--border));
+  /* Geçiş transform'a değil özelliklerin kendisine bağlanır; transform ve
+     box-shadow onlardan her karede yeniden türetilir. @property desteği
+     olmayan tarayıcıda geçiş yok sayılır, eğim yine çalışır. */
+  transition:
+    --rx 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    --ry 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    --hover-z 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.3s ease;
+}
+
+/* İşaretçi kartın üstündeyken takip gecikmesiz olmalı, yoksa el
+   kartı sürüklüyormuş gibi hissedilir */
+.sub-card.is-tilting,
+.summary-card.is-tilting {
+  transition:
+    --rx 0.09s linear,
+    --ry 0.09s linear,
+    --hover-z 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.3s ease;
+  will-change: transform;
+}
+
+/* Aciliyet = yakınlık. Gölge formülü gerisini kendisi halleder. */
+.sub-card[data-urgency="later"] { --lift: 0; }
+.sub-card[data-urgency="soon"] { --lift: 0.38; }
+.sub-card[data-urgency="today"] { --lift: 0.72; }
+.sub-card[data-urgency="overdue"] { --lift: 1; }
+
+/* Radar kilidi: yaklaşan ödemenin kartı köşe braketleriyle "hedefe alınır".
+   Görünürlük aciliyetten türetilir — braket dekor değil, aynı hiyerarşinin
+   ikinci sesi. ::before parlama katmanı, ::after braketler. */
+.sub-card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  --bk: var(--accent);
+  background:
+    linear-gradient(var(--bk), var(--bk)) left top / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) left top / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) right top / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) right top / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) left bottom / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) left bottom / 1.5px 13px,
+    linear-gradient(var(--bk), var(--bk)) right bottom / 13px 1.5px,
+    linear-gradient(var(--bk), var(--bk)) right bottom / 1.5px 13px;
+  background-repeat: no-repeat;
+  opacity: calc(var(--lift) * 0.9);
+  transform: translateZ(2px);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sub-card[data-urgency="overdue"]::after {
+  --bk: var(--danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sub-card:hover::after {
+    opacity: 1;
+  }
+}
+
+.summary-card { --lift: 0.16; }
+
+/* Dokunmatikte :hover TAKILI KALIR: karta bir kez dokunan kullanıcı, başka
+   bir yere dokunana dek kartı havada asılı görür. Kaldırmayı yalnızca
+   gerçek işaretçisi olan cihazlara veriyoruz. */
+@media (hover: hover) and (pointer: fine) {
+  .sub-card:hover {
+    --hover-z: 12px;
+  }
+
+  .summary-card:hover {
+    --hover-z: 14px;
+  }
+
+  .sub-card:hover,
+  .summary-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  }
+}
+
+/* Yüzeyde gezen ışık — eğimden çok bunu "gerçek yüzey" hissettiriyor.
+   .summary-card::before renk şeridi olduğu için orada ::after kullanılır. */
+.sub-card::before,
+.summary-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mx) var(--my),
+    var(--sheen),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+/* Parlama konumlandırılmış bir katman; CSS boyama sırasına göre
+   konumlandırılmamış kardeşlerinin ÜSTÜNE düşer. Yükseltilmemiş gövde
+   metni (ad, tutar, tarih) tam da bu yüzden altında kalıp kontrast
+   kaybediyordu. İçeriği de konumlandırınca tree order işini yapıyor ve
+   metin ışığın üstüne çıkıyor — Z'ye tırmandırmaya gerek kalmadan. */
+.sub-card > .sub-info,
+.sub-card > .sub-actions {
+  position: relative;
+}
+
+.sub-card.is-tilting::before,
+.summary-card.is-tilting::after {
+  opacity: 1;
+}
+
+/* Renk şeridi parlamanın üstünde kalsın; aynı düzlemde buluşup titremesinler */
+.summary-card::before {
+  transform: translateZ(1px);
+}
+
+/* --- 3) İçerik katmanları --- */
+/* Yalnızca büyük tipografi ve grafik öğeler Z'ye çıkar; küçük gövde
+   metni yüzeyde bırakılır, eğimde bulanıklaşmasın diye. */
+.sub-card .sub-avatar {
+  transform: translateZ(30px);
+  box-shadow: 0 calc(4px + var(--z) * 0.4) calc(12px + var(--z))
+    rgb(16 24 40 / calc(0.22 + var(--lift) * 0.12));
+}
+
+.sub-card .badge {
+  transform: translateZ(18px);
+}
+
+.summary-card .summary-icon {
+  transform: translateZ(36px);
+  box-shadow: 0 calc(3px + var(--z) * 0.5) calc(10px + var(--z)) rgb(16 24 40 / 0.16);
+}
+
+.summary-card .summary-value {
+  transform: translateZ(20px);
+}
+
+.summary-card .summary-label {
+  transform: translateZ(11px);
+}
+
+/* --- Boş durum: uygulamanın ilk izlenimi --- */
+.empty-hero {
+  perspective: 900px;
+}
+
+.empty-hero-icon {
+  transform-style: preserve-3d;
+  animation: hero-orbit 7s ease-in-out infinite;
+}
+
+@keyframes hero-orbit {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: translateY(-9px) rotateX(9deg) rotateY(-13deg);
+  }
+  50% {
+    transform: translateY(-3px) rotateX(0deg) rotateY(0deg);
+  }
+  75% {
+    transform: translateY(-9px) rotateX(-7deg) rotateY(13deg);
+  }
+}
+
+/* --- Marka işareti: küçük ama karakter veren detay --- */
+.brand-icon {
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover .brand-icon {
+    transform: perspective(600px) rotateY(-20deg) rotateX(10deg) translateZ(8px);
+  }
+}
+
+/* =============================================================
+   iOS / ANDROID UYUMU
+   -------------------------------------------------------------
+   Kurulu uygulamada (TWA / iOS wrapper / ana ekrana eklenmiş PWA)
+   web sayfası gibi değil, uygulama gibi davranması için gereken
+   düzeltmeler. Çentik payları, gerçek görünür yükseklik ve lastik
+   esneme yukarıda body/header/modal kurallarında ele alındı;
+   burada kalan iki konu var: parmak ölçüsü ve dokunma davranışı.
+   ============================================================= */
+
+/* Dokunmatikte hedefler parmağa göre büyür, masaüstünde yoğunluk korunur.
+   iOS HIG 44pt ister, Android Material 48dp; 44px ikisini de karşılayan
+   pratik taban ve WCAG 2.5.5'i de geçer. Kartta beş ikon yan yana
+   durduğu için burası yanlış dokunuşun en pahalı olduğu yer. */
+@media (pointer: coarse) {
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn,
+  .chip-btn,
+  .team-tile {
+    min-height: 44px;
+  }
+
+  .input,
+  .select {
+    min-height: 44px;
+  }
+
+  /* Aksiyon satırı büyüyen hedeflerle sıkışmasın */
+  .sub-actions {
+    gap: 2px;
+  }
+}
+
+/* Uzun basınca seçim tutamakları ve kopyala balonu çıkması kurulu
+   uygulamada "web sayfası" hissi verir. Yalnızca kontrollerde kapatılır;
+   ödeme adı, tutar ve notlar seçilebilir kalır — kullanıcı onları
+   kopyalamak isteyebilir. */
+button,
+.chip-btn,
+.badge,
+.sub-avatar,
+.summary-icon,
+.brand-icon {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
