@@ -47,3 +47,6 @@ android-dist/
 
 .video_agent/
 graphify-out/
+.mimosa/
+.v2c/
+gui-test-screenshots/
