@@ -70,7 +70,7 @@ npm run preview  # derlemeyi önizle
 
 ## 📄 Lisans · License
 
-[MIT](LICENSE) — özgürce kullan, çatalla, katkı yap.
+[MIT](LICENSE) © 2026 Erol Tasci — özgürce kullan, çatalla, katkı yap.
 
 ---
 
