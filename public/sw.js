@@ -5,7 +5,7 @@
 // sürüm terfisiyle zehirlenmiş eski önbellekleri her cihazda temizler.
 // v3 → v4: 1 Eyl 2026 arayüz düzeltmeleri; ad değişince her cihazda eski
 // v4 → v5: Alt bilgi (footer) repo bağlantısı GitLab güncellemesi ve önbellek yenileme.
-const CACHE = "payradar-v5";
+const CACHE = "payradar-v6";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
