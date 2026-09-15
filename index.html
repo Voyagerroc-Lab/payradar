@@ -27,6 +27,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Relative path is required when the app is hosted under a subpath or opened by a TWA/WebView. -->
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

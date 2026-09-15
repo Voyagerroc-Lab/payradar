@@ -275,6 +275,8 @@ const tr = {
   "footer.free":
     "PayRadar %100 ücretsizdir — reklam yok, takip yok. Verilerin cihazında kalır; istersen bulut senkronu açarsın.",
   "footer.openSource": "Açık kaynak (MIT)",
+  "update.bannerText": "Yeni sürüm hazır. Verilerin cihazında korunur.",
+  "update.download": "Güncel sürümü indir",
 
   // Kilit ekranı
   "lock.enterPin": "PIN gir",
@@ -580,6 +582,8 @@ const en: Record<TranslationKey, string> = {
   "footer.free":
     "PayRadar is 100% free — no ads, no tracking. Your data stays on your device unless you enable cloud sync.",
   "footer.openSource": "Open source (MIT)",
+  "update.bannerText": "A new version is ready. Your data stays on this device.",
+  "update.download": "Download latest version",
 
   "lock.enterPin": "Enter PIN",
   "lock.unlock": "Unlock",
@@ -808,6 +812,8 @@ const ms: Partial<Record<TranslationKey, string>> = {
   "footer.free":
     "PayRadar 100% percuma — tiada iklan, tiada penjejakan. Data anda disimpan sepenuhnya pada peranti anda.",
   "footer.openSource": "Sumber Terbuka (MIT)",
+  "update.bannerText": "Versi baharu tersedia. Data anda kekal pada peranti ini.",
+  "update.download": "Muat turun versi terkini",
 
   "lock.enterPin": "Masukkan PIN",
   "lock.unlock": "Buka Kunci",
@@ -1185,6 +1191,8 @@ const es: Record<TranslationKey, string> = {
   "footer.free":
     "PayRadar es 100% gratis — sin anuncios, sin rastreo. Tus datos permanecen en tu dispositivo salvo que actives la sincronización en la nube.",
   "footer.openSource": "Código abierto (MIT)",
+  "update.bannerText": "Hay una nueva versión. Tus datos permanecen en este dispositivo.",
+  "update.download": "Descargar versión actual",
 
   "lock.enterPin": "Ingresa el PIN",
   "lock.unlock": "Desbloquear",
@@ -1483,6 +1491,8 @@ const ar: Record<TranslationKey, string> = {
   "footer.free":
     "PayRadar مجاني 100% — بلا إعلانات وبلا تتبّع. تبقى بياناتك على جهازك ما لم تفعّل المزامنة السحابية.",
   "footer.openSource": "مفتوح المصدر (MIT)",
+  "update.bannerText": "يتوفر إصدار جديد. تبقى بياناتك على هذا الجهاز.",
+  "update.download": "تنزيل أحدث إصدار",
 
   "lock.enterPin": "أدخل رمز PIN",
   "lock.unlock": "فتح",
