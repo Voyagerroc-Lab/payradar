@@ -1838,51 +1838,6 @@ textarea.input {
 }
 
 /* ---------- Bildirim bandı & toast ---------- */
-.update-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  margin-bottom: 14px;
-  padding: 10px 12px 10px 14px;
-  color: var(--text);
-  background: var(--accent-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  border-radius: var(--radius);
-}
-
-.update-banner-text {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-soft);
-}
-
-.update-banner-link {
-  flex-shrink: 0;
-  padding: 7px 12px;
-  font-size: 13px;
-  text-decoration: none;
-}
-
-@media (max-width: 480px) {
-  .update-banner {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .update-banner-text {
-    flex-basis: 100%;
-  }
-
-  .update-banner-link {
-    margin-left: auto;
-  }
-}
-
 .notif-banner {
   position: fixed;
   left: 50%;

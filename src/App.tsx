@@ -883,7 +883,6 @@ export default function App() {
           />
 
           <main className="container" id="main" tabIndex={-1}>
-            <UpdateBanner />
             {cloudEnabled &&
               !cloudUser &&
               !cloudBannerDismissed &&
@@ -1266,25 +1265,6 @@ function NotificationBanner({
     </div>
   );
 }
-
-/** Eski TWA/PWA sürümlerinde de aynı origin'deki güncel web koduna geçiş sağlar.
- * update=1 yalnızca service worker önbelleğini temizler; localStorage/kasa verisine dokunmaz. */
-function UpdateBanner() {
-  const { t } = useI18n();
-  const updateUrl = `${window.location.origin}${window.location.pathname}?update=1`;
-
-  return (
-    <div className="update-banner" role="status">
-      <span className="update-banner-text">
-        <Icon name="download" size={15} /> {t("update.bannerText")}
-      </span>
-      <a className="btn btn-primary update-banner-link" href={updateUrl}>
-        {t("update.download")}
-      </a>
-    </div>
-  );
-}
-
 
 /** Buluttan gelen ham veriyi VaultData'ya çevirir; bozuksa null döner. */
 function asVaultData(raw: unknown, fallbackUpdatedAt: number): VaultData | null {
